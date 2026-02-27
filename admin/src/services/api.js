@@ -25,19 +25,19 @@ api.interceptors.response.use(
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
 export const authService = {
-  login: (data) => api.post('/auth/login', data),
-  getMe: () => api.get('/auth/me'),
+  login:          (data) => api.post('/auth/login', data),
+  getMe:          ()     => api.get('/auth/me'),
   updatePassword: (data) => api.put('/auth/update-password', data),
 };
 
 // ── Blogs ──────────────────────────────────────────────────────────────────────
 export const blogService = {
-  getAll:    (params) => api.get('/admin/blogs', { params }),
-  getById:   (id)     => api.get(`/blogs/${id}`),
-  create:    (data)   => api.post('/admin/blogs', data),       // FormData for images
-  update:    (id, data) => api.put(`/admin/blogs/${id}`, data),
-  delete:    (id)     => api.delete(`/admin/blogs/${id}`),
-  getStats:  ()       => api.get('/admin/stats'),
+  getAll:   (params)    => api.get('/admin/blogs', { params }),
+  getById:  (id)        => api.get(`/blogs/${id}`),
+  create:   (data)      => api.post('/admin/blogs', data),
+  update:   (id, data)  => api.put(`/admin/blogs/${id}`, data),
+  delete:   (id)        => api.delete(`/admin/blogs/${id}`),
+  getStats: ()          => api.get('/admin/stats'),
 };
 
 // ── Comments ───────────────────────────────────────────────────────────────────
@@ -49,21 +49,43 @@ export const commentService = {
   reply: (blogId, commentId, data) =>
     api.post(`/admin/blogs/${blogId}/comments/${commentId}/reply`, data),
 };
-// api.js — add this alongside blogService, commentService, etc.
 
 // ── Services ───────────────────────────────────────────────────────────────────
 export const serviceService = {
-  // Public
-  getAll:       (params) => api.get('/services', { params }),
-  getBySlug:    (slug)   => api.get(`/services/slug/${slug}`),
+  getAll:     (params)   => api.get('/services', { params }),
+  getBySlug:  (slug)     => api.get(`/services/slug/${slug}`),
+  getAllAdmin: (params)   => api.get('/services/admin/all', { params }),
+  getById:    (id)       => api.get(`/services/${id}`),
+  create:     (data)     => api.post('/services', data),
+  update:     (id, data) => api.put(`/services/${id}`, data),
+  reorder:    (data)     => api.put('/services/reorder', data),
+  delete:     (id)       => api.delete(`/services/${id}`),
+};
 
-  // Admin (protected)
-  getAllAdmin:   (params) => api.get('/services/admin/all', { params }),
-  getById:      (id)     => api.get(`/services/${id}`),
-  create:       (data)   => api.post('/services', data),         // FormData for images
-  update:       (id, data) => api.put(`/services/${id}`, data),  // FormData for images
-  reorder:      (data)   => api.put('/services/reorder', data),
-  delete:       (id)     => api.delete(`/services/${id}`),
+// ── Events ─────────────────────────────────────────────────────────────────────
+export const eventService = {
+  // ── Public (no auth needed) ──────────────────────────────────────────────
+  // GET /api/events?type=conference&status=featured
+  getAll:   (params)   => api.get('/events', { params }),
+  getById:  (id)       => api.get(`/events/${id}`),
+
+  // ── Admin (protected — token sent automatically via interceptor) ─────────
+  // GET    /api/admin/events
+  // POST   /api/admin/events          → FormData (with eventImage file)
+  // PUT    /api/admin/events/:id      → FormData (with optional new image)
+  // PATCH  /api/admin/events/:id/toggle
+  // PATCH  /api/admin/events/reorder  → { orders: [{id, order}] }
+  // DELETE /api/admin/events/:id
+  getAllAdmin: (params)   => api.get('/admin/events', { params }),
+  create:     (formData) => api.post('/admin/events', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  update: (id, formData) => api.put(`/admin/events/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  toggle:  (id)    => api.patch(`/admin/events/${id}/toggle`),
+  reorder: (data)  => api.patch('/admin/events/reorder', data),
+  delete:  (id)    => api.delete(`/admin/events/${id}`),
 };
 
 export default api;

@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import BannerManager from './pages/BannerManager';
 import ServiceManager from './pages/Servicemanager';
 import ServiceForm from './pages/Serviceform';
+import EventManager from './pages/Eventmanager'; // ← NEW
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="services"           element={<ServiceManager />} />
         <Route path="services/new"       element={<ServiceForm />} />
         <Route path="services/edit/:id"  element={<ServiceForm />} />
+        <Route path="/events"    element={<EventManager />} /> {/* ← NEW events route */}
           </Route>
         </Routes>
       </BrowserRouter>

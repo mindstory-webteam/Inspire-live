@@ -16,7 +16,7 @@ api.interceptors.request.use((config) => {
 });
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // ✅ expose token so ServiceManager / ServiceForm can access it
+  // Expose token so any page can read it if needed
   const token = localStorage.getItem('adminToken');
 
   return (
