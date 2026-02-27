@@ -1,7 +1,12 @@
 // utils/eventApi.js
 // Mirrors the pattern of blogApi.js / serviceapi.js in your utils folder
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+// Strip trailing slash + any trailing "/api" duplication at runtime.
+// Works whether your env var is:
+//   https://inspire-live.onrender.com        → appends /api/events  ✓
+//   https://inspire-live.onrender.com/api    → appends /events      ✓
+const _RAW = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
+const BASE_URL = _RAW.endsWith('/api') ? _RAW.slice(0, -4) : _RAW;
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
