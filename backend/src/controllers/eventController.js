@@ -139,11 +139,32 @@ const updateEvent = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
 
-    const updateData = { ...req.body };
+    // Explicitly pick only the fields you want to update
+    const {
+      eventTitle,
+      tagline,
+      eventBrief,
+      eventDate,
+      eventVenue,
+      eventType,
+      participantCount,
+      eventStatus,
+      order,
+    } = req.body;
+
+    const updateData = {};
+    if (eventTitle !== undefined)      updateData.eventTitle      = eventTitle;
+    if (tagline !== undefined)         updateData.tagline         = tagline;
+    if (eventBrief !== undefined)      updateData.eventBrief      = eventBrief;
+    if (eventDate !== undefined)       updateData.eventDate       = eventDate;
+    if (eventVenue !== undefined)      updateData.eventVenue      = eventVenue;
+    if (eventType !== undefined)       updateData.eventType       = eventType;
+    if (participantCount !== undefined) updateData.participantCount = participantCount;
+    if (eventStatus !== undefined)     updateData.eventStatus     = eventStatus;
+    if (order !== undefined)           updateData.order           = Number(order);
 
     // Handle new image upload
     if (req.file) {
-      // Delete old image from Cloudinary if exists
       if (event.eventImage?.publicId) {
         try {
           await deleteFromCloudinary(event.eventImage.publicId, 'image');
