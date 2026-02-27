@@ -2,9 +2,6 @@ import { useState, useEffect, useRef } from "react";
 // Uses your shared axios instance — token attached automatically via interceptor
 import { eventService } from "../services/api";
 
-// ── If your api.js is at a different relative path, update the import above ──
-// e.g. import { eventService } from "../../src/services/api";
-
 const EVENT_TYPES    = ["conference","orientation","symposium","festival","career","sports","other"];
 const EVENT_STATUSES = ["upcoming","featured","past","draft"];
 
@@ -50,13 +47,28 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+// ─── Shared input style ───────────────────────────────────────────────────────
+const inputBase = (hasErr) => ({
+  width:"100%",
+  padding:"10px 14px",
+  border:`2px solid ${hasErr ? "#dc2626" : "#e5e7eb"}`,
+  borderRadius:8,
+  fontSize:14,
+  outline:"none",
+  transition:"border-color 0.2s",
+  boxSizing:"border-box",
+  color:"#000000",          // ← black typed text
+  background:"#ffffff",
+  WebkitTextFillColor:"#000000", // ← fix Safari autofill override
+});
+
 // ─── Event Form Modal ─────────────────────────────────────────────────────────
 const EventModal = ({ event, onClose, onSave }) => {
-  const [form, setForm]         = useState(event ? { ...event } : { ...EMPTY_FORM });
+  const [form, setForm]             = useState(event ? { ...event } : { ...EMPTY_FORM });
   const [imageFile, setImageFile]   = useState(null);
   const [imagePreview, setImagePreview] = useState(event?.eventImage?.url || "");
-  const [saving, setSaving]     = useState(false);
-  const [errors, setErrors]     = useState({});
+  const [saving, setSaving]         = useState(false);
+  const [errors, setErrors]         = useState({});
   const fileRef = useRef();
 
   const handleChange = (e) => {
@@ -87,7 +99,6 @@ const EventModal = ({ event, onClose, onSave }) => {
     if (!validate()) return;
     setSaving(true);
     try {
-      // Build FormData so image file is sent correctly
       const fd = new FormData();
       const skip = new Set(["eventImage","_id","__v","createdAt","updatedAt","isActive"]);
       Object.entries(form).forEach(([k, v]) => {
@@ -95,7 +106,6 @@ const EventModal = ({ event, onClose, onSave }) => {
       });
       if (imageFile) fd.append("eventImage", imageFile);
 
-      // eventService uses your axios instance (token auto-attached)
       const res = event?._id
         ? await eventService.update(event._id, fd)
         : await eventService.create(fd);
@@ -109,180 +119,212 @@ const EventModal = ({ event, onClose, onSave }) => {
     }
   };
 
-  const inp = (hasErr) => ({
-    width:"100%", padding:"10px 14px",
-    border:`2px solid ${hasErr ? "#dc2626" : "#e5e7eb"}`,
-    borderRadius:8, fontSize:14, outline:"none",
-    transition:"border-color 0.2s", boxSizing:"border-box",
-  });
-
   return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:1000,
-      background:"rgba(12,30,33,0.7)",
-      display:"flex", alignItems:"center", justifyContent:"center", padding:20,
-    }}>
-      <div style={{
-        background:"#fff", borderRadius:16, width:"100%",
-        maxWidth:680, maxHeight:"90vh", overflowY:"auto",
-        boxShadow:"0 20px 60px rgba(0,0,0,0.3)",
+    <>
+      {/* Global style to ensure all inputs inside this modal are black */}
+      <style>{`
+        .event-modal input,
+        .event-modal textarea,
+        .event-modal select,
+        .event-modal option {
+          color: #000000 !important;
+          -webkit-text-fill-color: #000000 !important;
+        }
+        .event-modal input::placeholder,
+        .event-modal textarea::placeholder {
+          color: #9ca3af !important;
+          -webkit-text-fill-color: #9ca3af !important;
+        }
+        .event-modal select option {
+          color: #000000 !important;
+          background: #ffffff !important;
+        }
+        .event-modal input:focus,
+        .event-modal textarea:focus,
+        .event-modal select:focus {
+          border-color: #1a598a !important;
+          outline: none !important;
+        }
+        /* Fix browser autofill yellow background */
+        .event-modal input:-webkit-autofill,
+        .event-modal input:-webkit-autofill:hover,
+        .event-modal input:-webkit-autofill:focus {
+          -webkit-text-fill-color: #000000 !important;
+          -webkit-box-shadow: 0 0 0px 1000px #fff inset !important;
+        }
+      `}</style>
+
+      <div className="event-modal" style={{
+        position:"fixed", inset:0, zIndex:1000,
+        background:"rgba(12,30,33,0.7)",
+        display:"flex", alignItems:"center", justifyContent:"center", padding:20,
       }}>
-        {/* Header */}
         <div style={{
-          padding:"20px 28px", borderBottom:"1px solid #f3f4f6",
-          display:"flex", justifyContent:"space-between", alignItems:"center",
-          position:"sticky", top:0, background:"#fff", zIndex:1,
+          background:"#fff", borderRadius:16, width:"100%",
+          maxWidth:680, maxHeight:"90vh", overflowY:"auto",
+          boxShadow:"0 20px 60px rgba(0,0,0,0.3)",
         }}>
-          <h2 style={{margin:0, fontSize:20, fontWeight:700, color:"#0c1e21"}}>
-            {event?._id ? "Edit Event" : "Add New Event"}
-          </h2>
-          <button onClick={onClose}
-            style={{background:"none",border:"none",fontSize:24,cursor:"pointer",color:"#6b7280"}}>
-            ×
-          </button>
-        </div>
+          {/* Header */}
+          <div style={{
+            padding:"20px 28px", borderBottom:"1px solid #f3f4f6",
+            display:"flex", justifyContent:"space-between", alignItems:"center",
+            position:"sticky", top:0, background:"#fff", zIndex:1,
+          }}>
+            <h2 style={{margin:0, fontSize:20, fontWeight:700, color:"#0c1e21"}}>
+              {event?._id ? "Edit Event" : "Add New Event"}
+            </h2>
+            <button onClick={onClose}
+              style={{background:"none",border:"none",fontSize:24,cursor:"pointer",color:"#6b7280"}}>
+              ×
+            </button>
+          </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={{padding:28}}>
+          {/* Form */}
+          <form onSubmit={handleSubmit} style={{padding:28}}>
 
-          {/* Image Upload */}
-          <div style={{marginBottom:20}}>
-            <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:8}}>
-              Event Image
-            </label>
-            <div
-              onClick={() => fileRef.current.click()}
-              style={{
-                border:"2px dashed #d1d5db", borderRadius:12, cursor:"pointer",
-                background:"#f9fafb", position:"relative", height:160, overflow:"hidden",
-              }}
-            >
-              {imagePreview ? (
-                <>
-                  <img src={imagePreview} alt="Preview"
-                    style={{width:"100%",height:"100%",objectFit:"cover",position:"absolute",inset:0}} />
-                  <div style={{
-                    position:"absolute",inset:0,background:"rgba(0,0,0,0.4)",
-                    display:"flex",alignItems:"center",justifyContent:"center",
-                    opacity:0,transition:"opacity 0.2s",
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.opacity=1}
-                    onMouseLeave={e => e.currentTarget.style.opacity=0}
-                  >
-                    <span style={{color:"#fff",fontWeight:600,fontSize:14}}>Change Image</span>
+            {/* Image Upload */}
+            <div style={{marginBottom:20}}>
+              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:8}}>
+                Event Image
+              </label>
+              <div
+                onClick={() => fileRef.current.click()}
+                style={{
+                  border:"2px dashed #d1d5db", borderRadius:12, cursor:"pointer",
+                  background:"#f9fafb", position:"relative", height:160, overflow:"hidden",
+                }}
+              >
+                {imagePreview ? (
+                  <>
+                    <img src={imagePreview} alt="Preview"
+                      style={{width:"100%",height:"100%",objectFit:"cover",position:"absolute",inset:0}} />
+                    <div style={{
+                      position:"absolute",inset:0,background:"rgba(0,0,0,0.4)",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      opacity:0,transition:"opacity 0.2s",
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.opacity=1}
+                      onMouseLeave={e => e.currentTarget.style.opacity=0}
+                    >
+                      <span style={{color:"#fff",fontWeight:600,fontSize:14}}>Change Image</span>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{color:"#6b7280",textAlign:"center",paddingTop:36}}>
+                    <div style={{fontSize:36,marginBottom:8}}>🖼️</div>
+                    <div style={{fontWeight:600,fontSize:14}}>Click to upload image</div>
+                    <div style={{fontSize:12,marginTop:4}}>JPG, PNG, WebP up to 10MB</div>
                   </div>
-                </>
-              ) : (
-                <div style={{color:"#6b7280",textAlign:"center",paddingTop:36}}>
-                  <div style={{fontSize:36,marginBottom:8}}>🖼️</div>
-                  <div style={{fontWeight:600,fontSize:14}}>Click to upload image</div>
-                  <div style={{fontSize:12,marginTop:4}}>JPG, PNG, WebP up to 10MB</div>
-                </div>
-              )}
+                )}
+              </div>
+              <input ref={fileRef} type="file" accept="image/*"
+                onChange={handleImageChange} style={{display:"none"}} />
             </div>
-            <input ref={fileRef} type="file" accept="image/*"
-              onChange={handleImageChange} style={{display:"none"}} />
-          </div>
 
-          {/* Title + Tagline */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-            <div>
+            {/* Title + Tagline */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+              <div>
+                <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>
+                  Event Title *
+                </label>
+                <input name="eventTitle" value={form.eventTitle} onChange={handleChange}
+                  placeholder="e.g. Annual Academic Conference" style={inputBase(errors.eventTitle)} />
+                {errors.eventTitle && <p style={{color:"#dc2626",fontSize:12,marginTop:4}}>{errors.eventTitle}</p>}
+              </div>
+              <div>
+                <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>
+                  Tagline
+                </label>
+                <input name="tagline" value={form.tagline} onChange={handleChange}
+                  placeholder="e.g. Advancing Research & Innovation" style={inputBase(false)} />
+              </div>
+            </div>
+
+            {/* Brief */}
+            <div style={{marginBottom:16}}>
               <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>
-                Event Title *
+                Event Brief *
               </label>
-              <input name="eventTitle" value={form.eventTitle} onChange={handleChange}
-                placeholder="e.g. Annual Academic Conference" style={inp(errors.eventTitle)} />
-              {errors.eventTitle && <p style={{color:"#dc2626",fontSize:12,marginTop:4}}>{errors.eventTitle}</p>}
+              <textarea name="eventBrief" value={form.eventBrief} onChange={handleChange}
+                rows={3} placeholder="Short description of the event..."
+                style={{...inputBase(errors.eventBrief), resize:"vertical"}} />
+              {errors.eventBrief && <p style={{color:"#dc2626",fontSize:12,marginTop:4}}>{errors.eventBrief}</p>}
             </div>
-            <div>
-              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>
-                Tagline
-              </label>
-              <input name="tagline" value={form.tagline} onChange={handleChange}
-                placeholder="e.g. Advancing Research & Innovation" style={inp(false)} />
-            </div>
-          </div>
 
-          {/* Brief */}
-          <div style={{marginBottom:16}}>
-            <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>
-              Event Brief *
-            </label>
-            <textarea name="eventBrief" value={form.eventBrief} onChange={handleChange}
-              rows={3} placeholder="Short description of the event..."
-              style={{...inp(errors.eventBrief), resize:"vertical"}} />
-            {errors.eventBrief && <p style={{color:"#dc2626",fontSize:12,marginTop:4}}>{errors.eventBrief}</p>}
-          </div>
+            {/* Date + Venue */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+              <div>
+                <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>
+                  Event Date *
+                </label>
+                <input name="eventDate" value={form.eventDate} onChange={handleChange}
+                  placeholder="e.g. March 15-17, 2024" style={inputBase(errors.eventDate)} />
+                {errors.eventDate && <p style={{color:"#dc2626",fontSize:12,marginTop:4}}>{errors.eventDate}</p>}
+              </div>
+              <div>
+                <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>
+                  Venue *
+                </label>
+                <input name="eventVenue" value={form.eventVenue} onChange={handleChange}
+                  placeholder="e.g. Main Auditorium" style={inputBase(errors.eventVenue)} />
+                {errors.eventVenue && <p style={{color:"#dc2626",fontSize:12,marginTop:4}}>{errors.eventVenue}</p>}
+              </div>
+            </div>
 
-          {/* Date + Venue */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-            <div>
-              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>
-                Event Date *
-              </label>
-              <input name="eventDate" value={form.eventDate} onChange={handleChange}
-                placeholder="e.g. March 15-17, 2024" style={inp(errors.eventDate)} />
-              {errors.eventDate && <p style={{color:"#dc2626",fontSize:12,marginTop:4}}>{errors.eventDate}</p>}
+            {/* Type / Status / Participants / Order */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16,marginBottom:28}}>
+              <div>
+                <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Type *</label>
+                <select name="eventType" value={form.eventType} onChange={handleChange} style={inputBase(false)}>
+                  {EVENT_TYPES.map(t => (
+                    <option key={t} value={t} style={{color:"#000000",background:"#ffffff"}}>
+                      {t.charAt(0).toUpperCase()+t.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Status</label>
+                <select name="eventStatus" value={form.eventStatus} onChange={handleChange} style={inputBase(false)}>
+                  {EVENT_STATUSES.map(s => (
+                    <option key={s} value={s} style={{color:"#000000",background:"#ffffff"}}>
+                      {s.charAt(0).toUpperCase()+s.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Participants</label>
+                <input name="participantCount" value={form.participantCount} onChange={handleChange}
+                  placeholder="e.g. 500+" style={inputBase(false)} />
+              </div>
+              <div>
+                <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Order</label>
+                <input name="order" type="number" value={form.order} onChange={handleChange}
+                  placeholder="0" style={inputBase(false)} />
+              </div>
             </div>
-            <div>
-              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>
-                Venue *
-              </label>
-              <input name="eventVenue" value={form.eventVenue} onChange={handleChange}
-                placeholder="e.g. Main Auditorium" style={inp(errors.eventVenue)} />
-              {errors.eventVenue && <p style={{color:"#dc2626",fontSize:12,marginTop:4}}>{errors.eventVenue}</p>}
-            </div>
-          </div>
 
-          {/* Type / Status / Participants / Order */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16,marginBottom:28}}>
-            <div>
-              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Type *</label>
-              <select name="eventType" value={form.eventType} onChange={handleChange} style={inp(false)}>
-                {EVENT_TYPES.map(t => (
-                  <option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>
-                ))}
-              </select>
+            {/* Footer */}
+            <div style={{display:"flex",justifyContent:"flex-end",gap:12}}>
+              <button type="button" onClick={onClose}
+                style={{padding:"10px 24px",background:"#f3f4f6",border:"none",
+                  borderRadius:8,fontSize:14,fontWeight:600,color:"#374151",cursor:"pointer"}}>
+                Cancel
+              </button>
+              <button type="submit" disabled={saving}
+                style={{padding:"10px 28px",
+                  background: saving ? "#9ca3af" : "#1a598a",
+                  border:"none",borderRadius:8,fontSize:14,fontWeight:600,
+                  color:"#fff",cursor: saving ? "not-allowed" : "pointer",
+                  transition:"background 0.2s"}}>
+                {saving ? "Saving…" : event?._id ? "Update Event" : "Create Event"}
+              </button>
             </div>
-            <div>
-              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Status</label>
-              <select name="eventStatus" value={form.eventStatus} onChange={handleChange} style={inp(false)}>
-                {EVENT_STATUSES.map(s => (
-                  <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Participants</label>
-              <input name="participantCount" value={form.participantCount} onChange={handleChange}
-                placeholder="e.g. 500+" style={inp(false)} />
-            </div>
-            <div>
-              <label style={{fontSize:13,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Order</label>
-              <input name="order" type="number" value={form.order} onChange={handleChange}
-                placeholder="0" style={inp(false)} />
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div style={{display:"flex",justifyContent:"flex-end",gap:12}}>
-            <button type="button" onClick={onClose}
-              style={{padding:"10px 24px",background:"#f3f4f6",border:"none",
-                borderRadius:8,fontSize:14,fontWeight:600,color:"#374151",cursor:"pointer"}}>
-              Cancel
-            </button>
-            <button type="submit" disabled={saving}
-              style={{padding:"10px 28px",
-                background: saving ? "#9ca3af" : "#1a598a",
-                border:"none",borderRadius:8,fontSize:14,fontWeight:600,
-                color:"#fff",cursor: saving ? "not-allowed" : "pointer",
-                transition:"background 0.2s"}}>
-              {saving ? "Saving…" : event?._id ? "Update Event" : "Create Event"}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -306,7 +348,7 @@ const DeleteDialog = ({ event, onConfirm, onCancel, deleting }) => (
       <div style={{display:"flex",gap:12,justifyContent:"center"}}>
         <button onClick={onCancel}
           style={{padding:"10px 24px",background:"#f3f4f6",border:"none",
-            borderRadius:8,fontSize:14,fontWeight:600,cursor:"pointer"}}>
+            borderRadius:8,fontSize:14,fontWeight:600,cursor:"pointer",color:"#374151"}}>
           Cancel
         </button>
         <button onClick={onConfirm} disabled={deleting}
@@ -323,17 +365,17 @@ const DeleteDialog = ({ event, onConfirm, onCancel, deleting }) => (
 
 // ─── Main EventManager ────────────────────────────────────────────────────────
 const EventManager = () => {
-  const [events, setEvents]         = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [search, setSearch]         = useState("");
-  const [filterType, setFilterType] = useState("all");
+  const [events, setEvents]             = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [search, setSearch]             = useState("");
+  const [filterType, setFilterType]     = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [showModal, setShowModal]   = useState(false);
+  const [showModal, setShowModal]       = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleting, setDeleting]     = useState(false);
-  const [toggling, setToggling]     = useState(null);
-  const [toast, setToast]           = useState(null);
+  const [deleting, setDeleting]         = useState(false);
+  const [toggling, setToggling]         = useState(null);
+  const [toast, setToast]               = useState(null);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -348,7 +390,6 @@ const EventManager = () => {
       if (filterStatus !== "all") params.status = filterStatus;
       if (search.trim())          params.search = search.trim();
 
-      // Token auto-attached by axios interceptor
       const res = await eventService.getAllAdmin(params);
       setEvents(res.data?.data || []);
     } catch (err) {
@@ -402,12 +443,26 @@ const EventManager = () => {
     }
   };
 
-  // ── Stats ──────────────────────────────────────────────────────────────────
   const totalActive   = events.filter(e => e.isActive).length;
   const totalFeatured = events.filter(e => e.eventStatus === "featured").length;
   const totalUpcoming = events.filter(e => e.eventStatus === "upcoming").length;
 
-  // ── Styles ─────────────────────────────────────────────────────────────────
+  // ── Toolbar input/select style (black text) ────────────────────────────────
+  const toolbarInput = {
+    flex:1, padding:"9px 14px",
+    border:"2px solid #e5e7eb", borderRadius:8, fontSize:14, outline:"none",
+    color:"#000000",
+    WebkitTextFillColor:"#000000",
+    background:"#ffffff",
+  };
+
+  const toolbarSelect = {
+    padding:"9px 14px", border:"2px solid #e5e7eb", borderRadius:8,
+    fontSize:14, outline:"none", background:"#fff", cursor:"pointer",
+    color:"#000000",
+    WebkitTextFillColor:"#000000",
+  };
+
   const S = {
     wrapper:  { padding:"28px 32px", background:"#f9fafb", minHeight:"100vh" },
     header:   { display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:28 },
@@ -424,10 +479,6 @@ const EventManager = () => {
       boxShadow:"0 1px 4px rgba(0,0,0,0.06)", flexWrap:"wrap", alignItems:"center",
     },
     searchForm: { display:"flex", gap:8, flex:1, minWidth:200 },
-    searchInput: {
-      flex:1, padding:"9px 14px",
-      border:"2px solid #e5e7eb", borderRadius:8, fontSize:14, outline:"none",
-    },
     searchBtn: {
       padding:"9px 18px", background:"#1a598a", color:"#fff",
       border:"none", borderRadius:8, fontSize:14, fontWeight:600, cursor:"pointer",
@@ -435,10 +486,6 @@ const EventManager = () => {
     resetBtn: {
       padding:"9px 18px", background:"#f3f4f6", color:"#374151",
       border:"none", borderRadius:8, fontSize:14, fontWeight:600, cursor:"pointer",
-    },
-    select: {
-      padding:"9px 14px", border:"2px solid #e5e7eb", borderRadius:8,
-      fontSize:14, outline:"none", background:"#fff", cursor:"pointer",
     },
     tableWrap: {
       background:"#fff", borderRadius:12,
@@ -465,6 +512,28 @@ const EventManager = () => {
 
   return (
     <div style={S.wrapper}>
+      {/* Global style for toolbar inputs */}
+      <style>{`
+        .em-toolbar input,
+        .em-toolbar select,
+        .em-toolbar option {
+          color: #000000 !important;
+          -webkit-text-fill-color: #000000 !important;
+        }
+        .em-toolbar input::placeholder {
+          color: #9ca3af !important;
+          -webkit-text-fill-color: #9ca3af !important;
+        }
+        .em-toolbar select option {
+          color: #000000 !important;
+          background: #ffffff !important;
+        }
+        @keyframes slideIn {
+          from { opacity:0; transform:translateX(20px); }
+          to   { opacity:1; transform:translateX(0); }
+        }
+      `}</style>
+
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {showModal && (
@@ -498,10 +567,10 @@ const EventManager = () => {
       {/* Stats */}
       <div style={S.statsRow}>
         {[
-          { label:"Total Events",  value: events.length,  color:"#1a598a" },
-          { label:"Active",        value: totalActive,    color:"#16a34a" },
-          { label:"Featured",      value: totalFeatured,  color:"#d97706" },
-          { label:"Upcoming",      value: totalUpcoming,  color:"#7c3aed" },
+          { label:"Total Events", value: events.length,  color:"#1a598a" },
+          { label:"Active",       value: totalActive,    color:"#16a34a" },
+          { label:"Featured",     value: totalFeatured,  color:"#d97706" },
+          { label:"Upcoming",     value: totalUpcoming,  color:"#7c3aed" },
         ].map(({ label, value, color }) => (
           <div key={label} style={S.statCard(color)}>
             <div style={{fontSize:28,fontWeight:800,color:"#0c1e21"}}>{value}</div>
@@ -511,24 +580,28 @@ const EventManager = () => {
       </div>
 
       {/* Toolbar */}
-      <div style={S.toolbar}>
+      <div className="em-toolbar" style={S.toolbar}>
         <form onSubmit={handleSearch} style={S.searchForm}>
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search events…" style={S.searchInput} />
+            placeholder="Search events…" style={toolbarInput} />
           <button type="submit" style={S.searchBtn}>Search</button>
         </form>
 
-        <select value={filterType} onChange={e => setFilterType(e.target.value)} style={S.select}>
-          <option value="all">All Types</option>
+        <select value={filterType} onChange={e => setFilterType(e.target.value)} style={toolbarSelect}>
+          <option value="all" style={{color:"#000"}}>All Types</option>
           {EVENT_TYPES.map(t => (
-            <option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>
+            <option key={t} value={t} style={{color:"#000",background:"#fff"}}>
+              {t.charAt(0).toUpperCase()+t.slice(1)}
+            </option>
           ))}
         </select>
 
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={S.select}>
-          <option value="all">All Statuses</option>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={toolbarSelect}>
+          <option value="all" style={{color:"#000"}}>All Statuses</option>
           {EVENT_STATUSES.map(s => (
-            <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>
+            <option key={s} value={s} style={{color:"#000",background:"#fff"}}>
+              {s.charAt(0).toUpperCase()+s.slice(1)}
+            </option>
           ))}
         </select>
 
@@ -588,7 +661,9 @@ const EventManager = () => {
                       {event.eventType}
                     </span>
                   </td>
-                  <td style={{...S.td,fontSize:13,whiteSpace:"nowrap"}}>{event.eventDate}</td>
+                  <td style={{...S.td,fontSize:13,whiteSpace:"nowrap",color:"#000000"}}>
+                    {event.eventDate}
+                  </td>
                   <td style={S.td}><StatusBadge status={event.eventStatus} /></td>
                   <td style={S.td}>
                     <button
@@ -633,13 +708,6 @@ const EventManager = () => {
           </table>
         )}
       </div>
-
-      <style>{`
-        @keyframes slideIn {
-          from { opacity:0; transform:translateX(20px); }
-          to   { opacity:1; transform:translateX(0); }
-        }
-      `}</style>
     </div>
   );
 };
