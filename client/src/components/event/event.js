@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { getEvents } from "@/utils/eventApi";
 
 const EVENTS_PER_PAGE = 6;
 
@@ -11,33 +12,27 @@ const UniversityEventsMagazine = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 
-	// ─── Fetch events from your public API ──────────────────────────────────
+	// ─── Fetch via eventApi utility ──────────────────────────────────────────
 	const fetchEvents = useCallback(async () => {
 		try {
 			setLoading(true);
 			setError(null);
 
-			const params = new URLSearchParams();
-			if (activeCategory !== "all") params.set("type", activeCategory);
+			// getEvents() handles BASE_URL + query params internally
+			const raw = await getEvents(
+				activeCategory !== "all" ? { type: activeCategory } : {}
+			);
 
-			const res = await fetch(`/api/events?${params.toString()}`);
-			if (!res.ok) throw new Error(`Server error: ${res.status}`);
-
-			const data = await res.json();
-
-			// Support both { events: [...] } and plain array responses
-			const raw = Array.isArray(data) ? data : (data.events ?? data.data ?? []);
-
-			// Sort newest first — prefer createdAt, fall back to _id lexicographic order
+			// Sort newest first (backend already does this, but guard client-side too)
 			const sorted = [...raw].sort((a, b) => {
-				const da = a.createdAt ? new Date(a.createdAt) : new Date(0);
-				const db = b.createdAt ? new Date(b.createdAt) : new Date(0);
+				const da = a.createdAt ? new Date(a.createdAt) : 0;
+				const db = b.createdAt ? new Date(b.createdAt) : 0;
 				return db - da;
 			});
 
 			setAllEvents(sorted);
 		} catch (err) {
-			setError(err.message);
+			setError(err.message || "Failed to load events");
 		} finally {
 			setLoading(false);
 		}
@@ -45,45 +40,61 @@ const UniversityEventsMagazine = () => {
 
 	useEffect(() => {
 		fetchEvents();
-		setCurrentPage(1); // reset page on category change
+		setCurrentPage(1);
 	}, [fetchEvents]);
 
-	// ─── Derive paginated slice ──────────────────────────────────────────────
+	// ─── Pagination ──────────────────────────────────────────────────────────
 	const totalPages = Math.max(1, Math.ceil(allEvents.length / EVENTS_PER_PAGE));
 	const safePage = Math.min(currentPage, totalPages);
 	const pageStart = (safePage - 1) * EVENTS_PER_PAGE;
 	const displayEvents = allEvents.slice(pageStart, pageStart + EVENTS_PER_PAGE);
 
-	const handleCategoryChange = (catId) => {
-		setActiveCategory(catId);
+	// ─── Category filters: fixed + dynamic from real data ────────────────────
+	const fixedCategories = [
+		{ categoryId: "all",        categoryLabel: "All Events"  },
+		{ categoryId: "conference", categoryLabel: "Conferences" },
+		{ categoryId: "festival",   categoryLabel: "Festivals"   },
+		{ categoryId: "sports",     categoryLabel: "Sports"      },
+		{ categoryId: "career",     categoryLabel: "Career"      },
+	];
+
+	const extraTypes = Array.from(
+		new Set(allEvents.map((e) => e.eventType).filter(Boolean))
+	).filter((t) => !fixedCategories.some((c) => c.categoryId === t));
+
+	const categoryFilters = [
+		...fixedCategories,
+		...extraTypes.map((t) => ({
+			categoryId: t,
+			categoryLabel: t.charAt(0).toUpperCase() + t.slice(1),
+		})),
+	];
+
+	const handleCategoryChange = (id) => {
+		setActiveCategory(id);
 		setCurrentPage(1);
 	};
 
-	// Derive unique category filters from fetched data + fixed defaults
-	const fixedCategories = [
-		{ categoryId: "all", categoryLabel: "All Events" },
-		{ categoryId: "conference", categoryLabel: "Conferences" },
-		{ categoryId: "festival", categoryLabel: "Festivals" },
-		{ categoryId: "sports", categoryLabel: "Sports" },
-		{ categoryId: "career", categoryLabel: "Career" },
-	];
-
-	// Also include any extra types coming from real data
-	const dynamicCategories = Array.from(
-		new Set(allEvents.map((e) => e.eventType).filter(Boolean))
-	)
-		.filter((t) => !fixedCategories.some((c) => c.categoryId === t))
-		.map((t) => ({
-			categoryId: t,
-			categoryLabel: t.charAt(0).toUpperCase() + t.slice(1),
-		}));
-
-	const categoryFilters = [...fixedCategories, ...dynamicCategories];
+	// ─── Smart page number list ───────────────────────────────────────────────
+	const buildPageNumbers = () => {
+		const items = [];
+		for (let pg = 1; pg <= totalPages; pg++) {
+			const isEdge = pg === 1 || pg === totalPages;
+			const isNear = Math.abs(pg - safePage) <= 1;
+			if (isEdge || isNear) {
+				items.push({ type: "page", pg });
+			} else if (pg === 2 || pg === totalPages - 1) {
+				items.push({ type: "ellipsis", pg });
+			}
+		}
+		return items.filter(
+			(item, i, arr) => !(item.type === "ellipsis" && arr[i - 1]?.type === "ellipsis")
+		);
+	};
 
 	return (
 		<>
 			<style jsx>{`
-				/* ── Wrapper ─────────────────────────────────────── */
 				.magazine-wrapper {
 					background: #ecf0f0;
 					padding-bottom: 100px;
@@ -100,7 +111,7 @@ const UniversityEventsMagazine = () => {
 					right: -5%;
 					width: 500px;
 					height: 500px;
-					background: radial-gradient(circle, rgba(158, 211, 251, 0.15) 0%, transparent 70%);
+					background: radial-gradient(circle, rgba(158,211,251,0.15) 0%, transparent 70%);
 					border-radius: 50%;
 					pointer-events: none;
 				}
@@ -112,7 +123,7 @@ const UniversityEventsMagazine = () => {
 					left: -5%;
 					width: 600px;
 					height: 600px;
-					background: radial-gradient(circle, rgba(26, 89, 138, 0.08) 0%, transparent 70%);
+					background: radial-gradient(circle, rgba(26,89,138,0.08) 0%, transparent 70%);
 					border-radius: 50%;
 					pointer-events: none;
 				}
@@ -125,7 +136,6 @@ const UniversityEventsMagazine = () => {
 					z-index: 1;
 				}
 
-				/* ── Filters ────────────────────────────────────── */
 				.filter-section {
 					display: flex;
 					justify-content: center;
@@ -152,19 +162,18 @@ const UniversityEventsMagazine = () => {
 				.filter-button:hover {
 					border-color: #1a598a;
 					color: #1a598a;
-					background: rgba(158, 211, 251, 0.1);
+					background: rgba(158,211,251,0.1);
 					transform: translateY(-2px);
-					box-shadow: 0 4px 12px rgba(26, 89, 138, 0.15);
+					box-shadow: 0 4px 12px rgba(26,89,138,0.15);
 				}
 
 				.filter-button.active {
 					background: #1a598a;
 					color: #ffffff;
 					border-color: #1a598a;
-					box-shadow: 0 4px 16px rgba(26, 89, 138, 0.3);
+					box-shadow: 0 4px 16px rgba(26,89,138,0.3);
 				}
 
-				/* ── Loading / Error / Empty ─────────────────────── */
 				.state-box {
 					display: flex;
 					flex-direction: column;
@@ -205,7 +214,6 @@ const UniversityEventsMagazine = () => {
 
 				.retry-btn:hover { background: #0c3a5e; }
 
-				/* ── Masonry grid ────────────────────────────────── */
 				.events-masonry {
 					display: grid;
 					grid-template-columns: repeat(12, 1fr);
@@ -219,22 +227,21 @@ const UniversityEventsMagazine = () => {
 					overflow: hidden;
 					cursor: pointer;
 					animation: fadeIn 0.8s ease-out both;
-					box-shadow: 0 4px 20px rgba(12, 30, 33, 0.08);
-					transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+					box-shadow: 0 4px 20px rgba(12,30,33,0.08);
+					transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
 				}
 
 				.event-card:hover {
-					box-shadow: 0 12px 40px rgba(12, 30, 33, 0.15);
+					box-shadow: 0 12px 40px rgba(12,30,33,0.15);
 					transform: translateY(-8px);
 				}
 
-				/* Featured card layout (always first rendered card) */
 				.event-card:nth-child(1) { grid-column: span 7; grid-row: span 2; }
-				.event-card:nth-child(2) { grid-column: span 5; grid-row: span 1; }
-				.event-card:nth-child(3) { grid-column: span 5; grid-row: span 1; }
-				.event-card:nth-child(4) { grid-column: span 4; grid-row: span 1; }
-				.event-card:nth-child(5) { grid-column: span 4; grid-row: span 1; }
-				.event-card:nth-child(6) { grid-column: span 4; grid-row: span 1; }
+				.event-card:nth-child(2) { grid-column: span 5; }
+				.event-card:nth-child(3) { grid-column: span 5; }
+				.event-card:nth-child(4) { grid-column: span 4; }
+				.event-card:nth-child(5) { grid-column: span 4; }
+				.event-card:nth-child(6) { grid-column: span 4; }
 
 				.card-image-wrapper {
 					position: relative;
@@ -248,14 +255,11 @@ const UniversityEventsMagazine = () => {
 					width: 100%;
 					height: 100%;
 					object-fit: cover;
-					transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+					transition: transform 0.8s cubic-bezier(0.4,0,0.2,1);
 					opacity: 0.9;
 				}
 
-				.event-card:hover .card-image {
-					transform: scale(1.1);
-					opacity: 0.75;
-				}
+				.event-card:hover .card-image { transform: scale(1.1); opacity: 0.75; }
 
 				.card-overlay {
 					position: absolute;
@@ -351,18 +355,11 @@ const UniversityEventsMagazine = () => {
 					overflow: hidden;
 				}
 
-				.event-card:nth-child(1) .card-description {
-					-webkit-line-clamp: 3;
-					max-width: 90%;
-				}
+				.event-card:nth-child(1) .card-description { -webkit-line-clamp: 3; max-width: 90%; }
 
 				.event-card:hover .card-description { opacity: 1; transform: translateY(0); }
 
-				.card-meta {
-					display: flex;
-					gap: 20px;
-					flex-wrap: wrap;
-				}
+				.card-meta { display: flex; gap: 20px; flex-wrap: wrap; }
 
 				.meta-item {
 					display: flex;
@@ -373,14 +370,9 @@ const UniversityEventsMagazine = () => {
 					font-weight: 600;
 				}
 
-				.meta-icon {
-					width: 16px;
-					height: 16px;
-					color: #9ed3fb;
-					flex-shrink: 0;
-				}
+				.meta-icon { width: 16px; height: 16px; color: #9ed3fb; flex-shrink: 0; }
 
-				/* ── Pagination ──────────────────────────────────── */
+				/* ── Pagination ──────────────────────────────── */
 				.pagination {
 					display: flex;
 					justify-content: center;
@@ -389,14 +381,6 @@ const UniversityEventsMagazine = () => {
 					margin-top: 56px;
 					flex-wrap: wrap;
 					animation: fadeInUp 0.6s ease-out both;
-				}
-
-				.page-info {
-					font-size: 13px;
-					color: #67787a;
-					font-weight: 600;
-					letter-spacing: 0.5px;
-					margin: 0 8px;
 				}
 
 				.page-btn {
@@ -430,90 +414,66 @@ const UniversityEventsMagazine = () => {
 					box-shadow: 0 4px 16px rgba(26,89,138,0.3);
 				}
 
-				.page-btn:disabled {
-					opacity: 0.35;
-					cursor: not-allowed;
+				.page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+				.page-btn.arrow { font-size: 20px; }
+
+				.page-ellipsis {
+					width: 44px;
+					height: 44px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					font-size: 16px;
+					color: #67787a;
+					font-weight: 700;
 				}
 
-				.page-btn.arrow {
-					font-size: 18px;
-					border-radius: 50%;
+				.page-info {
+					font-size: 13px;
+					color: #67787a;
+					font-weight: 600;
+					margin-left: 12px;
 				}
 
-				/* ── Keyframes ───────────────────────────────────── */
 				@keyframes fadeIn {
 					from { opacity: 0; transform: translateY(30px); }
 					to   { opacity: 1; transform: translateY(0); }
 				}
-
 				@keyframes fadeInUp {
 					from { opacity: 0; transform: translateY(30px); }
 					to   { opacity: 1; transform: translateY(0); }
 				}
-
 				@keyframes pulse {
-					0%, 100% { box-shadow: 0 4px 12px rgba(26,89,138,0.4); }
-					50%       { box-shadow: 0 4px 20px rgba(26,89,138,0.6); }
+					0%,100% { box-shadow: 0 4px 12px rgba(26,89,138,0.4); }
+					50%     { box-shadow: 0 4px 20px rgba(26,89,138,0.6); }
 				}
+				@keyframes spin { to { transform: rotate(360deg); } }
 
-				@keyframes spin {
-					to { transform: rotate(360deg); }
-				}
-
-				/* ── Responsive ──────────────────────────────────── */
 				@media (max-width: 1200px) {
-					.events-masonry {
-						grid-template-columns: repeat(6, 1fr);
-						grid-auto-rows: 260px;
-					}
-
+					.events-masonry { grid-template-columns: repeat(6, 1fr); grid-auto-rows: 260px; }
 					.event-card:nth-child(1) { grid-column: span 6; grid-row: span 2; }
-					.event-card:nth-child(2),
-					.event-card:nth-child(3) { grid-column: span 3; }
-					.event-card:nth-child(4),
-					.event-card:nth-child(5),
-					.event-card:nth-child(6) { grid-column: span 2; }
+					.event-card:nth-child(2), .event-card:nth-child(3) { grid-column: span 3; }
+					.event-card:nth-child(4), .event-card:nth-child(5), .event-card:nth-child(6) { grid-column: span 2; }
 				}
 
 				@media (max-width: 768px) {
 					.magazine-container { padding: 0 20px; }
-
 					.filter-section { margin-bottom: 40px; }
-
-					.events-masonry {
-						grid-template-columns: 1fr;
-						gap: 16px;
-						grid-auto-rows: auto;
-					}
-
-					.event-card:nth-child(n) {
-						grid-column: span 1;
-						grid-row: span 1;
-					}
-
+					.events-masonry { grid-template-columns: 1fr; gap: 16px; grid-auto-rows: auto; }
+					.event-card:nth-child(n) { grid-column: span 1; grid-row: span 1; }
 					.card-image-wrapper { min-height: 320px; }
-
-					.card-title,
-					.event-card:nth-child(1) .card-title { font-size: 24px; }
-
-					.card-overlay,
-					.event-card:nth-child(1) .card-overlay { padding: 24px; }
-
+					.card-title, .event-card:nth-child(1) .card-title { font-size: 24px; }
+					.card-overlay, .event-card:nth-child(1) .card-overlay { padding: 24px; }
 					.card-badges { top: 16px; left: 16px; }
-
 					.card-description { -webkit-line-clamp: 2; }
 					.event-card:nth-child(1) .card-description { max-width: 100%; }
 				}
 
 				@media (max-width: 480px) {
 					.magazine-wrapper { padding-bottom: 60px; margin-bottom: 60px; }
-
 					.filter-button { padding: 10px 20px; font-size: 12px; }
-
 					.card-image-wrapper { min-height: 280px; }
-
 					.card-title { font-size: 20px; }
-
 					.page-btn { width: 38px; height: 38px; font-size: 13px; }
 				}
 			`}</style>
@@ -521,7 +481,7 @@ const UniversityEventsMagazine = () => {
 			<section className="magazine-wrapper">
 				<div className="magazine-container">
 
-					{/* ── Category Filters ─────────────────────────── */}
+					{/* Filters */}
 					<div className="filter-section">
 						{categoryFilters.map((filter) => (
 							<button
@@ -534,7 +494,7 @@ const UniversityEventsMagazine = () => {
 						))}
 					</div>
 
-					{/* ── States: loading / error / empty ─────────── */}
+					{/* Loading */}
 					{loading && (
 						<div className="state-box">
 							<div className="spinner" />
@@ -542,134 +502,110 @@ const UniversityEventsMagazine = () => {
 						</div>
 					)}
 
+					{/* Error */}
 					{!loading && error && (
 						<div className="state-box">
-							<p className="state-text" style={{ color: "#c0392b" }}>
-								Failed to load events: {error}
-							</p>
-							<button className="retry-btn" onClick={fetchEvents}>
-								Try Again
-							</button>
+							<p className="state-text" style={{ color: "#c0392b" }}>{error}</p>
+							<button className="retry-btn" onClick={fetchEvents}>Try Again</button>
 						</div>
 					)}
 
+					{/* Empty */}
 					{!loading && !error && allEvents.length === 0 && (
 						<div className="state-box">
 							<p className="state-text">No events found for this category.</p>
 						</div>
 					)}
 
-					{/* ── Events Masonry ───────────────────────────── */}
+					{/* Grid + Pagination */}
 					{!loading && !error && displayEvents.length > 0 && (
 						<>
 							<div className="events-masonry">
-								{displayEvents.map((event, index) => (
-									<div
-										key={event._id ?? event.id ?? index}
-										className="event-card"
-										style={{ animationDelay: `${index * 0.1}s` }}
-									>
-										<div className="card-image-wrapper">
-											<img
-												src={event.eventImage || event.image || "/images/events/default-event.webp"}
-												alt={event.eventTitle ?? event.title}
-												className="card-image"
-											/>
-											<div className="card-badges">
-												<span className="type-badge">
-													{event.eventType ?? event.type}
-												</span>
-												{event.eventStatus === "featured" && (
-													<span className="featured-badge">Featured</span>
-												)}
-											</div>
-											<div className="card-overlay">
-												<div className="card-content">
-													<p className="card-tagline">
-														{event.tagline ?? ""}
-													</p>
-													<h3 className="card-title">
-														{event.eventTitle ?? event.title}
-													</h3>
-													<p className="card-description">
-														{event.eventBrief ?? event.description ?? event.brief}
-													</p>
-													<div className="card-meta">
-														{(event.eventDate ?? event.date) && (
-															<div className="meta-item">
-																<svg className="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-																	<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-																</svg>
-																{event.eventDate ?? event.date}
-															</div>
-														)}
-														{(event.eventVenue ?? event.venue ?? event.location) && (
-															<div className="meta-item">
-																<svg className="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-																	<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-																</svg>
-																{event.eventVenue ?? event.venue ?? event.location}
-															</div>
-														)}
+								{displayEvents.map((event, index) => {
+									const imgSrc =
+										event.eventImage?.url ||
+										(typeof event.eventImage === "string" ? event.eventImage : null) ||
+										"/images/events/default-event.webp";
+
+									return (
+										<div
+											key={event._id ?? event.id ?? index}
+											className="event-card"
+											style={{ animationDelay: `${index * 0.1}s` }}
+										>
+											<div className="card-image-wrapper">
+												<img src={imgSrc} alt={event.eventTitle} className="card-image" />
+
+												<div className="card-badges">
+													<span className="type-badge">{event.eventType}</span>
+													{event.eventStatus === "featured" && (
+														<span className="featured-badge">Featured</span>
+													)}
+												</div>
+
+												<div className="card-overlay">
+													<div className="card-content">
+														{event.tagline && <p className="card-tagline">{event.tagline}</p>}
+														<h3 className="card-title">{event.eventTitle}</h3>
+														<p className="card-description">{event.eventBrief}</p>
+														<div className="card-meta">
+															{event.eventDate && (
+																<div className="meta-item">
+																	<svg className="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																		<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+																	</svg>
+																	{event.eventDate}
+																</div>
+															)}
+															{event.eventVenue && (
+																<div className="meta-item">
+																	<svg className="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																		<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+																	</svg>
+																	{event.eventVenue}
+																</div>
+															)}
+														</div>
 													</div>
 												</div>
 											</div>
 										</div>
-									</div>
-								))}
+									);
+								})}
 							</div>
 
-							{/* ── Pagination ─────────────────────────── */}
+							{/* Pagination */}
 							{totalPages > 1 && (
 								<div className="pagination">
-									{/* Prev */}
 									<button
 										className="page-btn arrow"
 										onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
 										disabled={safePage === 1}
-										aria-label="Previous page"
-									>
-										‹
-									</button>
+										aria-label="Previous"
+									>‹</button>
 
-									{/* Page numbers */}
-									{Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => {
-										// Show first, last, current ±1, and ellipsis placeholders
-										const isEdge = pg === 1 || pg === totalPages;
-										const isNearCurrent = Math.abs(pg - safePage) <= 1;
-										if (!isEdge && !isNearCurrent) {
-											if (pg === 2 || pg === totalPages - 1) {
-												return (
-													<span key={pg} className="page-info">…</span>
-												);
-											}
-											return null;
-										}
-										return (
+									{buildPageNumbers().map((item, i) =>
+										item.type === "ellipsis" ? (
+											<span key={`e${i}`} className="page-ellipsis">…</span>
+										) : (
 											<button
-												key={pg}
-												className={`page-btn ${safePage === pg ? "active" : ""}`}
-												onClick={() => setCurrentPage(pg)}
-												aria-label={`Page ${pg}`}
+												key={item.pg}
+												className={`page-btn ${safePage === item.pg ? "active" : ""}`}
+												onClick={() => setCurrentPage(item.pg)}
 											>
-												{pg}
+												{item.pg}
 											</button>
-										);
-									})}
+										)
+									)}
 
-									{/* Next */}
 									<button
 										className="page-btn arrow"
 										onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
 										disabled={safePage === totalPages}
-										aria-label="Next page"
-									>
-										›
-									</button>
+										aria-label="Next"
+									>›</button>
 
-									<span className="page-info" style={{ marginLeft: 12 }}>
-										Page {safePage} of {totalPages}
-									</span>
+									<span className="page-info">{safePage} / {totalPages}</span>
 								</div>
 							)}
 						</>
