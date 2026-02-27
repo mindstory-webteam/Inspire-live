@@ -8,7 +8,7 @@ const {
   toggleEventStatus,
   deleteEvent,
   reorderEvents,
-} = require('../controllers/eventcontroller');
+} = require('./controllers/eventController');
 
 // ─── Uses YOUR existing auth middleware ───────────────────────────────────────
 // Matches your pattern: exports.protect & exports.authorize(...roles)
