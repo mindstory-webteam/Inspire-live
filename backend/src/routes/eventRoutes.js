@@ -8,7 +8,7 @@ const {
   toggleEventStatus,
   deleteEvent,
   reorderEvents,
-} = require('./controllers/eventController');
+} = require('../controllers/eventController');
 
 // ─── Uses YOUR existing auth middleware ───────────────────────────────────────
 // Matches your pattern: exports.protect & exports.authorize(...roles)
@@ -17,7 +17,7 @@ const { protect, authorize } = require('../middleware/auth');
 // ─── Uses YOUR existing upload/cloudinary middleware ─────────────────────────
 // Point to wherever your Cloudinary multer config lives.
 // Common paths: '../middleware/upload'  or  '../config/cloudinary'
-const { uploadImage, handleMulterError } = require('../middleware/upload');
+const { uploadImage, handleMulterError } = require('../middleware/uploadMiddleware');
 
 // ═════════════════════════════════════════════════════════════════════════════
 // PUBLIC ROUTES — no auth required
