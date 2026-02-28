@@ -421,9 +421,13 @@ const getResumeViewUrl = (url) => {
 
 const getResumeDownloadUrl = (url) => {
   if (!url) return '';
-  // Insert fl_attachment transformation for Cloudinary raw URLs
-  if (url.includes('cloudinary.com') && url.includes('/raw/upload/')) {
-    return url.replace('/raw/upload/', '/raw/upload/fl_attachment/');
+  // For Cloudinary raw files, fl_attachment as a URL transformation is NOT
+  // supported — it causes ERR_INVALID_RESPONSE. The correct approach is to
+  // append ?dl=1 as a query parameter, which tells Cloudinary to serve the
+  // file with Content-Disposition: attachment so the browser downloads it.
+  if (url.includes('cloudinary.com')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}dl=1`;
   }
   return url;
 };
