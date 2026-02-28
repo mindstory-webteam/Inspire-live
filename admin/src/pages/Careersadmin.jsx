@@ -3,7 +3,6 @@ import { careerService } from '../services/api';
 import {
   Plus, Search, Pencil, Trash2,
   ToggleLeft, ToggleRight, Mail, ChevronLeft, ChevronRight, ImageIcon,
-  Download, FileText, User, Phone, AtSign, Calendar, MessageSquare,
 } from 'lucide-react';
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
@@ -30,11 +29,8 @@ const AppBadge = ({ status }) => {
   };
   const [bg, color] = map[status] || ['#f3f4f6', '#374151'];
   return (
-    <span style={{
-      padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-      background: bg, color, textTransform: 'uppercase', letterSpacing: 0.6,
-      display: 'inline-block',
-    }}>{status}</span>
+    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+      background: bg, color, textTransform: 'uppercase', letterSpacing: 0.5 }}>{status}</span>
   );
 };
 
@@ -55,34 +51,25 @@ const Toast = ({ msg, type, onClose }) => (
 );
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-const Modal = ({ title, onClose, children, wide, extraWide }) => (
+const Modal = ({ title, onClose, children, wide }) => (
   <div
-    style={{
-      position: 'fixed', inset: 0, background: 'rgba(15,23,42,.65)',
+    style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.6)',
       backdropFilter: 'blur(4px)', zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-    }}
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
     onClick={(e) => e.target === e.currentTarget && onClose()}
   >
-    <div style={{
-      background: '#fff', borderRadius: 20, width: '100%',
-      maxWidth: extraWide ? 1100 : wide ? 860 : 640,
-      maxHeight: '92vh', overflow: 'auto',
-      boxShadow: '0 25px 60px rgba(0,0,0,.25)',
-    }}>
-      <div style={{
-        padding: '22px 32px', borderBottom: '1px solid #e2e8f0',
+    <div style={{ background: '#fff', borderRadius: 16, width: '100%',
+      maxWidth: wide ? 860 : 640, maxHeight: '90vh', overflow: 'auto',
+      boxShadow: '0 25px 60px rgba(0,0,0,.25)' }}>
+      <div style={{ padding: '20px 28px', borderBottom: '1px solid #e2e8f0',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        position: 'sticky', top: 0, background: '#fff', zIndex: 10, borderRadius: '20px 20px 0 0',
-      }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#0f172a' }}>{title}</h2>
-        <button onClick={onClose} style={{
-          background: '#f1f5f9', border: 'none', borderRadius: 8,
-          width: 36, height: 36, cursor: 'pointer', fontSize: 18, color: '#64748b',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>✕</button>
+        position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{title}</h2>
+        <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8,
+          width: 32, height: 32, cursor: 'pointer', fontSize: 16, color: '#64748b',
+          display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
       </div>
-      <div style={{ padding: 32 }}>{children}</div>
+      <div style={{ padding: 28 }}>{children}</div>
     </div>
   </div>
 );
@@ -98,6 +85,9 @@ const Field = ({ label, required, children, half }) => (
 );
 
 // ─── ListEditor ───────────────────────────────────────────────────────────────
+// IMPORTANT: defined OUTSIDE CareerForm so it is never re-created on each render.
+// If defined inside, React unmounts/remounts the inputs on every keystroke,
+// which causes the single-character-only bug.
 const ListEditor = ({ label, items, onChange, onAdd, onRemove }) => (
   <Field label={label}>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -109,15 +99,21 @@ const ListEditor = ({ label, items, onChange, onAdd, onRemove }) => (
             placeholder={`Item ${i + 1}`}
             onChange={(e) => onChange(i, e.target.value)}
           />
-          <button type="button" onClick={() => onRemove(i)}
+          <button
+            type="button"
+            onClick={() => onRemove(i)}
             style={{ padding: '0 12px', background: '#fee2e2', border: 'none',
-              borderRadius: 8, color: '#dc2626', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+              borderRadius: 8, color: '#dc2626', cursor: 'pointer', fontWeight: 700 }}
+          >✕</button>
         </div>
       ))}
-      <button type="button" onClick={onAdd}
+      <button
+        type="button"
+        onClick={onAdd}
         style={{ padding: '7px 14px', background: '#eff6ff', border: '1.5px dashed #93c5fd',
           borderRadius: 8, color: '#2563eb', cursor: 'pointer', fontSize: 13,
-          fontWeight: 600, alignSelf: 'flex-start' }}>+ Add Item</button>
+          fontWeight: 600, alignSelf: 'flex-start' }}
+      >+ Add Item</button>
     </div>
   </Field>
 );
@@ -141,6 +137,7 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
     responsibilitiesList: initial.responsibilitiesList?.length ? initial.responsibilitiesList : [''],
   } : EMPTY);
 
+  // ── image state ───────────────────────────────────────────────────────────
   const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState(initial?.image?.url || '');
   const imageRef                        = useRef(null);
@@ -154,16 +151,23 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
+  // ── list helpers (stable references — passed as props to ListEditor) ──────
   const handleListChange = useCallback((key, idx, val) =>
-    setForm((p) => ({ ...p, [key]: p[key].map((item, i) => (i === idx ? val : item)) })), []);
-  const handleListAdd    = useCallback((key) =>
-    setForm((p) => ({ ...p, [key]: [...p[key], ''] })), []);
+    setForm((p) => ({ ...p, [key]: p[key].map((item, i) => (i === idx ? val : item)) })),
+  []);
+
+  const handleListAdd = useCallback((key) =>
+    setForm((p) => ({ ...p, [key]: [...p[key], ''] })),
+  []);
+
   const handleListRemove = useCallback((key, idx) =>
-    setForm((p) => ({ ...p, [key]: p[key].filter((_, i) => i !== idx) })), []);
+    setForm((p) => ({ ...p, [key]: p[key].filter((_, i) => i !== idx) })),
+  []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const fd = new FormData();
+
     fd.append('title',            form.title);
     fd.append('category',         form.category);
     fd.append('need',             form.need);
@@ -180,11 +184,14 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
     fd.append('vacancy',          Number(form.vacancy));
     fd.append('applyDeadline',    form.applyDeadline || '');
     fd.append('isActive',         String(form.isActive));
-    const tags = form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [];
+
+    const tags  = form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [];
     fd.append('tags',                 JSON.stringify(tags));
     fd.append('requirementsList',     JSON.stringify(form.requirementsList.filter(Boolean)));
     fd.append('responsibilitiesList', JSON.stringify(form.responsibilitiesList.filter(Boolean)));
+
     if (imageFile) fd.append('careerImage', imageFile);
+
     onSubmit(fd);
   };
 
@@ -193,93 +200,141 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
   return (
     <form onSubmit={handleSubmit}>
       <div style={grid}>
+
+        {/* ── Career Image Upload ─────────────────────────────────────────── */}
         <Field label="Career Image">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {imagePreview ? (
               <div style={{ position: 'relative', width: '100%', height: 160, borderRadius: 10,
                 overflow: 'hidden', border: '1.5px solid #e2e8f0' }}>
-                <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={imagePreview} alt="Preview"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <button type="button"
-                  onClick={() => { setImageFile(null); setImagePreview(''); if (imageRef.current) imageRef.current.value = ''; }}
+                  onClick={() => {
+                    setImageFile(null);
+                    setImagePreview('');
+                    if (imageRef.current) imageRef.current.value = '';
+                  }}
                   style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,.55)',
                     border: 'none', borderRadius: 6, color: '#fff', width: 28, height: 28,
-                    cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                    cursor: 'pointer', fontSize: 14, display: 'flex',
+                    alignItems: 'center', justifyContent: 'center' }}>
+                  ✕
+                </button>
               </div>
             ) : (
-              <div onClick={() => imageRef.current?.click()}
+              <div
+                onClick={() => imageRef.current?.click()}
                 style={{ width: '100%', height: 160, borderRadius: 10, border: '2px dashed #cbd5e1',
                   background: '#f8fafc', display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#1a598a')}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#cbd5e1')}>
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#cbd5e1')}
+              >
                 <ImageIcon size={28} color="#94a3b8" />
                 <span style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>Click to upload image</span>
                 <span style={{ fontSize: 11, color: '#94a3b8' }}>JPG, PNG, WEBP — max 10 MB</span>
               </div>
             )}
-            <input type="file" ref={imageRef} accept="image/*" style={{ display: 'none' }} onChange={handleImageChange} />
+            <input type="file" ref={imageRef} accept="image/*" style={{ display: 'none' }}
+              onChange={handleImageChange} />
             {!imagePreview && (
               <button type="button" onClick={() => imageRef.current?.click()}
                 style={{ ...inputStyle, background: '#f1f5f9', border: '1.5px solid #e2e8f0',
-                  cursor: 'pointer', textAlign: 'left', color: '#64748b' }}>Browse file…</button>
+                  cursor: 'pointer', textAlign: 'left', color: '#64748b' }}>
+                Browse file…
+              </button>
             )}
           </div>
         </Field>
 
+        {/* Right col */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Field label="Job Title" required half>
-            <input style={inputStyle} value={form.title} onChange={(e) => set('title', e.target.value)} required />
+            <input style={inputStyle} value={form.title}
+              onChange={(e) => set('title', e.target.value)} required />
           </Field>
           <Field label="Category" required half>
-            <input style={inputStyle} value={form.category} onChange={(e) => set('category', e.target.value)} required />
+            <input style={inputStyle} value={form.category}
+              onChange={(e) => set('category', e.target.value)} required />
           </Field>
         </div>
 
         <Field label="Employment Type" half>
           <select style={inputStyle} value={form.need} onChange={(e) => set('need', e.target.value)}>
-            {['Full Time','Part Time','Contract','Internship','Remote'].map((o) => <option key={o}>{o}</option>)}
+            {['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote'].map((o) => (
+              <option key={o}>{o}</option>
+            ))}
           </select>
         </Field>
         <Field label="Location" required half>
-          <input style={inputStyle} value={form.location} onChange={(e) => set('location', e.target.value)} required />
+          <input style={inputStyle} value={form.location}
+            onChange={(e) => set('location', e.target.value)} required />
         </Field>
+
         <Field label="Job Description" required>
           <textarea style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }}
             value={form.description} onChange={(e) => set('description', e.target.value)} required />
         </Field>
+
         <Field label="Requirements Intro Text">
           <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
             value={form.requirements} onChange={(e) => set('requirements', e.target.value)} />
         </Field>
-        <ListEditor label="Requirements List" items={form.requirementsList}
+
+        {/* ListEditor is now a stable top-level component — no re-mount on each keystroke */}
+        <ListEditor
+          label="Requirements List"
+          items={form.requirementsList}
           onChange={(idx, val) => handleListChange('requirementsList', idx, val)}
           onAdd={() => handleListAdd('requirementsList')}
-          onRemove={(idx) => handleListRemove('requirementsList', idx)} />
+          onRemove={(idx) => handleListRemove('requirementsList', idx)}
+        />
+
         <Field label="Responsibilities Intro Text">
           <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
             value={form.responsibilities} onChange={(e) => set('responsibilities', e.target.value)} />
         </Field>
-        <ListEditor label="Responsibilities List" items={form.responsibilitiesList}
+
+        <ListEditor
+          label="Responsibilities List"
+          items={form.responsibilitiesList}
           onChange={(idx, val) => handleListChange('responsibilitiesList', idx, val)}
           onAdd={() => handleListAdd('responsibilitiesList')}
-          onRemove={(idx) => handleListRemove('responsibilitiesList', idx)} />
+          onRemove={(idx) => handleListRemove('responsibilitiesList', idx)}
+        />
 
+        {/* Job Information Sidebar */}
         <div style={{ gridColumn: 'span 2', borderTop: '1px solid #e2e8f0', paddingTop: 16, marginTop: 4 }}>
           <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 700, color: '#64748b',
             textTransform: 'uppercase', letterSpacing: 1 }}>Job Information Sidebar</p>
           <div style={grid}>
-            <Field label="Job Number" half><input style={inputStyle} value={form.jobNumber} onChange={(e) => set('jobNumber', e.target.value)} /></Field>
-            <Field label="Company" half><input style={inputStyle} value={form.company} onChange={(e) => set('company', e.target.value)} /></Field>
-            <Field label="Website" half><input style={inputStyle} value={form.website} onChange={(e) => set('website', e.target.value)} placeholder="www.example.com" /></Field>
-            <Field label="Vacancy" half><input type="number" min={1} style={inputStyle} value={form.vacancy} onChange={(e) => set('vacancy', e.target.value)} /></Field>
-            <Field label="Salary Min ($)" half><input type="number" style={inputStyle} value={form.salaryMin} onChange={(e) => set('salaryMin', e.target.value)} /></Field>
-            <Field label="Salary Max ($)" half><input type="number" style={inputStyle} value={form.salaryMax} onChange={(e) => set('salaryMax', e.target.value)} /></Field>
+            <Field label="Job Number" half>
+              <input style={inputStyle} value={form.jobNumber} onChange={(e) => set('jobNumber', e.target.value)} />
+            </Field>
+            <Field label="Company" half>
+              <input style={inputStyle} value={form.company} onChange={(e) => set('company', e.target.value)} />
+            </Field>
+            <Field label="Website" half>
+              <input style={inputStyle} value={form.website} onChange={(e) => set('website', e.target.value)} placeholder="www.example.com" />
+            </Field>
+            <Field label="Vacancy" half>
+              <input type="number" min={1} style={inputStyle} value={form.vacancy} onChange={(e) => set('vacancy', e.target.value)} />
+            </Field>
+            <Field label="Salary Min ($)" half>
+              <input type="number" style={inputStyle} value={form.salaryMin} onChange={(e) => set('salaryMin', e.target.value)} />
+            </Field>
+            <Field label="Salary Max ($)" half>
+              <input type="number" style={inputStyle} value={form.salaryMax} onChange={(e) => set('salaryMax', e.target.value)} />
+            </Field>
             <Field label="Salary Period" half>
               <select style={inputStyle} value={form.salaryPeriod} onChange={(e) => set('salaryPeriod', e.target.value)}>
-                {['hour','day','week','month','year'].map((o) => <option key={o}>{o}</option>)}
+                {['hour', 'day', 'week', 'month', 'year'].map((o) => <option key={o}>{o}</option>)}
               </select>
             </Field>
-            <Field label="Apply Deadline" half><input type="date" style={inputStyle} value={form.applyDeadline} onChange={(e) => set('applyDeadline', e.target.value)} /></Field>
+            <Field label="Apply Deadline" half>
+              <input type="date" style={inputStyle} value={form.applyDeadline} onChange={(e) => set('applyDeadline', e.target.value)} />
+            </Field>
             <Field label="Tags (comma separated)">
               <input style={inputStyle} value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="Business, Consulting, Design" />
             </Field>
@@ -297,7 +352,9 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
         paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
         <button type="button" onClick={onCancel}
           style={{ padding: '10px 20px', background: '#f1f5f9', border: 'none',
-            borderRadius: 8, fontSize: 14, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>Cancel</button>
+            borderRadius: 8, fontSize: 14, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
+          Cancel
+        </button>
         <button type="submit" disabled={loading}
           style={{ padding: '10px 24px', background: loading ? '#93c5fd' : '#1a598a',
             border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, color: '#fff',
@@ -315,9 +372,11 @@ const Confirm = ({ msg, onConfirm, onCancel }) => (
     <p style={{ color: '#374151', marginTop: 0 }}>{msg}</p>
     <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
       <button onClick={onCancel}
-        style={{ padding: '9px 18px', background: '#f1f5f9', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+        style={{ padding: '9px 18px', background: '#f1f5f9', border: 'none',
+          borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
       <button onClick={onConfirm}
-        style={{ padding: '9px 18px', background: '#dc2626', border: 'none', borderRadius: 8, color: '#fff', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
+        style={{ padding: '9px 18px', background: '#dc2626', border: 'none',
+          borderRadius: 8, color: '#fff', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
     </div>
   </Modal>
 );
@@ -335,177 +394,6 @@ const StatCard = ({ label, value, color, icon }) => (
     </div>
   </div>
 );
-
-// ─── Application Card ─────────────────────────────────────────────────────────
-const ApplicationCard = ({ app, onStatusChange }) => {
-  const statusColors = {
-    pending:     { bg: '#fef9c3', color: '#854d0e', border: '#fde68a' },
-    reviewed:    { bg: '#dbeafe', color: '#1d4ed8', border: '#bfdbfe' },
-    shortlisted: { bg: '#dcfce7', color: '#15803d', border: '#bbf7d0' },
-    rejected:    { bg: '#fee2e2', color: '#dc2626', border: '#fecaca' },
-  };
-  const sc = statusColors[app.status] || statusColors.pending;
-
-  // Get filename from URL for download
-  const getFilename = (url) => {
-    if (!url) return 'resume';
-    const parts = url.split('/');
-    const raw = parts[parts.length - 1];
-    // Cloudinary raw files often have encoded names — decode and clean
-    try { return decodeURIComponent(raw).replace(/^resume_\d+_/, ''); } catch { return raw; }
-  };
-
-  return (
-    <div style={{
-      border: '1.5px solid #e2e8f0', borderRadius: 16, overflow: 'hidden',
-      background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.04)',
-    }}>
-      {/* Card header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #f8fafc, #f1f5f9)',
-        padding: '18px 24px', borderBottom: '1px solid #e2e8f0',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16,
-      }}>
-        {/* Left: name + status badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 12,
-            background: 'linear-gradient(135deg, #1a598a, #015599)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontSize: 20, fontWeight: 700, flexShrink: 0,
-          }}>
-            {app.fullName?.charAt(0)?.toUpperCase() || '?'}
-          </div>
-          <div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: '#0f172a' }}>{app.fullName}</div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-              Applied {new Date(app.appliedAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: status badge + dropdown */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
-          <AppBadge status={app.status} />
-          <select
-            value={app.status}
-            onChange={(e) => onStatusChange(app._id, e.target.value)}
-            style={{
-              padding: '6px 10px', borderRadius: 8, border: `1.5px solid ${sc.border}`,
-              background: sc.bg, color: sc.color, fontSize: 12, fontWeight: 600,
-              cursor: 'pointer', outline: 'none',
-            }}
-          >
-            {['pending','reviewed','shortlisted','rejected'].map((s) => (
-              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Card body */}
-      <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-        {/* Contact info row */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#eff6ff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <AtSign size={14} color="#2563eb" />
-            </div>
-            <div>
-              <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</div>
-              <a href={`mailto:${app.email}`}
-                style={{ fontSize: 14, color: '#1a598a', fontWeight: 500, textDecoration: 'none' }}>
-                {app.email}
-              </a>
-            </div>
-          </div>
-
-          {app.phone && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f0fdf4',
-                display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Phone size={14} color="#16a34a" />
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Phone</div>
-                <a href={`tel:${app.phone}`}
-                  style={{ fontSize: 14, color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>
-                  {app.phone}
-                </a>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Cover letter */}
-        {app.coverLetter && (
-          <div style={{ background: '#f8fafc', borderRadius: 10, padding: '14px 16px', border: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-              <MessageSquare size={13} color="#64748b" />
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                Cover Letter
-              </span>
-            </div>
-            <p style={{ margin: 0, fontSize: 14, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-              {app.coverLetter}
-            </p>
-          </div>
-        )}
-
-        {/* Resume download */}
-        {app.resumeUrl && (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: '#fafafa', borderRadius: 10, padding: '12px 16px',
-            border: '1.5px solid #e2e8f0',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 8, background: '#fee2e2',
-                display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <FileText size={16} color="#dc2626" />
-              </div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
-                  {getFilename(app.resumeUrl)}
-                </div>
-                <div style={{ fontSize: 11, color: '#94a3b8' }}>Resume / CV</div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {/* View */}
-              <a href={app.resumeUrl} target="_blank" rel="noreferrer"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                  background: '#eff6ff', color: '#2563eb', textDecoration: 'none',
-                  border: '1px solid #bfdbfe',
-                }}>
-                👁 View
-              </a>
-              {/* Download — force download via fetch blob */}
-              <a
-                href={app.resumeUrl}
-                download={getFilename(app.resumeUrl)}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                  background: 'linear-gradient(135deg, #1a598a, #015599)',
-                  color: '#fff', textDecoration: 'none', border: 'none',
-                }}
-              >
-                <Download size={13} /> Download
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN
@@ -683,7 +571,8 @@ export default function CareersAdmin() {
         {loading ? (
           <div style={{ padding: 60, textAlign: 'center' }}>
             <div style={{ width: 28, height: 28, borderRadius: '50%', margin: '0 auto',
-              border: '3px solid #ecf0f0', borderTopColor: '#1a598a', animation: 'spin 1s linear infinite' }} />
+              border: '3px solid #ecf0f0', borderTopColor: '#1a598a',
+              animation: 'spin 1s linear infinite' }} />
           </div>
         ) : careers.length === 0 ? (
           <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8' }}>
@@ -705,13 +594,16 @@ export default function CareersAdmin() {
               <tbody>
                 {careers.map((career, i) => (
                   <tr key={career._id}
-                    style={{ borderBottom: i < careers.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background .1s' }}
+                    style={{ borderBottom: i < careers.length - 1 ? '1px solid #f1f5f9' : 'none',
+                      transition: 'background .1s' }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = '')}>
+
                     <td style={{ padding: '12px 16px' }}>
                       {career.image?.url ? (
                         <img src={career.image.url} alt={career.title}
-                          style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '1px solid #e2e8f0' }} />
+                          style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover',
+                            border: '1px solid #e2e8f0' }} />
                       ) : (
                         <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f1f5f9',
                           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -719,9 +611,12 @@ export default function CareersAdmin() {
                         </div>
                       )}
                     </td>
+
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ fontWeight: 600, color: '#0f172a', fontSize: 14 }}>{career.title}</div>
-                      {career.company && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{career.company}</div>}
+                      {career.company && (
+                        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{career.company}</div>
+                      )}
                     </td>
                     <td style={td}>{career.category}</td>
                     <td style={td}>{career.need}</td>
@@ -731,19 +626,29 @@ export default function CareersAdmin() {
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button title="Applications" onClick={() => openApplications(career)}
-                          style={{ padding: '6px 10px', background: '#eff6ff', border: 'none', borderRadius: 7, cursor: 'pointer', color: '#2563eb', display: 'flex', alignItems: 'center' }}>
+                          style={{ padding: '6px 10px', background: '#eff6ff', border: 'none',
+                            borderRadius: 7, cursor: 'pointer', color: '#2563eb',
+                            display: 'flex', alignItems: 'center' }}>
                           <Mail size={14} />
                         </button>
                         <button title="Edit" onClick={() => { setSelected(career); setModal('edit'); }}
-                          style={{ padding: '6px 10px', background: '#f0fdf4', border: 'none', borderRadius: 7, cursor: 'pointer', color: '#16a34a', display: 'flex', alignItems: 'center' }}>
+                          style={{ padding: '6px 10px', background: '#f0fdf4', border: 'none',
+                            borderRadius: 7, cursor: 'pointer', color: '#16a34a',
+                            display: 'flex', alignItems: 'center' }}>
                           <Pencil size={14} />
                         </button>
-                        <button title={career.isActive ? 'Deactivate' : 'Activate'} onClick={() => handleToggle(career._id)}
-                          style={{ padding: '6px 10px', background: '#fef9c3', border: 'none', borderRadius: 7, cursor: 'pointer', color: '#854d0e', display: 'flex', alignItems: 'center' }}>
+                        <button title={career.isActive ? 'Deactivate' : 'Activate'}
+                          onClick={() => handleToggle(career._id)}
+                          style={{ padding: '6px 10px', background: '#fef9c3', border: 'none',
+                            borderRadius: 7, cursor: 'pointer', color: '#854d0e',
+                            display: 'flex', alignItems: 'center' }}>
                           {career.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                         </button>
-                        <button title="Delete" onClick={() => setConfirm({ id: career._id, title: career.title })}
-                          style={{ padding: '6px 10px', background: '#fff1f2', border: 'none', borderRadius: 7, cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center' }}>
+                        <button title="Delete"
+                          onClick={() => setConfirm({ id: career._id, title: career.title })}
+                          style={{ padding: '6px 10px', background: '#fff1f2', border: 'none',
+                            borderRadius: 7, cursor: 'pointer', color: '#dc2626',
+                            display: 'flex', alignItems: 'center' }}>
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -755,6 +660,7 @@ export default function CareersAdmin() {
           </div>
         )}
 
+        {/* Pagination */}
         {totalPages > 1 && (
           <div style={{ padding: '12px 20px', borderTop: '1px solid #f1f5f9',
             display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
@@ -788,55 +694,52 @@ export default function CareersAdmin() {
         </Modal>
       )}
       {modal === 'edit' && selected && (
-        <Modal title={`Edit: ${selected.title}`} onClose={() => { setModal(null); setSelected(null); }} wide>
+        <Modal title={`Edit: ${selected.title}`}
+          onClose={() => { setModal(null); setSelected(null); }} wide>
           <CareerForm initial={selected} onSubmit={handleUpdate}
             onCancel={() => { setModal(null); setSelected(null); }} loading={formLoading} />
         </Modal>
       )}
-
-      {/* ── Applications Modal — extra wide, full cards ── */}
       {modal === 'apps' && (
-        <Modal
-          title={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span>Applications</span>
-              <span style={{ fontSize: 14, color: '#64748b', fontWeight: 500 }}>— {appsTitle}</span>
-              <span style={{ background: '#1a598a22', color: '#1a598a', fontSize: 12, fontWeight: 700,
-                padding: '2px 10px', borderRadius: 20 }}>{applications.length}</span>
-            </div>
-          }
-          onClose={() => setModal(null)}
-          extraWide
-        >
+        <Modal title={`Applications — ${appsTitle}`} onClose={() => setModal(null)} wide>
           {applications.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8' }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: '#64748b' }}>No applications yet</div>
-              <div style={{ fontSize: 13, marginTop: 4 }}>Applications will appear here once candidates apply</div>
-            </div>
+            <p style={{ textAlign: 'center', color: '#94a3b8' }}>No applications yet.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {/* Summary bar */}
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {['pending','reviewed','shortlisted','rejected'].map((s) => {
-                  const count = applications.filter((a) => a.status === s).length;
-                  const colors = {
-                    pending: ['#fef9c3','#854d0e'], reviewed: ['#dbeafe','#1d4ed8'],
-                    shortlisted: ['#dcfce7','#15803d'], rejected: ['#fee2e2','#dc2626'],
-                  };
-                  const [bg, color] = colors[s];
-                  return (
-                    <div key={s} style={{ padding: '6px 14px', borderRadius: 20, background: bg,
-                      color, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      {s}: {count}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Application cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {applications.map((app) => (
-                <ApplicationCard key={app._id} app={app} onStatusChange={updateAppStatus} />
+                <div key={app._id} style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: 16,
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{app.fullName}</div>
+                    <div style={{ fontSize: 13, color: '#64748b' }}>
+                      {app.email} {app.phone && `· ${app.phone}`}
+                    </div>
+                    {app.coverLetter && (
+                      <p style={{ margin: '8px 0 0', fontSize: 13, color: '#374151', lineHeight: 1.5, maxWidth: 500 }}>
+                        {app.coverLetter.slice(0, 200)}{app.coverLetter.length > 200 ? '…' : ''}
+                      </p>
+                    )}
+                    {app.resumeUrl && (
+                      <a href={app.resumeUrl} target="_blank" rel="noreferrer"
+                        style={{ fontSize: 13, color: '#1a598a', fontWeight: 600,
+                          marginTop: 6, display: 'inline-block' }}>
+                        📄 View Resume
+                      </a>
+                    )}
+                    <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 6 }}>
+                      Applied {new Date(app.appliedAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                    <AppBadge status={app.status} />
+                    <select value={app.status} onChange={(e) => updateAppStatus(app._id, e.target.value)}
+                      style={{ ...inputStyle, width: 'auto', fontSize: 12, padding: '5px 8px' }}>
+                      {['pending','reviewed','shortlisted','rejected'].map((s) => (
+                        <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -844,8 +747,11 @@ export default function CareersAdmin() {
       )}
 
       {confirm && (
-        <Confirm msg={`Are you sure you want to delete "${confirm.title}"? This cannot be undone.`}
-          onConfirm={() => handleDelete(confirm.id)} onCancel={() => setConfirm(null)} />
+        <Confirm
+          msg={`Are you sure you want to delete "${confirm.title}"? This cannot be undone.`}
+          onConfirm={() => handleDelete(confirm.id)}
+          onCancel={() => setConfirm(null)}
+        />
       )}
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </div>
