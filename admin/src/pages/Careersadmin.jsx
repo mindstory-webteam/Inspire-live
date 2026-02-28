@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { careerService } from '../services/api';
 import {
   Plus, Search, Pencil, Trash2,
-  ToggleLeft, ToggleRight, Mail, ChevronLeft, ChevronRight,
+  ToggleLeft, ToggleRight, Mail, ChevronLeft, ChevronRight, ImageIcon,
 } from 'lucide-react';
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
@@ -22,8 +22,10 @@ const Badge = ({ active }) => (
 
 const AppBadge = ({ status }) => {
   const map = {
-    pending: ['#fef3c7', '#b45309'], reviewed: ['#dbeafe', '#1d4ed8'],
-    shortlisted: ['#dcfce7', '#16a34a'], rejected: ['#fee2e2', '#dc2626'],
+    pending:     ['#fef3c7', '#b45309'],
+    reviewed:    ['#dbeafe', '#1d4ed8'],
+    shortlisted: ['#dcfce7', '#16a34a'],
+    rejected:    ['#fee2e2', '#dc2626'],
   };
   const [bg, color] = map[status] || ['#f3f4f6', '#374151'];
   return (
@@ -84,7 +86,7 @@ const Field = ({ label, required, children, half }) => (
 
 // ─── Career Form ──────────────────────────────────────────────────────────────
 const EMPTY = {
-  title: '', category: '', need: 'Full Time', location: '', iconName: 'tji-manage',
+  title: '', category: '', need: 'Full Time', location: '',
   description: '', requirements: '', requirementsList: [''],
   responsibilities: '', responsibilitiesList: [''],
   jobNumber: '', company: '', website: '', salaryMin: '', salaryMax: '',
@@ -100,23 +102,60 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
     responsibilitiesList: initial.responsibilitiesList?.length ? initial.responsibilitiesList : [''],
   } : EMPTY);
 
+  // ── image state ───────────────────────────────────────────────────────────
+  const [imageFile, setImageFile]       = useState(null);
+  const [imagePreview, setImagePreview] = useState(initial?.image?.url || '');
+  const imageRef                        = useRef(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
   const listChange = (key, idx, val) =>
     setForm((p) => ({ ...p, [key]: p[key].map((item, i) => (i === idx ? val : item)) }));
-  const addItem = (key) => setForm((p) => ({ ...p, [key]: [...p[key], ''] }));
+  const addItem    = (key) => setForm((p) => ({ ...p, [key]: [...p[key], ''] }));
   const removeItem = (key, idx) => setForm((p) => ({ ...p, [key]: p[key].filter((_, i) => i !== idx) }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
-      ...form,
-      tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
-      requirementsList: form.requirementsList.filter(Boolean),
-      responsibilitiesList: form.responsibilitiesList.filter(Boolean),
-      salaryMin: form.salaryMin ? Number(form.salaryMin) : null,
-      salaryMax: form.salaryMax ? Number(form.salaryMax) : null,
-      vacancy: Number(form.vacancy),
-    });
+
+    // Build FormData so careerImage file can be sent to backend
+    const fd = new FormData();
+
+    // Scalar fields
+    fd.append('title',           form.title);
+    fd.append('category',        form.category);
+    fd.append('need',            form.need);
+    fd.append('location',        form.location);
+    fd.append('description',     form.description);
+    fd.append('requirements',    form.requirements || '');
+    fd.append('responsibilities',form.responsibilities || '');
+    fd.append('jobNumber',       form.jobNumber || '');
+    fd.append('company',         form.company   || '');
+    fd.append('website',         form.website   || '');
+    fd.append('salaryMin',       form.salaryMin || '');
+    fd.append('salaryMax',       form.salaryMax || '');
+    fd.append('salaryPeriod',    form.salaryPeriod);
+    fd.append('vacancy',         Number(form.vacancy));
+    fd.append('applyDeadline',   form.applyDeadline || '');
+    fd.append('isActive',        String(form.isActive));
+
+    // Array fields — JSON-stringified
+    const tags  = form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [];
+    const reqL  = form.requirementsList.filter(Boolean);
+    const respL = form.responsibilitiesList.filter(Boolean);
+    fd.append('tags',                  JSON.stringify(tags));
+    fd.append('requirementsList',      JSON.stringify(reqL));
+    fd.append('responsibilitiesList',  JSON.stringify(respL));
+
+    // Image file (optional)
+    if (imageFile) fd.append('careerImage', imageFile);
+
+    onSubmit(fd);
   };
 
   const grid = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 20px' };
@@ -144,12 +183,61 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
   return (
     <form onSubmit={handleSubmit}>
       <div style={grid}>
-        <Field label="Job Title" required>
-          <input style={inputStyle} value={form.title} onChange={(e) => set('title', e.target.value)} required />
+
+        {/* ── Career Image Upload ─────────────────────────────────────────── */}
+        <Field label="Career Image">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Preview */}
+            {imagePreview ? (
+              <div style={{ position: 'relative', width: '100%', height: 160, borderRadius: 10, overflow: 'hidden',
+                border: '1.5px solid #e2e8f0' }}>
+                <img src={imagePreview} alt="Preview"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button type="button"
+                  onClick={() => { setImageFile(null); setImagePreview(''); if (imageRef.current) imageRef.current.value = ''; }}
+                  style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,.55)',
+                    border: 'none', borderRadius: 6, color: '#fff', width: 28, height: 28,
+                    cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => imageRef.current?.click()}
+                style={{ width: '100%', height: 160, borderRadius: 10, border: '2px dashed #cbd5e1',
+                  background: '#f8fafc', display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer',
+                  transition: 'border-color .15s' }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#1a598a')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#cbd5e1')}
+              >
+                <ImageIcon size={28} color="#94a3b8" />
+                <span style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>Click to upload image</span>
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>JPG, PNG, WEBP — max 10 MB</span>
+              </div>
+            )}
+            <input type="file" ref={imageRef} accept="image/*" style={{ display: 'none' }}
+              onChange={handleImageChange} />
+            {!imagePreview && (
+              <button type="button" onClick={() => imageRef.current?.click()}
+                style={{ ...inputStyle, background: '#f1f5f9', border: '1.5px solid #e2e8f0',
+                  cursor: 'pointer', textAlign: 'left', color: '#64748b', padding: '9px 12px' }}>
+                Browse file…
+              </button>
+            )}
+          </div>
         </Field>
-        <Field label="Category" required half>
-          <input style={inputStyle} value={form.category} onChange={(e) => set('category', e.target.value)} required />
-        </Field>
+
+        {/* Right col — title + category stacked */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Field label="Job Title" required half>
+            <input style={inputStyle} value={form.title} onChange={(e) => set('title', e.target.value)} required />
+          </Field>
+          <Field label="Category" required half>
+            <input style={inputStyle} value={form.category} onChange={(e) => set('category', e.target.value)} required />
+          </Field>
+        </div>
+
         <Field label="Employment Type" half>
           <select style={inputStyle} value={form.need} onChange={(e) => set('need', e.target.value)}>
             {['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote'].map((o) => <option key={o}>{o}</option>)}
@@ -158,9 +246,7 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
         <Field label="Location" required half>
           <input style={inputStyle} value={form.location} onChange={(e) => set('location', e.target.value)} required />
         </Field>
-        <Field label="Icon Class" half>
-          <input style={inputStyle} value={form.iconName} onChange={(e) => set('iconName', e.target.value)} placeholder="tji-manage" />
-        </Field>
+
         <Field label="Job Description" required>
           <textarea style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }}
             value={form.description} onChange={(e) => set('description', e.target.value)} required />
@@ -176,6 +262,7 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
         </Field>
         <ListEditor label="Responsibilities List" fieldKey="responsibilitiesList" />
 
+        {/* Job Information Sidebar section */}
         <div style={{ gridColumn: 'span 2', borderTop: '1px solid #e2e8f0', paddingTop: 16, marginTop: 4 }}>
           <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 700, color: '#64748b',
             textTransform: 'uppercase', letterSpacing: 1 }}>Job Information Sidebar</p>
@@ -248,32 +335,31 @@ const StatCard = ({ label, value, color, icon }) => (
 );
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MAIN — fits inside Layout, uses careerService (token auto-attached)
+// MAIN
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function CareersAdmin() {
-  const [careers, setCareers]     = useState([]);
-  const [stats, setStats]         = useState(null);
-  const [page, setPage]           = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal]         = useState(0);
-  const [loading, setLoading]     = useState(false);
+  const [careers, setCareers]         = useState([]);
+  const [stats, setStats]             = useState(null);
+  const [page, setPage]               = useState(1);
+  const [totalPages, setTotalPages]   = useState(1);
+  const [total, setTotal]             = useState(0);
+  const [loading, setLoading]         = useState(false);
   const [formLoading, setFormLoading] = useState(false);
-  const [search, setSearch]       = useState('');
+  const [search, setSearch]           = useState('');
   const [filterActive, setFilterActive] = useState('all');
 
-  const [modal, setModal]         = useState(null);
-  const [selected, setSelected]   = useState(null);
+  const [modal, setModal]             = useState(null);
+  const [selected, setSelected]       = useState(null);
   const [applications, setApplications] = useState([]);
-  const [appsTitle, setAppsTitle] = useState('');
-  const [confirm, setConfirm]     = useState(null);
-  const [toast, setToast]         = useState(null);
+  const [appsTitle, setAppsTitle]     = useState('');
+  const [confirm, setConfirm]         = useState(null);
+  const [toast, setToast]             = useState(null);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
   };
 
-  // ── Load — careerService auto-attaches JWT token ──────────────────────────
   const loadStats = useCallback(async () => {
     try {
       const res = await careerService.getStats();
@@ -297,14 +383,15 @@ export default function CareersAdmin() {
     setLoading(false);
   }, [page, search, filterActive]);
 
-  useEffect(() => { loadStats(); }, [loadStats]);
+  useEffect(() => { loadStats(); },   [loadStats]);
   useEffect(() => { loadCareers(); }, [loadCareers]);
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
-  const handleCreate = async (data) => {
+  // handleCreate / handleUpdate now receive FormData directly from CareerForm
+  const handleCreate = async (formData) => {
     setFormLoading(true);
     try {
-      const res = await careerService.create(data);
+      const res = await careerService.create(formData);
       if (res.data?.success) {
         showToast('Career created successfully');
         setModal(null); loadCareers(); loadStats();
@@ -313,10 +400,10 @@ export default function CareersAdmin() {
     setFormLoading(false);
   };
 
-  const handleUpdate = async (data) => {
+  const handleUpdate = async (formData) => {
     setFormLoading(true);
     try {
-      const res = await careerService.update(selected._id, data);
+      const res = await careerService.update(selected._id, formData);
       if (res.data?.success) {
         showToast('Career updated successfully');
         setModal(null); setSelected(null); loadCareers();
@@ -437,7 +524,7 @@ export default function CareersAdmin() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  {['Title','Category','Type','Location','Vacancy','Status','Actions'].map((h) => (
+                  {['Image','Title','Category','Type','Location','Vacancy','Status','Actions'].map((h) => (
                     <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12,
                       fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>{h}</th>
                   ))}
@@ -449,6 +536,21 @@ export default function CareersAdmin() {
                     style={{ borderBottom: i < careers.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background .1s' }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = '')}>
+
+                    {/* Image thumbnail */}
+                    <td style={{ padding: '12px 16px' }}>
+                      {career.image?.url ? (
+                        <img src={career.image.url} alt={career.title}
+                          style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover',
+                            border: '1px solid #e2e8f0' }} />
+                      ) : (
+                        <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f1f5f9',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <ImageIcon size={18} color="#94a3b8" />
+                        </div>
+                      )}
+                    </td>
+
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ fontWeight: 600, color: '#0f172a', fontSize: 14 }}>{career.title}</div>
                       {career.company && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{career.company}</div>}

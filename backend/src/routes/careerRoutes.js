@@ -18,16 +18,14 @@ const {
 const { protect } = require('../middleware/auth');
 
 // ── upload middleware (safe import) ──────────────────────────────────────────
-let uploadMiddleware = null;
+let uploadImage  = null;   // for career images  (jpg/png/webp)
+let uploadResume = null;   // for resume files   (pdf/doc)
+
 try {
-  const up = require('../middleware/uploadMiddleware');
-  uploadMiddleware = up.uploadMedia || null;
-} catch {
-  try {
-    const up = require('../middleware/upload');
-    uploadMiddleware = up.uploadMedia || null;
-  } catch { /* no upload middleware found */ }
-}
+  const up = require('../middleware/upload');
+  uploadImage  = up.uploadImage  || null;
+  uploadResume = up.uploadMedia  || null;   // uploadMedia handles raw files too
+} catch { /* upload middleware not found */ }
 
 const handleMulterError = (err, req, res, next) => {
   if (err) return res.status(400).json({ success: false, message: err.message });
@@ -35,26 +33,33 @@ const handleMulterError = (err, req, res, next) => {
 };
 
 // ─── Public Routes  /api/careers ─────────────────────────────────────────────
-router.get('/', getAllCareers);
+router.get('/',    getAllCareers);
 router.get('/:id', getCareerById);
 
-if (uploadMiddleware) {
-  router.post('/:id/apply', uploadMiddleware.single('resume'), handleMulterError, applyForCareer);
+// Apply for a job — resume upload (pdf/doc)
+if (uploadResume) {
+  router.post('/:id/apply', uploadResume.single('resume'), handleMulterError, applyForCareer);
 } else {
   router.post('/:id/apply', applyForCareer);
 }
 
 // ─── Admin Routes  /api/admin/careers ────────────────────────────────────────
-// ALL admin routes are protected with JWT via protect middleware
 const adminRouter = express.Router();
+adminRouter.use(protect);
 
-adminRouter.use(protect);   // ← applies to every route below
+adminRouter.get('/stats', getStats);
+adminRouter.get('/',      adminGetAllCareers);
+adminRouter.get('/:id',   adminGetCareerById);
 
-adminRouter.get('/stats',                           getStats);
-adminRouter.get('/',                                adminGetAllCareers);
-adminRouter.get('/:id',                             adminGetCareerById);
-adminRouter.post('/',                               createCareer);
-adminRouter.put('/:id',                             updateCareer);
+// Create / Update — accept optional `careerImage` file
+if (uploadImage) {
+  adminRouter.post('/',     uploadImage.single('careerImage'), handleMulterError, createCareer);
+  adminRouter.put('/:id',   uploadImage.single('careerImage'), handleMulterError, updateCareer);
+} else {
+  adminRouter.post('/',     createCareer);
+  adminRouter.put('/:id',   updateCareer);
+}
+
 adminRouter.delete('/:id',                          deleteCareer);
 adminRouter.patch('/:id/toggle',                    toggleCareerStatus);
 adminRouter.get('/:id/applications',                getApplications);

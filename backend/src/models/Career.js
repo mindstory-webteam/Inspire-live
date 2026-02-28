@@ -1,147 +1,69 @@
 const mongoose = require('mongoose');
 
+const applicationSchema = new mongoose.Schema({
+  fullName:       { type: String, required: true },
+  email:          { type: String, required: true },
+  phone:          { type: String, default: '' },
+  coverLetter:    { type: String, default: '' },
+  resumeUrl:      { type: String, default: '' },
+  resumePublicId: { type: String, default: '' },
+  status: {
+    type: String,
+    enum: ['pending', 'reviewed', 'shortlisted', 'rejected'],
+    default: 'pending',
+  },
+  appliedAt: { type: Date, default: Date.now },
+});
+
 const careerSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: [true, 'Job title is required'],
-      trim: true,
-      maxlength: [200, 'Title cannot exceed 200 characters'],
+    title:    { type: String, required: [true, 'Title is required'], trim: true },
+
+    // ── Image (same pattern as Event model) ──────────────────────────────────
+    image: {
+      url:      { type: String, default: '' },
+      publicId: { type: String, default: '' },
     },
-    iconName: {
-      type: String,
-      default: 'tji-manage',
-      trim: true,
-    },
-    category: {
-      type: String,
-      required: [true, 'Category is required'],
-      trim: true,
-    },
+
+    // kept for backward-compat but no longer used on frontend
+    iconName: { type: String, default: '' },
+
+    category: { type: String, required: [true, 'Category is required'], trim: true },
     need: {
       type: String,
       enum: ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote'],
       default: 'Full Time',
     },
-    location: {
-      type: String,
-      required: [true, 'Location is required'],
-      trim: true,
-    },
-    description: {
-      type: String,
-      required: [true, 'Job description is required'],
-    },
-    requirements: {
-      type: String,
-      default: '',
-    },
-    requirementsList: {
-      type: [String],
-      default: [],
-    },
-    responsibilities: {
-      type: String,
-      default: '',
-    },
-    responsibilitiesList: {
-      type: [String],
-      default: [],
-    },
-    // Job Information sidebar
-    jobNumber: {
-      type: String,
-      default: '',
-    },
-    company: {
-      type: String,
-      default: '',
-    },
-    website: {
-      type: String,
-      default: '',
-    },
-    salaryMin: {
-      type: Number,
-      default: null,
-    },
-    salaryMax: {
-      type: Number,
-      default: null,
-    },
+    location:    { type: String, required: [true, 'Location is required'], trim: true },
+    description: { type: String, required: [true, 'Description is required'] },
+
+    requirements:         { type: String, default: '' },
+    requirementsList:     [{ type: String }],
+    responsibilities:     { type: String, default: '' },
+    responsibilitiesList: [{ type: String }],
+
+    jobNumber:    { type: String,  default: '' },
+    company:      { type: String,  default: '' },
+    website:      { type: String,  default: '' },
+    salaryMin:    { type: Number,  default: null },
+    salaryMax:    { type: Number,  default: null },
     salaryPeriod: {
       type: String,
       enum: ['hour', 'day', 'week', 'month', 'year'],
       default: 'month',
     },
-    vacancy: {
-      type: Number,
-      default: 1,
-    },
-    applyDeadline: {
-      type: Date,
-      default: null,
-    },
-    tags: {
-      type: [String],
-      default: [],
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-    // For file uploads (resumes submitted via apply form)
-    applications: [
-      {
-        fullName: { type: String, required: true },
-        email: { type: String, required: true },
-        phone: { type: String, default: '' },
-        coverLetter: { type: String, default: '' },
-        resumeUrl: { type: String, default: '' },
-        resumePublicId: { type: String, default: '' },
-        appliedAt: { type: Date, default: Date.now },
-        status: {
-          type: String,
-          enum: ['pending', 'reviewed', 'shortlisted', 'rejected'],
-          default: 'pending',
-        },
-      },
-    ],
+    vacancy:       { type: Number,  default: 1 },
+    applyDeadline: { type: Date,    default: null },
+    tags:          [{ type: String }],
+    isActive:      { type: Boolean, default: true },
+
+    applications: [applicationSchema],
   },
-  {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
-  }
+  { timestamps: true }
 );
 
-// Virtual for formatted salary
-careerSchema.virtual('salary').get(function () {
-  if (!this.salaryMin && !this.salaryMax) return '';
-  if (this.salaryMin && this.salaryMax) {
-    return `$${this.salaryMin}-$${this.salaryMax} / ${this.salaryPeriod}`;
-  }
-  return `$${this.salaryMin || this.salaryMax} / ${this.salaryPeriod}`;
-});
+careerSchema.index({ isActive: 1, createdAt: -1 });
+careerSchema.index({ category: 1 });
+careerSchema.index({ '$**': 'text' });
 
-// Virtual for formatted vacancy
-careerSchema.virtual('vacancyText').get(function () {
-  return `${String(this.vacancy).padStart(2, '0')} Available`;
-});
-
-// Virtual for formatted apply deadline
-careerSchema.virtual('applyOn').get(function () {
-  if (!this.applyDeadline) return '';
-  return this.applyDeadline.toLocaleDateString('en-US', {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-  }).toUpperCase();
-});
-
-// Index for search
-careerSchema.index({ title: 'text', category: 'text', location: 'text' });
-
-const Career = mongoose.model('Career', careerSchema);
-
-module.exports = Career;
+module.exports = mongoose.model('Career', careerSchema);
