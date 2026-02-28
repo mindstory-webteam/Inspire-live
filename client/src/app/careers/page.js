@@ -24,7 +24,6 @@ export default function Careers() {
 					<Footer />
 				</div>
 			</div>
-
 			<ClientWrapper />
 		</div>
 	);
