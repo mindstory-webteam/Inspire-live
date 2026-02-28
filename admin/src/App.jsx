@@ -12,6 +12,8 @@ import BannerManager from './pages/BannerManager';
 import ServiceManager from './pages/Servicemanager';
 import ServiceForm from './pages/Serviceform';
 import EventManager from './pages/Eventmanager'; // ← NEW
+import Careers from './pages/Careersadmin'; // ← NEW
+import CareersAdmin from './pages/Careersadmin';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -50,6 +52,7 @@ export default function App() {
         <Route path="services/new"       element={<ServiceForm />} />
         <Route path="services/edit/:id"  element={<ServiceForm />} />
         <Route path="/events"    element={<EventManager />} /> {/* ← NEW events route */}
+         <Route path="/careers"   element={<CareersAdmin />} /> {/* ← NEW careers route */}
           </Route>
         </Routes>
       </BrowserRouter>
