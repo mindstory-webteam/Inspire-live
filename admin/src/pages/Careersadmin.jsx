@@ -84,40 +84,6 @@ const Field = ({ label, required, children, half }) => (
   </div>
 );
 
-// ─── ListEditor ───────────────────────────────────────────────────────────────
-// IMPORTANT: defined OUTSIDE CareerForm so it is never re-created on each render.
-// If defined inside, React unmounts/remounts the inputs on every keystroke,
-// which causes the single-character-only bug.
-const ListEditor = ({ label, items, onChange, onAdd, onRemove }) => (
-  <Field label={label}>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {items.map((item, i) => (
-        <div key={i} style={{ display: 'flex', gap: 8 }}>
-          <input
-            style={{ ...inputStyle, flex: 1 }}
-            value={item}
-            placeholder={`Item ${i + 1}`}
-            onChange={(e) => onChange(i, e.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => onRemove(i)}
-            style={{ padding: '0 12px', background: '#fee2e2', border: 'none',
-              borderRadius: 8, color: '#dc2626', cursor: 'pointer', fontWeight: 700 }}
-          >✕</button>
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={onAdd}
-        style={{ padding: '7px 14px', background: '#eff6ff', border: '1.5px dashed #93c5fd',
-          borderRadius: 8, color: '#2563eb', cursor: 'pointer', fontSize: 13,
-          fontWeight: 600, alignSelf: 'flex-start' }}
-      >+ Add Item</button>
-    </div>
-  </Field>
-);
-
 // ─── Career Form ──────────────────────────────────────────────────────────────
 const EMPTY = {
   title: '', category: '', need: 'Full Time', location: '',
@@ -131,8 +97,7 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
   const [form, setForm] = useState(initial ? {
     ...initial,
     tags: Array.isArray(initial.tags) ? initial.tags.join(', ') : initial.tags || '',
-    applyDeadline: initial.applyDeadline
-      ? new Date(initial.applyDeadline).toISOString().split('T')[0] : '',
+    applyDeadline: initial.applyDeadline ? new Date(initial.applyDeadline).toISOString().split('T')[0] : '',
     requirementsList: initial.requirementsList?.length ? initial.requirementsList : [''],
     responsibilitiesList: initial.responsibilitiesList?.length ? initial.responsibilitiesList : [''],
   } : EMPTY);
@@ -150,52 +115,70 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
   };
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-
-  // ── list helpers (stable references — passed as props to ListEditor) ──────
-  const handleListChange = useCallback((key, idx, val) =>
-    setForm((p) => ({ ...p, [key]: p[key].map((item, i) => (i === idx ? val : item)) })),
-  []);
-
-  const handleListAdd = useCallback((key) =>
-    setForm((p) => ({ ...p, [key]: [...p[key], ''] })),
-  []);
-
-  const handleListRemove = useCallback((key, idx) =>
-    setForm((p) => ({ ...p, [key]: p[key].filter((_, i) => i !== idx) })),
-  []);
+  const listChange = (key, idx, val) =>
+    setForm((p) => ({ ...p, [key]: p[key].map((item, i) => (i === idx ? val : item)) }));
+  const addItem    = (key) => setForm((p) => ({ ...p, [key]: [...p[key], ''] }));
+  const removeItem = (key, idx) => setForm((p) => ({ ...p, [key]: p[key].filter((_, i) => i !== idx) }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Build FormData so careerImage file can be sent to backend
     const fd = new FormData();
 
-    fd.append('title',            form.title);
-    fd.append('category',         form.category);
-    fd.append('need',             form.need);
-    fd.append('location',         form.location);
-    fd.append('description',      form.description);
-    fd.append('requirements',     form.requirements     || '');
-    fd.append('responsibilities', form.responsibilities || '');
-    fd.append('jobNumber',        form.jobNumber  || '');
-    fd.append('company',          form.company    || '');
-    fd.append('website',          form.website    || '');
-    fd.append('salaryMin',        form.salaryMin  || '');
-    fd.append('salaryMax',        form.salaryMax  || '');
-    fd.append('salaryPeriod',     form.salaryPeriod);
-    fd.append('vacancy',          Number(form.vacancy));
-    fd.append('applyDeadline',    form.applyDeadline || '');
-    fd.append('isActive',         String(form.isActive));
+    // Scalar fields
+    fd.append('title',           form.title);
+    fd.append('category',        form.category);
+    fd.append('need',            form.need);
+    fd.append('location',        form.location);
+    fd.append('description',     form.description);
+    fd.append('requirements',    form.requirements || '');
+    fd.append('responsibilities',form.responsibilities || '');
+    fd.append('jobNumber',       form.jobNumber || '');
+    fd.append('company',         form.company   || '');
+    fd.append('website',         form.website   || '');
+    fd.append('salaryMin',       form.salaryMin || '');
+    fd.append('salaryMax',       form.salaryMax || '');
+    fd.append('salaryPeriod',    form.salaryPeriod);
+    fd.append('vacancy',         Number(form.vacancy));
+    fd.append('applyDeadline',   form.applyDeadline || '');
+    fd.append('isActive',        String(form.isActive));
 
+    // Array fields — JSON-stringified
     const tags  = form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [];
-    fd.append('tags',                 JSON.stringify(tags));
-    fd.append('requirementsList',     JSON.stringify(form.requirementsList.filter(Boolean)));
-    fd.append('responsibilitiesList', JSON.stringify(form.responsibilitiesList.filter(Boolean)));
+    const reqL  = form.requirementsList.filter(Boolean);
+    const respL = form.responsibilitiesList.filter(Boolean);
+    fd.append('tags',                  JSON.stringify(tags));
+    fd.append('requirementsList',      JSON.stringify(reqL));
+    fd.append('responsibilitiesList',  JSON.stringify(respL));
 
+    // Image file (optional)
     if (imageFile) fd.append('careerImage', imageFile);
 
     onSubmit(fd);
   };
 
   const grid = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 20px' };
+
+  const ListEditor = ({ label, fieldKey }) => (
+    <Field label={label}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {form[fieldKey].map((item, i) => (
+          <div key={i} style={{ display: 'flex', gap: 8 }}>
+            <input style={{ ...inputStyle, flex: 1 }} value={item}
+              onChange={(e) => listChange(fieldKey, i, e.target.value)} placeholder={`Item ${i + 1}`} />
+            <button type="button" onClick={() => removeItem(fieldKey, i)}
+              style={{ padding: '0 12px', background: '#fee2e2', border: 'none',
+                borderRadius: 8, color: '#dc2626', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+          </div>
+        ))}
+        <button type="button" onClick={() => addItem(fieldKey)}
+          style={{ padding: '7px 14px', background: '#eff6ff', border: '1.5px dashed #93c5fd',
+            borderRadius: 8, color: '#2563eb', cursor: 'pointer', fontSize: 13,
+            fontWeight: 600, alignSelf: 'flex-start' }}>+ Add Item</button>
+      </div>
+    </Field>
+  );
 
   return (
     <form onSubmit={handleSubmit}>
@@ -204,21 +187,17 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
         {/* ── Career Image Upload ─────────────────────────────────────────── */}
         <Field label="Career Image">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Preview */}
             {imagePreview ? (
-              <div style={{ position: 'relative', width: '100%', height: 160, borderRadius: 10,
-                overflow: 'hidden', border: '1.5px solid #e2e8f0' }}>
+              <div style={{ position: 'relative', width: '100%', height: 160, borderRadius: 10, overflow: 'hidden',
+                border: '1.5px solid #e2e8f0' }}>
                 <img src={imagePreview} alt="Preview"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <button type="button"
-                  onClick={() => {
-                    setImageFile(null);
-                    setImagePreview('');
-                    if (imageRef.current) imageRef.current.value = '';
-                  }}
+                  onClick={() => { setImageFile(null); setImagePreview(''); if (imageRef.current) imageRef.current.value = ''; }}
                   style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,.55)',
                     border: 'none', borderRadius: 6, color: '#fff', width: 28, height: 28,
-                    cursor: 'pointer', fontSize: 14, display: 'flex',
-                    alignItems: 'center', justifyContent: 'center' }}>
+                    cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   ✕
                 </button>
               </div>
@@ -227,7 +206,8 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
                 onClick={() => imageRef.current?.click()}
                 style={{ width: '100%', height: 160, borderRadius: 10, border: '2px dashed #cbd5e1',
                   background: '#f8fafc', display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
+                  alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer',
+                  transition: 'border-color .15s' }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#1a598a')}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#cbd5e1')}
               >
@@ -241,100 +221,64 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
             {!imagePreview && (
               <button type="button" onClick={() => imageRef.current?.click()}
                 style={{ ...inputStyle, background: '#f1f5f9', border: '1.5px solid #e2e8f0',
-                  cursor: 'pointer', textAlign: 'left', color: '#64748b' }}>
+                  cursor: 'pointer', textAlign: 'left', color: '#64748b', padding: '9px 12px' }}>
                 Browse file…
               </button>
             )}
           </div>
         </Field>
 
-        {/* Right col */}
+        {/* Right col — title + category stacked */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Field label="Job Title" required half>
-            <input style={inputStyle} value={form.title}
-              onChange={(e) => set('title', e.target.value)} required />
+            <input style={inputStyle} value={form.title} onChange={(e) => set('title', e.target.value)} required />
           </Field>
           <Field label="Category" required half>
-            <input style={inputStyle} value={form.category}
-              onChange={(e) => set('category', e.target.value)} required />
+            <input style={inputStyle} value={form.category} onChange={(e) => set('category', e.target.value)} required />
           </Field>
         </div>
 
         <Field label="Employment Type" half>
           <select style={inputStyle} value={form.need} onChange={(e) => set('need', e.target.value)}>
-            {['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote'].map((o) => (
-              <option key={o}>{o}</option>
-            ))}
+            {['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote'].map((o) => <option key={o}>{o}</option>)}
           </select>
         </Field>
         <Field label="Location" required half>
-          <input style={inputStyle} value={form.location}
-            onChange={(e) => set('location', e.target.value)} required />
+          <input style={inputStyle} value={form.location} onChange={(e) => set('location', e.target.value)} required />
         </Field>
 
         <Field label="Job Description" required>
           <textarea style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }}
             value={form.description} onChange={(e) => set('description', e.target.value)} required />
         </Field>
-
         <Field label="Requirements Intro Text">
           <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
             value={form.requirements} onChange={(e) => set('requirements', e.target.value)} />
         </Field>
-
-        {/* ListEditor is now a stable top-level component — no re-mount on each keystroke */}
-        <ListEditor
-          label="Requirements List"
-          items={form.requirementsList}
-          onChange={(idx, val) => handleListChange('requirementsList', idx, val)}
-          onAdd={() => handleListAdd('requirementsList')}
-          onRemove={(idx) => handleListRemove('requirementsList', idx)}
-        />
-
+        <ListEditor label="Requirements List" fieldKey="requirementsList" />
         <Field label="Responsibilities Intro Text">
           <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
             value={form.responsibilities} onChange={(e) => set('responsibilities', e.target.value)} />
         </Field>
+        <ListEditor label="Responsibilities List" fieldKey="responsibilitiesList" />
 
-        <ListEditor
-          label="Responsibilities List"
-          items={form.responsibilitiesList}
-          onChange={(idx, val) => handleListChange('responsibilitiesList', idx, val)}
-          onAdd={() => handleListAdd('responsibilitiesList')}
-          onRemove={(idx) => handleListRemove('responsibilitiesList', idx)}
-        />
-
-        {/* Job Information Sidebar */}
+        {/* Job Information Sidebar section */}
         <div style={{ gridColumn: 'span 2', borderTop: '1px solid #e2e8f0', paddingTop: 16, marginTop: 4 }}>
           <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 700, color: '#64748b',
             textTransform: 'uppercase', letterSpacing: 1 }}>Job Information Sidebar</p>
           <div style={grid}>
-            <Field label="Job Number" half>
-              <input style={inputStyle} value={form.jobNumber} onChange={(e) => set('jobNumber', e.target.value)} />
-            </Field>
-            <Field label="Company" half>
-              <input style={inputStyle} value={form.company} onChange={(e) => set('company', e.target.value)} />
-            </Field>
-            <Field label="Website" half>
-              <input style={inputStyle} value={form.website} onChange={(e) => set('website', e.target.value)} placeholder="www.example.com" />
-            </Field>
-            <Field label="Vacancy" half>
-              <input type="number" min={1} style={inputStyle} value={form.vacancy} onChange={(e) => set('vacancy', e.target.value)} />
-            </Field>
-            <Field label="Salary Min ($)" half>
-              <input type="number" style={inputStyle} value={form.salaryMin} onChange={(e) => set('salaryMin', e.target.value)} />
-            </Field>
-            <Field label="Salary Max ($)" half>
-              <input type="number" style={inputStyle} value={form.salaryMax} onChange={(e) => set('salaryMax', e.target.value)} />
-            </Field>
+            <Field label="Job Number" half><input style={inputStyle} value={form.jobNumber} onChange={(e) => set('jobNumber', e.target.value)} /></Field>
+            <Field label="Company" half><input style={inputStyle} value={form.company} onChange={(e) => set('company', e.target.value)} /></Field>
+            <Field label="Website" half><input style={inputStyle} value={form.website} onChange={(e) => set('website', e.target.value)} placeholder="www.example.com" /></Field>
+            <Field label="Vacancy" half><input type="number" min={1} style={inputStyle} value={form.vacancy} onChange={(e) => set('vacancy', e.target.value)} /></Field>
+            <Field label="Salary Min ($)" half><input type="number" style={inputStyle} value={form.salaryMin} onChange={(e) => set('salaryMin', e.target.value)} /></Field>
+            <Field label="Salary Max ($)" half><input type="number" style={inputStyle} value={form.salaryMax} onChange={(e) => set('salaryMax', e.target.value)} /></Field>
             <Field label="Salary Period" half>
               <select style={inputStyle} value={form.salaryPeriod} onChange={(e) => set('salaryPeriod', e.target.value)}>
                 {['hour', 'day', 'week', 'month', 'year'].map((o) => <option key={o}>{o}</option>)}
               </select>
             </Field>
-            <Field label="Apply Deadline" half>
-              <input type="date" style={inputStyle} value={form.applyDeadline} onChange={(e) => set('applyDeadline', e.target.value)} />
-            </Field>
+            <Field label="Apply Deadline" half><input type="date" style={inputStyle} value={form.applyDeadline} onChange={(e) => set('applyDeadline', e.target.value)} /></Field>
             <Field label="Tags (comma separated)">
               <input style={inputStyle} value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="Business, Consulting, Design" />
             </Field>
@@ -348,16 +292,13 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24,
-        paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
         <button type="button" onClick={onCancel}
           style={{ padding: '10px 20px', background: '#f1f5f9', border: 'none',
-            borderRadius: 8, fontSize: 14, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
-          Cancel
-        </button>
+            borderRadius: 8, fontSize: 14, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>Cancel</button>
         <button type="submit" disabled={loading}
-          style={{ padding: '10px 24px', background: loading ? '#93c5fd' : '#1a598a',
-            border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, color: '#fff',
+          style={{ padding: '10px 24px', background: loading ? '#93c5fd' : '#1a598a', border: 'none',
+            borderRadius: 8, fontSize: 14, fontWeight: 700, color: '#fff',
             cursor: loading ? 'not-allowed' : 'pointer' }}>
           {loading ? 'Saving…' : initial ? 'Save Changes' : 'Create Career'}
         </button>
@@ -372,11 +313,9 @@ const Confirm = ({ msg, onConfirm, onCancel }) => (
     <p style={{ color: '#374151', marginTop: 0 }}>{msg}</p>
     <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
       <button onClick={onCancel}
-        style={{ padding: '9px 18px', background: '#f1f5f9', border: 'none',
-          borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+        style={{ padding: '9px 18px', background: '#f1f5f9', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
       <button onClick={onConfirm}
-        style={{ padding: '9px 18px', background: '#dc2626', border: 'none',
-          borderRadius: 8, color: '#fff', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
+        style={{ padding: '9px 18px', background: '#dc2626', border: 'none', borderRadius: 8, color: '#fff', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
     </div>
   </Modal>
 );
@@ -399,22 +338,22 @@ const StatCard = ({ label, value, color, icon }) => (
 // MAIN
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function CareersAdmin() {
-  const [careers, setCareers]           = useState([]);
-  const [stats, setStats]               = useState(null);
-  const [page, setPage]                 = useState(1);
-  const [totalPages, setTotalPages]     = useState(1);
-  const [total, setTotal]               = useState(0);
-  const [loading, setLoading]           = useState(false);
-  const [formLoading, setFormLoading]   = useState(false);
-  const [search, setSearch]             = useState('');
+  const [careers, setCareers]         = useState([]);
+  const [stats, setStats]             = useState(null);
+  const [page, setPage]               = useState(1);
+  const [totalPages, setTotalPages]   = useState(1);
+  const [total, setTotal]             = useState(0);
+  const [loading, setLoading]         = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+  const [search, setSearch]           = useState('');
   const [filterActive, setFilterActive] = useState('all');
 
-  const [modal, setModal]               = useState(null);
-  const [selected, setSelected]         = useState(null);
+  const [modal, setModal]             = useState(null);
+  const [selected, setSelected]       = useState(null);
   const [applications, setApplications] = useState([]);
-  const [appsTitle, setAppsTitle]       = useState('');
-  const [confirm, setConfirm]           = useState(null);
-  const [toast, setToast]               = useState(null);
+  const [appsTitle, setAppsTitle]     = useState('');
+  const [confirm, setConfirm]         = useState(null);
+  const [toast, setToast]             = useState(null);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -447,6 +386,8 @@ export default function CareersAdmin() {
   useEffect(() => { loadStats(); },   [loadStats]);
   useEffect(() => { loadCareers(); }, [loadCareers]);
 
+  // ── CRUD ──────────────────────────────────────────────────────────────────
+  // handleCreate / handleUpdate now receive FormData directly from CareerForm
   const handleCreate = async (formData) => {
     setFormLoading(true);
     try {
@@ -544,8 +485,7 @@ export default function CareersAdmin() {
       <div className="rounded-2xl p-4 flex flex-wrap gap-3 items-center"
         style={{ background: '#fff', border: '1px solid #ecf0f0' }}>
         <div style={{ position: 'relative' }}>
-          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%',
-            transform: 'translateY(-50%)', color: '#a9b8b8' }} />
+          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a9b8b8' }} />
           <input style={{ ...inputStyle, paddingLeft: 32, width: 260, background: '#f8fafc',
             border: '1.5px solid #ecf0f0', color: '#0c1e21' }}
             placeholder="Search jobs…" value={search}
@@ -571,8 +511,7 @@ export default function CareersAdmin() {
         {loading ? (
           <div style={{ padding: 60, textAlign: 'center' }}>
             <div style={{ width: 28, height: 28, borderRadius: '50%', margin: '0 auto',
-              border: '3px solid #ecf0f0', borderTopColor: '#1a598a',
-              animation: 'spin 1s linear infinite' }} />
+              border: '3px solid #ecf0f0', borderTopColor: '#1a598a', animation: 'spin 1s linear infinite' }} />
           </div>
         ) : careers.length === 0 ? (
           <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8' }}>
@@ -594,11 +533,11 @@ export default function CareersAdmin() {
               <tbody>
                 {careers.map((career, i) => (
                   <tr key={career._id}
-                    style={{ borderBottom: i < careers.length - 1 ? '1px solid #f1f5f9' : 'none',
-                      transition: 'background .1s' }}
+                    style={{ borderBottom: i < careers.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background .1s' }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = '')}>
 
+                    {/* Image thumbnail */}
                     <td style={{ padding: '12px 16px' }}>
                       {career.image?.url ? (
                         <img src={career.image.url} alt={career.title}
@@ -614,9 +553,7 @@ export default function CareersAdmin() {
 
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ fontWeight: 600, color: '#0f172a', fontSize: 14 }}>{career.title}</div>
-                      {career.company && (
-                        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{career.company}</div>
-                      )}
+                      {career.company && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{career.company}</div>}
                     </td>
                     <td style={td}>{career.category}</td>
                     <td style={td}>{career.need}</td>
@@ -626,29 +563,19 @@ export default function CareersAdmin() {
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button title="Applications" onClick={() => openApplications(career)}
-                          style={{ padding: '6px 10px', background: '#eff6ff', border: 'none',
-                            borderRadius: 7, cursor: 'pointer', color: '#2563eb',
-                            display: 'flex', alignItems: 'center' }}>
+                          style={{ padding: '6px 10px', background: '#eff6ff', border: 'none', borderRadius: 7, cursor: 'pointer', color: '#2563eb', display: 'flex', alignItems: 'center' }}>
                           <Mail size={14} />
                         </button>
                         <button title="Edit" onClick={() => { setSelected(career); setModal('edit'); }}
-                          style={{ padding: '6px 10px', background: '#f0fdf4', border: 'none',
-                            borderRadius: 7, cursor: 'pointer', color: '#16a34a',
-                            display: 'flex', alignItems: 'center' }}>
+                          style={{ padding: '6px 10px', background: '#f0fdf4', border: 'none', borderRadius: 7, cursor: 'pointer', color: '#16a34a', display: 'flex', alignItems: 'center' }}>
                           <Pencil size={14} />
                         </button>
-                        <button title={career.isActive ? 'Deactivate' : 'Activate'}
-                          onClick={() => handleToggle(career._id)}
-                          style={{ padding: '6px 10px', background: '#fef9c3', border: 'none',
-                            borderRadius: 7, cursor: 'pointer', color: '#854d0e',
-                            display: 'flex', alignItems: 'center' }}>
+                        <button title={career.isActive ? 'Deactivate' : 'Activate'} onClick={() => handleToggle(career._id)}
+                          style={{ padding: '6px 10px', background: '#fef9c3', border: 'none', borderRadius: 7, cursor: 'pointer', color: '#854d0e', display: 'flex', alignItems: 'center' }}>
                           {career.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                         </button>
-                        <button title="Delete"
-                          onClick={() => setConfirm({ id: career._id, title: career.title })}
-                          style={{ padding: '6px 10px', background: '#fff1f2', border: 'none',
-                            borderRadius: 7, cursor: 'pointer', color: '#dc2626',
-                            display: 'flex', alignItems: 'center' }}>
+                        <button title="Delete" onClick={() => setConfirm({ id: career._id, title: career.title })}
+                          style={{ padding: '6px 10px', background: '#fff1f2', border: 'none', borderRadius: 7, cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center' }}>
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -694,8 +621,7 @@ export default function CareersAdmin() {
         </Modal>
       )}
       {modal === 'edit' && selected && (
-        <Modal title={`Edit: ${selected.title}`}
-          onClose={() => { setModal(null); setSelected(null); }} wide>
+        <Modal title={`Edit: ${selected.title}`} onClose={() => { setModal(null); setSelected(null); }} wide>
           <CareerForm initial={selected} onSubmit={handleUpdate}
             onCancel={() => { setModal(null); setSelected(null); }} loading={formLoading} />
         </Modal>
@@ -711,9 +637,7 @@ export default function CareersAdmin() {
                   display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{app.fullName}</div>
-                    <div style={{ fontSize: 13, color: '#64748b' }}>
-                      {app.email} {app.phone && `· ${app.phone}`}
-                    </div>
+                    <div style={{ fontSize: 13, color: '#64748b' }}>{app.email} {app.phone && `· ${app.phone}`}</div>
                     {app.coverLetter && (
                       <p style={{ margin: '8px 0 0', fontSize: 13, color: '#374151', lineHeight: 1.5, maxWidth: 500 }}>
                         {app.coverLetter.slice(0, 200)}{app.coverLetter.length > 200 ? '…' : ''}
@@ -721,8 +645,7 @@ export default function CareersAdmin() {
                     )}
                     {app.resumeUrl && (
                       <a href={app.resumeUrl} target="_blank" rel="noreferrer"
-                        style={{ fontSize: 13, color: '#1a598a', fontWeight: 600,
-                          marginTop: 6, display: 'inline-block' }}>
+                        style={{ fontSize: 13, color: '#1a598a', fontWeight: 600, marginTop: 6, display: 'inline-block' }}>
                         📄 View Resume
                       </a>
                     )}
@@ -747,11 +670,8 @@ export default function CareersAdmin() {
       )}
 
       {confirm && (
-        <Confirm
-          msg={`Are you sure you want to delete "${confirm.title}"? This cannot be undone.`}
-          onConfirm={() => handleDelete(confirm.id)}
-          onCancel={() => setConfirm(null)}
-        />
+        <Confirm msg={`Are you sure you want to delete "${confirm.title}"? This cannot be undone.`}
+          onConfirm={() => handleDelete(confirm.id)} onCancel={() => setConfirm(null)} />
       )}
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </div>
