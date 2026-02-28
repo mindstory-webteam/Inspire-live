@@ -88,12 +88,13 @@ const Modal = ({ title, onClose, children, wide, extraWide }) => (
 );
 
 // ─── Field ────────────────────────────────────────────────────────────────────
-const Field = ({ label, required, children, half }) => (
+const Field = ({ label, required, children, half, error }) => (
   <div style={{ gridColumn: half ? 'span 1' : 'span 2', marginBottom: 4 }}>
     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
       {label} {required && <span style={{ color: '#dc2626' }}>*</span>}
     </label>
     {children}
+    {error && <div style={{ fontSize: 12, color: '#dc2626', marginTop: 4 }}>{error}</div>}
   </div>
 );
 
@@ -141,6 +142,11 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
     responsibilitiesList: initial.responsibilitiesList?.length ? initial.responsibilitiesList : [''],
   } : EMPTY);
 
+  // ── FIX 1: JS validation — no HTML "required" so browser never silently
+  //    blocks submission without scrolling to the hidden invalid field ─────────
+  const [errors, setErrors] = useState({});
+  const formTopRef = useRef(null);
+
   const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState(initial?.image?.url || '');
   const imageRef                        = useRef(null);
@@ -152,7 +158,10 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
     setImagePreview(URL.createObjectURL(file));
   };
 
-  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  const set = (k, v) => {
+    setForm((p) => ({ ...p, [k]: v }));
+    if (errors[k]) setErrors((prev) => { const n = { ...prev }; delete n[k]; return n; });
+  };
 
   const handleListChange = useCallback((key, idx, val) =>
     setForm((p) => ({ ...p, [key]: p[key].map((item, i) => (i === idx ? val : item)) })), []);
@@ -161,8 +170,25 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
   const handleListRemove = useCallback((key, idx) =>
     setForm((p) => ({ ...p, [key]: p[key].filter((_, i) => i !== idx) })), []);
 
+  const validate = () => {
+    const e = {};
+    if (!form.title.trim())       e.title       = 'Title is required';
+    if (!form.category.trim())    e.category    = 'Category is required';
+    if (!form.location.trim())    e.location    = 'Location is required';
+    if (!form.description.trim()) e.description = 'Description is required';
+    return e;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      // Scroll to top of form so the user sees the error banner
+      formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
     const fd = new FormData();
     fd.append('title',            form.title);
     fd.append('category',         form.category);
@@ -191,8 +217,31 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
   const grid = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 20px' };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} noValidate>
+      {/* Scroll anchor — sits at top of form content */}
+      <div ref={formTopRef} />
+
+      {/* ── Global validation error banner ── */}
+      {Object.keys(errors).length > 0 && (
+        <div style={{
+          background: '#fef2f2', border: '1.5px solid #fecaca', borderRadius: 10,
+          padding: '12px 16px', marginBottom: 20,
+          display: 'flex', gap: 10, alignItems: 'flex-start',
+        }}>
+          <span style={{ color: '#dc2626', fontSize: 18, lineHeight: 1 }}>⚠</span>
+          <div>
+            <div style={{ fontWeight: 700, color: '#dc2626', fontSize: 14, marginBottom: 4 }}>
+              Please fix the following errors:
+            </div>
+            <ul style={{ margin: 0, padding: '0 0 0 16px', color: '#7f1d1d', fontSize: 13 }}>
+              {Object.values(errors).map((err, i) => <li key={i}>{err}</li>)}
+            </ul>
+          </div>
+        </div>
+      )}
+
       <div style={grid}>
+        {/* ── Career Image ── */}
         <Field label="Career Image">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {imagePreview ? (
@@ -226,12 +275,23 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
           </div>
         </Field>
 
+        {/* ── Title + Category stacked in right column ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Field label="Job Title" required half>
-            <input style={inputStyle} value={form.title} onChange={(e) => set('title', e.target.value)} required />
+          <Field label="Job Title" required half error={errors.title}>
+            <input
+              style={{ ...inputStyle, borderColor: errors.title ? '#dc2626' : '#e2e8f0' }}
+              value={form.title}
+              onChange={(e) => set('title', e.target.value)}
+              placeholder="e.g. Senior Software Engineer"
+            />
           </Field>
-          <Field label="Category" required half>
-            <input style={inputStyle} value={form.category} onChange={(e) => set('category', e.target.value)} required />
+          <Field label="Category" required half error={errors.category}>
+            <input
+              style={{ ...inputStyle, borderColor: errors.category ? '#dc2626' : '#e2e8f0' }}
+              value={form.category}
+              onChange={(e) => set('category', e.target.value)}
+              placeholder="e.g. Engineering"
+            />
           </Field>
         </div>
 
@@ -240,12 +300,21 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
             {['Full Time','Part Time','Contract','Internship','Remote'].map((o) => <option key={o}>{o}</option>)}
           </select>
         </Field>
-        <Field label="Location" required half>
-          <input style={inputStyle} value={form.location} onChange={(e) => set('location', e.target.value)} required />
+        <Field label="Location" required half error={errors.location}>
+          <input
+            style={{ ...inputStyle, borderColor: errors.location ? '#dc2626' : '#e2e8f0' }}
+            value={form.location}
+            onChange={(e) => set('location', e.target.value)}
+            placeholder="e.g. New York, NY"
+          />
         </Field>
-        <Field label="Job Description" required>
-          <textarea style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }}
-            value={form.description} onChange={(e) => set('description', e.target.value)} required />
+        <Field label="Job Description" required error={errors.description}>
+          <textarea
+            style={{ ...inputStyle, minHeight: 100, resize: 'vertical', borderColor: errors.description ? '#dc2626' : '#e2e8f0' }}
+            value={form.description}
+            onChange={(e) => set('description', e.target.value)}
+            placeholder="Describe the role, responsibilities, and what you're looking for…"
+          />
         </Field>
         <Field label="Requirements Intro Text">
           <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
@@ -336,6 +405,29 @@ const StatCard = ({ label, value, color, icon }) => (
   </div>
 );
 
+// ─── FIX 2: Cloudinary raw PDF helpers ───────────────────────────────────────
+// Cloudinary raw files (PDFs) cannot be rendered by the browser PDF viewer
+// when accessed directly because Cloudinary serves them without a Content-Type
+// header that browsers need. Two solutions:
+//
+//   View:     Route through Google Docs Viewer — works for any public PDF URL.
+//   Download: Inject fl_attachment into the Cloudinary URL so Cloudinary adds
+//             Content-Disposition: attachment and the correct MIME type.
+
+const getResumeViewUrl = (url) => {
+  if (!url) return '';
+  return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+};
+
+const getResumeDownloadUrl = (url) => {
+  if (!url) return '';
+  // Insert fl_attachment transformation for Cloudinary raw URLs
+  if (url.includes('cloudinary.com') && url.includes('/raw/upload/')) {
+    return url.replace('/raw/upload/', '/raw/upload/fl_attachment/');
+  }
+  return url;
+};
+
 // ─── Application Card ─────────────────────────────────────────────────────────
 const ApplicationCard = ({ app, onStatusChange }) => {
   const statusColors = {
@@ -346,12 +438,10 @@ const ApplicationCard = ({ app, onStatusChange }) => {
   };
   const sc = statusColors[app.status] || statusColors.pending;
 
-  // Get filename from URL for download
   const getFilename = (url) => {
     if (!url) return 'resume';
     const parts = url.split('/');
     const raw = parts[parts.length - 1];
-    // Cloudinary raw files often have encoded names — decode and clean
     try { return decodeURIComponent(raw).replace(/^resume_\d+_/, ''); } catch { return raw; }
   };
 
@@ -366,7 +456,6 @@ const ApplicationCard = ({ app, onStatusChange }) => {
         padding: '18px 24px', borderBottom: '1px solid #e2e8f0',
         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16,
       }}>
-        {/* Left: name + status badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{
             width: 48, height: 48, borderRadius: 12,
@@ -384,7 +473,6 @@ const ApplicationCard = ({ app, onStatusChange }) => {
           </div>
         </div>
 
-        {/* Right: status badge + dropdown */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
           <AppBadge status={app.status} />
           <select
@@ -405,8 +493,7 @@ const ApplicationCard = ({ app, onStatusChange }) => {
 
       {/* Card body */}
       <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-        {/* Contact info row */}
+        {/* Contact info */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: '#eff6ff',
@@ -454,7 +541,7 @@ const ApplicationCard = ({ app, onStatusChange }) => {
           </div>
         )}
 
-        {/* Resume download */}
+        {/* ── FIX 2: Resume row with working View + Download ── */}
         {app.resumeUrl && (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -474,19 +561,23 @@ const ApplicationCard = ({ app, onStatusChange }) => {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              {/* View */}
-              <a href={app.resumeUrl} target="_blank" rel="noreferrer"
+              {/* View — Google Docs viewer renders the PDF reliably */}
+              <a
+                href={getResumeViewUrl(app.resumeUrl)}
+                target="_blank"
+                rel="noreferrer"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
                   background: '#eff6ff', color: '#2563eb', textDecoration: 'none',
                   border: '1px solid #bfdbfe',
-                }}>
+                }}
+              >
                 👁 View
               </a>
-              {/* Download — force download via fetch blob */}
+              {/* Download — fl_attachment tells Cloudinary to serve with correct headers */}
               <a
-                href={app.resumeUrl}
+                href={getResumeDownloadUrl(app.resumeUrl)}
                 download={getFilename(app.resumeUrl)}
                 target="_blank"
                 rel="noreferrer"
@@ -794,7 +885,6 @@ export default function CareersAdmin() {
         </Modal>
       )}
 
-      {/* ── Applications Modal — extra wide, full cards ── */}
       {modal === 'apps' && (
         <Modal
           title={
@@ -816,7 +906,6 @@ export default function CareersAdmin() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {/* Summary bar */}
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 {['pending','reviewed','shortlisted','rejected'].map((s) => {
                   const count = applications.filter((a) => a.status === s).length;
@@ -833,8 +922,6 @@ export default function CareersAdmin() {
                   );
                 })}
               </div>
-
-              {/* Application cards */}
               {applications.map((app) => (
                 <ApplicationCard key={app._id} app={app} onStatusChange={updateAppStatus} />
               ))}
