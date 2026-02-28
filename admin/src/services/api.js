@@ -88,4 +88,38 @@ export const eventService = {
   delete:  (id)    => api.delete(`/admin/events/${id}`),
 };
 
+// ── Careers ────────────────────────────────────────────────────────────────────
+export const careerService = {
+  // ── Public (no auth needed) ──────────────────────────────────────────────
+  // GET /api/careers?page=1&limit=6&category=Design&need=Full+Time&search=...
+  getAll:  (params) => api.get('/careers', { params }),
+  getById: (id)     => api.get(`/careers/${id}`),
+
+  // POST /api/careers/:id/apply  → FormData (fullName, email, phone, coverLetter, resume file)
+  apply: (id, formData) => api.post(`/careers/${id}/apply`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+
+  // ── Admin (protected — token sent automatically via interceptor) ─────────
+  // GET    /api/admin/careers/stats
+  // GET    /api/admin/careers?page=1&limit=10&search=...&isActive=true
+  // GET    /api/admin/careers/:id
+  // POST   /api/admin/careers
+  // PUT    /api/admin/careers/:id
+  // DELETE /api/admin/careers/:id
+  // PATCH  /api/admin/careers/:id/toggle
+  // GET    /api/admin/careers/:id/applications
+  // PATCH  /api/admin/careers/:careerId/applications/:appId  → { status }
+  getStats:    ()             => api.get('/admin/careers/stats'),
+  getAllAdmin:  (params)      => api.get('/admin/careers', { params }),
+  getByIdAdmin:(id)           => api.get(`/admin/careers/${id}`),
+  create:      (data)         => api.post('/admin/careers', data),
+  update:      (id, data)     => api.put(`/admin/careers/${id}`, data),
+  delete:      (id)           => api.delete(`/admin/careers/${id}`),
+  toggle:      (id)           => api.patch(`/admin/careers/${id}/toggle`),
+  getApplications: (careerId) => api.get(`/admin/careers/${careerId}/applications`),
+  updateApplicationStatus: (careerId, appId, status) =>
+    api.patch(`/admin/careers/${careerId}/applications/${appId}`, { status }),
+};
+
 export default api;

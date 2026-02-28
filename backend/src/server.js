@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════
-// COMPLETE server.js — your existing code + events routes added
+// COMPLETE server.js — your existing code + careers routes added
 // Changes from your original are marked with ← ADD THIS
 // ════════════════════════════════════════════════════════════════════
 
@@ -12,7 +12,8 @@ const { errorHandler } = require('./middleware/error');
 const authRoutes = require('./routes/authRoutes');
 const { blogRouter, adminRouter } = require('./routes/blogRoutes');
 const bannerRoutes = require('./routes/bannerRoutes');
-const { eventRouter, eventAdminRouter } = require('./routes/eventRoutes'); // ← ADD THIS
+const { eventRouter, eventAdminRouter } = require('./routes/eventRoutes');
+const { careerRoutes, careerAdminRoutes } = require('./routes/careerRoutes'); // ← ADD THIS
 
 // Connect to MongoDB
 connectDB();
@@ -64,8 +65,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/blogs', blogRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/banner', bannerRoutes);
-app.use('/api/events', eventRouter);             // ← ADD THIS  (public)
-app.use('/api/admin/events', eventAdminRouter);  // ← ADD THIS  (admin, protected)
+app.use('/api/events', eventRouter);
+app.use('/api/admin/events', eventAdminRouter);
+app.use('/api/careers', careerRoutes);             // ← ADD THIS  (public)
+app.use('/api/admin/careers', careerAdminRoutes);  // ← ADD THIS  (admin, protected)
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) =>

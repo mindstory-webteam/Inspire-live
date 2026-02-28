@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { blogService, eventService } from '../services/api';
+import { blogService, eventService, careerService } from '../services/api';
 import { Link } from 'react-router-dom';
 import {
   FileText, CheckCircle, Star, MessageSquare,
-  Plus, TrendingUp, Layers, ArrowUpRight, Calendar,
+  Plus, TrendingUp, Layers, ArrowUpRight, Calendar, Briefcase,
 } from 'lucide-react';
 
 const StatCard = ({ label, value, icon: Icon, color, bg, to }) => {
@@ -29,10 +29,11 @@ const StatCard = ({ label, value, icon: Icon, color, bg, to }) => {
 };
 
 export default function Dashboard() {
-  const [stats, setStats]           = useState(null);
+  const [stats, setStats]               = useState(null);
   const [bannerSlides, setBannerSlides] = useState(null);
-  const [eventCount, setEventCount] = useState(null); // ← NEW
-  const [loading, setLoading]       = useState(true);
+  const [eventCount, setEventCount]     = useState(null);
+  const [careerStats, setCareerStats]   = useState(null); // ← NEW
+  const [loading, setLoading]           = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
@@ -51,14 +52,20 @@ export default function Dashboard() {
         .then((r) => r.data?.slides?.length ?? 0)
         .catch(() => null),
 
-      // Events count — uses shared axios instance (token auto-attached)
+      // Events count
       eventService.getAllAdmin()
         .then((r) => r.data?.count ?? r.data?.data?.length ?? 0)
         .catch(() => null),
-    ]).then(([s, slides, evtCount]) => {
+
+      // Careers stats ← NEW
+      careerService.getStats()
+        .then((r) => r.data?.data ?? null)
+        .catch(() => null),
+    ]).then(([s, slides, evtCount, careers]) => {
       setStats(s);
       setBannerSlides(slides);
       setEventCount(evtCount);
+      setCareerStats(careers); // ← NEW
     }).finally(() => setLoading(false));
   }, []);
 
@@ -88,7 +95,7 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      {/* Stat Cards — now 6 items (2 rows on sm, 3 cols on xl) */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         <StatCard
           label="Total Blogs"
@@ -126,7 +133,6 @@ export default function Dashboard() {
           bg="#01559912"
           to="/banner"
         />
-        {/* ── NEW — Events stat card ── */}
         <StatCard
           label="Total Events"
           value={eventCount}
@@ -134,6 +140,23 @@ export default function Dashboard() {
           color="#059669"
           bg="#05966912"
           to="/events"
+        />
+        {/* ── NEW — Careers stat cards ── */}
+        <StatCard
+          label="Active Jobs"
+          value={careerStats?.active}
+          icon={Briefcase}
+          color="#b45309"
+          bg="#b4530912"
+          to="/careers"
+        />
+        <StatCard
+          label="Total Applications"
+          value={careerStats?.totalApplications}
+          icon={FileText}
+          color="#0369a1"
+          bg="#0369a112"
+          to="/careers"
         />
       </div>
 
@@ -229,8 +252,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick-links row — Banner + Events */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      {/* Quick-links row — Banner + Events + Careers */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Banner quick link */}
         <div
           className="rounded-2xl p-5 flex items-center justify-between"
@@ -255,11 +278,11 @@ export default function Dashboard() {
             className="flex items-center gap-2 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:shadow-md hover:-translate-y-0.5"
             style={{ background: 'linear-gradient(135deg, #1a598a, #015599)' }}
           >
-            Manage Banner
+            Manage
           </Link>
         </div>
 
-        {/* ── NEW — Events quick link ── */}
+        {/* Events quick link */}
         <div
           className="rounded-2xl p-5 flex items-center justify-between"
           style={{ background: 'linear-gradient(135deg, #05966908, #05966904)', border: '1px solid #05966920' }}
@@ -283,7 +306,35 @@ export default function Dashboard() {
             className="flex items-center gap-2 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:shadow-md hover:-translate-y-0.5"
             style={{ background: 'linear-gradient(135deg, #059669, #047857)' }}
           >
-            Manage Events
+            Manage
+          </Link>
+        </div>
+
+        {/* ── NEW — Careers quick link ── */}
+        <div
+          className="rounded-2xl p-5 flex items-center justify-between"
+          style={{ background: 'linear-gradient(135deg, #b4530908, #b4530904)', border: '1px solid #b4530920' }}
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #b45309, #92400e)' }}
+            >
+              <Briefcase size={19} className="text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm" style={{ color: '#0c1e21' }}>Careers</p>
+              <p className="text-xs" style={{ color: '#67787a' }}>
+                {careerStats?.active ?? 0} active job{careerStats?.active !== 1 ? 's' : ''} · {careerStats?.totalApplications ?? 0} application{careerStats?.totalApplications !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/careers"
+            className="flex items-center gap-2 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:shadow-md hover:-translate-y-0.5"
+            style={{ background: 'linear-gradient(135deg, #b45309, #92400e)' }}
+          >
+            Manage
           </Link>
         </div>
       </div>
