@@ -14,7 +14,7 @@ const {
   updateApplicationStatus,
   getStats,
 } = require('../controllers/careerController');
-const { uploadMedia, handleMulterError } = require('../middleware/upload');
+const { uploadMedia, handleMulterError } = require('../middleware/uploadMiddleware');
 
 // ─── Public Routes ────────────────────────────────────────────────────────────
 // GET  /api/careers              - List active careers (with pagination & filters)
