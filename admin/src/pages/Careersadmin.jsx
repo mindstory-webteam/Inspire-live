@@ -55,37 +55,49 @@ const Toast = ({ msg, type, onClose }) => (
 );
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-const Modal = ({ title, onClose, children, wide, extraWide }) => (
-  <div
-    style={{
-      position: 'fixed', inset: 0, background: 'rgba(15,23,42,.65)',
-      backdropFilter: 'blur(4px)', zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-    }}
-    onClick={(e) => e.target === e.currentTarget && onClose()}
-  >
-    <div style={{
-      background: '#fff', borderRadius: 20, width: '100%',
-      maxWidth: extraWide ? 1100 : wide ? 860 : 640,
-      maxHeight: '92vh', overflow: 'auto',
-      boxShadow: '0 25px 60px rgba(0,0,0,.25)',
-    }}>
-      <div style={{
-        padding: '22px 32px', borderBottom: '1px solid #e2e8f0',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        position: 'sticky', top: 0, background: '#fff', zIndex: 10, borderRadius: '20px 20px 0 0',
-      }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#0f172a' }}>{title}</h2>
-        <button onClick={onClose} style={{
-          background: '#f1f5f9', border: 'none', borderRadius: 8,
-          width: 36, height: 36, cursor: 'pointer', fontSize: 18, color: '#64748b',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>✕</button>
+// FIX: scroll the modal container to top every time it opens so required
+// fields (Title, Category, Location, Description) are always visible first.
+const Modal = ({ title, onClose, children, wide, extraWide }) => {
+  const containerRef = useRef(null);
+  useEffect(() => {
+    if (containerRef.current) containerRef.current.scrollTop = 0;
+  }, []);
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(15,23,42,.65)',
+        backdropFilter: 'blur(4px)', zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        ref={containerRef}
+        style={{
+          background: '#fff', borderRadius: 20, width: '100%',
+          maxWidth: extraWide ? 1100 : wide ? 860 : 640,
+          maxHeight: '92vh', overflow: 'auto',
+          boxShadow: '0 25px 60px rgba(0,0,0,.25)',
+        }}
+      >
+        <div style={{
+          padding: '22px 32px', borderBottom: '1px solid #e2e8f0',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          position: 'sticky', top: 0, background: '#fff', zIndex: 10, borderRadius: '20px 20px 0 0',
+        }}>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#0f172a' }}>{title}</h2>
+          <button onClick={onClose} style={{
+            background: '#f1f5f9', border: 'none', borderRadius: 8,
+            width: 36, height: 36, cursor: 'pointer', fontSize: 18, color: '#64748b',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>✕</button>
+        </div>
+        <div style={{ padding: 32 }}>{children}</div>
       </div>
-      <div style={{ padding: 32 }}>{children}</div>
     </div>
-  </div>
-);
+  );
+};
 
 // ─── Field ────────────────────────────────────────────────────────────────────
 const Field = ({ label, required, children, half, error }) => (
@@ -142,10 +154,14 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
     responsibilitiesList: initial.responsibilitiesList?.length ? initial.responsibilitiesList : [''],
   } : EMPTY);
 
-  // ── FIX 1: JS validation — no HTML "required" so browser never silently
-  //    blocks submission without scrolling to the hidden invalid field ─────────
   const [errors, setErrors] = useState({});
-  const formTopRef = useRef(null);
+
+  // ── FIX: formRef always holds the LATEST form values ─────────────────────
+  // Without this, validate() reads stale closure values (the initial empty
+  // EMPTY state) even after the user has typed — causing false "required"
+  // errors on every submit no matter what the user fills in.
+  const formRef = useRef(form);
+  useEffect(() => { formRef.current = form; }, [form]);
 
   const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState(initial?.image?.url || '');
@@ -170,46 +186,43 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
   const handleListRemove = useCallback((key, idx) =>
     setForm((p) => ({ ...p, [key]: p[key].filter((_, i) => i !== idx) })), []);
 
-  const validate = () => {
-    const e = {};
-    if (!form.title.trim())       e.title       = 'Title is required';
-    if (!form.category.trim())    e.category    = 'Category is required';
-    if (!form.location.trim())    e.location    = 'Location is required';
-    if (!form.description.trim()) e.description = 'Description is required';
-    return e;
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    const errs = validate();
+
+    // ── Always read from ref — never from stale closure ──────────────────────
+    const f = formRef.current;
+    const errs = {};
+    if (!f.title.trim())       errs.title       = 'Title is required';
+    if (!f.category.trim())    errs.category    = 'Category is required';
+    if (!f.location.trim())    errs.location    = 'Location is required';
+    if (!f.description.trim()) errs.description = 'Description is required';
+
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
-      // Scroll to top of form so the user sees the error banner
-      formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
     const fd = new FormData();
-    fd.append('title',            form.title);
-    fd.append('category',         form.category);
-    fd.append('need',             form.need);
-    fd.append('location',         form.location);
-    fd.append('description',      form.description);
-    fd.append('requirements',     form.requirements     || '');
-    fd.append('responsibilities', form.responsibilities || '');
-    fd.append('jobNumber',        form.jobNumber  || '');
-    fd.append('company',          form.company    || '');
-    fd.append('website',          form.website    || '');
-    fd.append('salaryMin',        form.salaryMin  || '');
-    fd.append('salaryMax',        form.salaryMax  || '');
-    fd.append('salaryPeriod',     form.salaryPeriod);
-    fd.append('vacancy',          Number(form.vacancy));
-    fd.append('applyDeadline',    form.applyDeadline || '');
-    fd.append('isActive',         String(form.isActive));
-    const tags = form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [];
+    fd.append('title',            f.title);
+    fd.append('category',         f.category);
+    fd.append('need',             f.need);
+    fd.append('location',         f.location);
+    fd.append('description',      f.description);
+    fd.append('requirements',     f.requirements     || '');
+    fd.append('responsibilities', f.responsibilities || '');
+    fd.append('jobNumber',        f.jobNumber  || '');
+    fd.append('company',          f.company    || '');
+    fd.append('website',          f.website    || '');
+    fd.append('salaryMin',        f.salaryMin  || '');
+    fd.append('salaryMax',        f.salaryMax  || '');
+    fd.append('salaryPeriod',     f.salaryPeriod);
+    fd.append('vacancy',          Number(f.vacancy));
+    fd.append('applyDeadline',    f.applyDeadline || '');
+    fd.append('isActive',         String(f.isActive));
+    const tags = f.tags ? f.tags.split(',').map((t) => t.trim()).filter(Boolean) : [];
     fd.append('tags',                 JSON.stringify(tags));
-    fd.append('requirementsList',     JSON.stringify(form.requirementsList.filter(Boolean)));
-    fd.append('responsibilitiesList', JSON.stringify(form.responsibilitiesList.filter(Boolean)));
+    fd.append('requirementsList',     JSON.stringify(f.requirementsList.filter(Boolean)));
+    fd.append('responsibilitiesList', JSON.stringify(f.responsibilitiesList.filter(Boolean)));
     if (imageFile) fd.append('careerImage', imageFile);
     onSubmit(fd);
   };
@@ -218,8 +231,6 @@ const CareerForm = ({ initial, onSubmit, onCancel, loading }) => {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      {/* Scroll anchor — sits at top of form content */}
-      <div ref={formTopRef} />
 
       {/* ── Global validation error banner ── */}
       {Object.keys(errors).length > 0 && (
@@ -405,29 +416,19 @@ const StatCard = ({ label, value, color, icon }) => (
   </div>
 );
 
-// ─── FIX 2: Cloudinary raw PDF helpers ───────────────────────────────────────
-// Cloudinary raw files (PDFs) cannot be rendered by the browser PDF viewer
-// when accessed directly because Cloudinary serves them without a Content-Type
-// header that browsers need. Two solutions:
-//
-//   View:     Route through Google Docs Viewer — works for any public PDF URL.
-//   Download: Inject fl_attachment into the Cloudinary URL so Cloudinary adds
-//             Content-Disposition: attachment and the correct MIME type.
-
+// ─── Resume URL helpers ───────────────────────────────────────────────────────
 const getResumeViewUrl = (url) => {
   if (!url) return '';
+  // Google Docs viewer renders any publicly accessible PDF reliably
   return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
 };
 
 const getResumeDownloadUrl = (url) => {
   if (!url) return '';
-  // For Cloudinary raw files, fl_attachment as a URL transformation is NOT
-  // supported — it causes ERR_INVALID_RESPONSE. The correct approach is to
-  // append ?dl=1 as a query parameter, which tells Cloudinary to serve the
-  // file with Content-Disposition: attachment so the browser downloads it.
+  // ?dl=1 tells Cloudinary to serve with Content-Disposition: attachment
+  // fl_attachment as a URL transformation does NOT work on raw resource type
   if (url.includes('cloudinary.com')) {
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}dl=1`;
+    return url + (url.includes('?') ? '&' : '?') + 'dl=1';
   }
   return url;
 };
@@ -545,7 +546,7 @@ const ApplicationCard = ({ app, onStatusChange }) => {
           </div>
         )}
 
-        {/* ── FIX 2: Resume row with working View + Download ── */}
+        {/* Resume */}
         {app.resumeUrl && (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -565,33 +566,22 @@ const ApplicationCard = ({ app, onStatusChange }) => {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              {/* View — Google Docs viewer renders the PDF reliably */}
-              <a
-                href={getResumeViewUrl(app.resumeUrl)}
-                target="_blank"
-                rel="noreferrer"
+              <a href={getResumeViewUrl(app.resumeUrl)} target="_blank" rel="noreferrer"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
                   background: '#eff6ff', color: '#2563eb', textDecoration: 'none',
                   border: '1px solid #bfdbfe',
-                }}
-              >
+                }}>
                 👁 View
               </a>
-              {/* Download — fl_attachment tells Cloudinary to serve with correct headers */}
-              <a
-                href={getResumeDownloadUrl(app.resumeUrl)}
-                download={getFilename(app.resumeUrl)}
-                target="_blank"
-                rel="noreferrer"
+              <a href={getResumeDownloadUrl(app.resumeUrl)} download={getFilename(app.resumeUrl)} target="_blank" rel="noreferrer"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
                   background: 'linear-gradient(135deg, #1a598a, #015599)',
                   color: '#fff', textDecoration: 'none', border: 'none',
-                }}
-              >
+                }}>
                 <Download size={13} /> Download
               </a>
             </div>
