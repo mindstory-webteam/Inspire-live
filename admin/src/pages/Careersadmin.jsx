@@ -1,10 +1,8 @@
 /**
  * CareersAdmin.jsx
- *
- * Changes from previous version:
- *  - Slug column added to table
- *  - Slug shown in edit modal (read-only, auto-generated from title)
- *  - Career detail links now use slug
+ * - Slug column in table
+ * - Slug shown in edit modal (read-only)
+ * - Fixed PDF viewer: uses Google Docs for preview, clean URL for download
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { careerService } from '../services/api';
@@ -12,7 +10,7 @@ import {
   Plus, Search, Pencil, Trash2, Eye, Download, FileText,
   ToggleLeft, ToggleRight, Mail, ChevronLeft, ChevronRight,
   ImageIcon, Phone, AtSign, MessageSquare, X, Briefcase,
-  MapPin, Users, CheckCircle, XCircle, Link,
+  MapPin, Users, CheckCircle, XCircle, Link, ExternalLink,
 } from 'lucide-react';
 
 /* ─── base styles ─────────────────────────────────────────────────────────── */
@@ -49,6 +47,29 @@ function F({ label, required, err, children }) {
       {err && <p style={{ margin: '4px 0 0', fontSize: 12, color: '#ef4444' }}>⚠ {err}</p>}
     </div>
   );
+}
+
+/* ─── helpers ─────────────────────────────────────────────────────────────── */
+function cleanPdfUrl(url) {
+  if (!url) return url;
+  return url
+    .replace(/[?&]fl_attachment=true/g, '')
+    .replace(/\?&/, '?')
+    .replace(/[?&]$/, '');
+}
+
+function downloadUrl(url) {
+  if (!url) return url;
+  const base = cleanPdfUrl(url);
+  return base + (base.includes('?') ? '&' : '?') + 'fl_attachment=true';
+}
+
+function getFilename(url) {
+  if (!url) return 'resume.pdf';
+  try {
+    return decodeURIComponent(url.split('/').pop().split('?')[0])
+      .replace(/^resume_\d+_/, '') || 'resume.pdf';
+  } catch { return 'resume.pdf'; }
 }
 
 /* ─── Toast ──────────────────────────────────────────────────────────────── */
@@ -113,21 +134,90 @@ function StatCard({ label, value, icon, color }) {
 
 /* ─── PDF Viewer ─────────────────────────────────────────────────────────── */
 function PdfViewer({ url, filename, onClose }) {
-  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
-  const dlUrl = url?.includes('cloudinary.com') ? url + (url.includes('?') ? '&' : '?') + 'fl_attachment=true' : url;
+  const [mode, setMode] = useState('direct'); // 'direct' | 'gdocs' | 'failed'
+  const [iframeKey, setIframeKey] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const viewUrl = cleanPdfUrl(url);
+  const dlUrl   = downloadUrl(url);
+  const gdocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(viewUrl)}&embedded=true`;
+
+  const currentSrc = mode === 'gdocs' ? gdocsUrl : viewUrl;
+
+  const handleError = () => {
+    setLoading(false);
+    if (mode === 'direct') {
+      setMode('gdocs');
+      setLoading(true);
+      setIframeKey(k => k + 1);
+    } else {
+      setMode('failed');
+    }
+  };
+
+  const handleLoad = () => setLoading(false);
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,.9)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ background: '#1e293b', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <FileText size={15} color="#94a3b8" />
-          <span style={{ color: '#f1f5f9', fontSize: 14, fontWeight: 600, maxWidth: 480, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename}</span>
+      {/* Top bar */}
+      <div style={{ background: '#1e293b', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+          <FileText size={15} color="#94a3b8" style={{ flexShrink: 0 }} />
+          <span style={{ color: '#f1f5f9', fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename}</span>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <a href={dlUrl} download={filename} target="_blank" rel="noreferrer" style={{ ...B('primary', true), textDecoration: 'none' }}><Download size={13} /> Download</a>
-          <button onClick={onClose} style={{ ...B('ghost', true), background: '#334155', color: '#fff' }}><X size={13} /> Close</button>
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <a href={viewUrl} target="_blank" rel="noreferrer"
+            style={{ ...B('ghost', true), background: '#334155', color: '#94a3b8', textDecoration: 'none' }}>
+            <ExternalLink size={13} /> Open
+          </a>
+          <a href={dlUrl} download={filename} target="_blank" rel="noreferrer"
+            style={{ ...B('primary', true), textDecoration: 'none' }}>
+            <Download size={13} /> Download
+          </a>
+          <button onClick={onClose} style={{ ...B('ghost', true), background: '#334155', color: '#fff' }}>
+            <X size={13} /> Close
+          </button>
         </div>
       </div>
-      <iframe src={viewerUrl} style={{ flex: 1, border: 'none', background: '#fff' }} title={filename} />
+
+      {/* Loading indicator */}
+      {loading && (
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#94a3b8', fontSize: 14, textAlign: 'center', zIndex: 1 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #334155', borderTopColor: '#60a5fa', animation: 'spin .8s linear infinite', margin: '0 auto 12px' }} />
+          {mode === 'gdocs' ? 'Trying Google Docs viewer…' : 'Loading preview…'}
+        </div>
+      )}
+
+      {/* Failed state */}
+      {mode === 'failed' && (
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#94a3b8', fontSize: 14, textAlign: 'center', zIndex: 1 }}>
+          <FileText size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
+          <div style={{ marginBottom: 8, fontWeight: 600, color: '#f1f5f9' }}>Preview unavailable</div>
+          <div style={{ marginBottom: 20, fontSize: 13 }}>Open directly or download the file.</div>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <a href={viewUrl} target="_blank" rel="noreferrer"
+              style={{ ...B('ghost', true), textDecoration: 'none', background: '#334155', color: '#f1f5f9' }}>
+              <ExternalLink size={13} /> Open directly
+            </a>
+            <a href={dlUrl} download={filename} target="_blank" rel="noreferrer"
+              style={{ ...B('primary', true), textDecoration: 'none' }}>
+              <Download size={13} /> Download
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* iframe — hidden when failed */}
+      {mode !== 'failed' && (
+        <iframe
+          key={iframeKey}
+          src={currentSrc}
+          style={{ flex: 1, border: 'none', background: '#fff', opacity: loading ? 0 : 1 }}
+          title={filename}
+          onLoad={handleLoad}
+          onError={handleError}
+        />
+      )}
     </div>
   );
 }
@@ -140,16 +230,12 @@ const SC = {
   rejected:    { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
 };
 
-function getFilename(url) {
-  if (!url) return 'resume.pdf';
-  try { return decodeURIComponent(url.split('/').pop().split('?')[0]).replace(/^resume_\d+_/, '') || 'resume.pdf'; }
-  catch { return 'resume.pdf'; }
-}
-
 function AppCard({ app, onStatusChange, onViewPdf }) {
-  const sc = SC[app.status] || { bg: '#f3f4f6', color: '#374151', border: '#e5e7eb' };
+  const sc    = SC[app.status] || { bg: '#f3f4f6', color: '#374151', border: '#e5e7eb' };
   const fname = getFilename(app.resumeUrl);
-  const dlUrl = app.resumeUrl?.includes('cloudinary.com') ? app.resumeUrl + (app.resumeUrl.includes('?') ? '&' : '?') + 'fl_attachment=true' : app.resumeUrl;
+  const viewableUrl  = cleanPdfUrl(app.resumeUrl);
+  const forceDownUrl = downloadUrl(app.resumeUrl);
+
   return (
     <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden', background: '#fff' }}>
       <div style={{ padding: '14px 18px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -166,30 +252,53 @@ function AppCard({ app, onStatusChange, onViewPdf }) {
           <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, textTransform: 'uppercase' }}>{app.status}</span>
           <select value={app.status} onChange={e => onStatusChange(app._id, e.target.value)}
             style={{ padding: '5px 8px', borderRadius: 7, border: `1px solid ${sc.border}`, background: sc.bg, color: sc.color, fontSize: 12, fontWeight: 600, cursor: 'pointer', outline: 'none' }}>
-            {['pending', 'reviewed', 'shortlisted', 'rejected'].map(s => <option key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</option>)}
+            {['pending', 'reviewed', 'shortlisted', 'rejected'].map(s => (
+              <option key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</option>
+            ))}
           </select>
         </div>
       </div>
+
       <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-          <a href={`mailto:${app.email}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#1a598a', textDecoration: 'none' }}><AtSign size={13} color="#6b7280" />{app.email}</a>
-          {app.phone && <a href={`tel:${app.phone}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#374151', textDecoration: 'none' }}><Phone size={13} color="#6b7280" />{app.phone}</a>}
+          <a href={`mailto:${app.email}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#1a598a', textDecoration: 'none' }}>
+            <AtSign size={13} color="#6b7280" />{app.email}
+          </a>
+          {app.phone && (
+            <a href={`tel:${app.phone}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#374151', textDecoration: 'none' }}>
+              <Phone size={13} color="#6b7280" />{app.phone}
+            </a>
+          )}
         </div>
+
         {app.coverLetter && (
           <div style={{ background: '#f9fafb', borderRadius: 8, padding: '12px 14px', border: '1px solid #e5e7eb' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><MessageSquare size={11} color="#9ca3af" /><span style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>Cover Letter</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <MessageSquare size={11} color="#9ca3af" />
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>Cover Letter</span>
+            </div>
             <p style={{ margin: 0, fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{app.coverLetter}</p>
           </div>
         )}
+
         {app.resumeUrl ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fafafa', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', flexWrap: 'wrap', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 8, background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FileText size={15} color="#dc2626" /></div>
-              <div><div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{fname}</div><div style={{ fontSize: 11, color: '#9ca3af' }}>Resume</div></div>
+              <div style={{ width: 34, height: 34, borderRadius: 8, background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FileText size={15} color="#dc2626" />
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{fname}</div>
+                <div style={{ fontSize: 11, color: '#9ca3af' }}>Resume</div>
+              </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => onViewPdf(app.resumeUrl, fname)} style={B('blue', true)}><Eye size={13} /> View</button>
-              <a href={dlUrl} download={fname} target="_blank" rel="noreferrer" style={{ ...B('primary', true), textDecoration: 'none' }}><Download size={13} /> Download</a>
+              <button onClick={() => onViewPdf(viewableUrl, fname)} style={B('blue', true)}>
+                <Eye size={13} /> View
+              </button>
+              <a href={forceDownUrl} download={fname} target="_blank" rel="noreferrer" style={{ ...B('primary', true), textDecoration: 'none' }}>
+                <Download size={13} /> Download
+              </a>
             </div>
           </div>
         ) : (
@@ -221,7 +330,7 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
 
   function handleSubmit(e) {
     e.preventDefault();
-    const raw = new FormData(e.target);
+    const raw         = new FormData(e.target);
     const title       = (raw.get('title')       || '').trim();
     const category    = (raw.get('category')    || '').trim();
     const location    = (raw.get('location')    || '').trim();
@@ -237,21 +346,21 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
     const fd = new FormData();
     fd.append('title',            title);
     fd.append('category',         category);
-    fd.append('need',             raw.get('need')             || 'Full Time');
+    fd.append('need',             raw.get('need')              || 'Full Time');
     fd.append('location',         location);
     fd.append('description',      description);
-    fd.append('requirements',     (raw.get('requirements')    || '').trim());
-    fd.append('responsibilities', (raw.get('responsibilities')|| '').trim());
-    fd.append('jobNumber',        (raw.get('jobNumber')       || '').trim());
-    fd.append('company',          (raw.get('company')         || '').trim());
-    fd.append('website',          (raw.get('website')         || '').trim());
-    fd.append('salaryMin',        raw.get('salaryMin')        || '');
-    fd.append('salaryMax',        raw.get('salaryMax')        || '');
-    fd.append('salaryPeriod',     raw.get('salaryPeriod')     || 'month');
-    fd.append('vacancy',          raw.get('vacancy')          || '1');
-    fd.append('applyDeadline',    raw.get('applyDeadline')    || '');
-    fd.append('isActive',         raw.get('isActive')         || 'true');
-    fd.append('tags',             JSON.stringify(
+    fd.append('requirements',     (raw.get('requirements')     || '').trim());
+    fd.append('responsibilities', (raw.get('responsibilities') || '').trim());
+    fd.append('jobNumber',        (raw.get('jobNumber')        || '').trim());
+    fd.append('company',          (raw.get('company')          || '').trim());
+    fd.append('website',          (raw.get('website')          || '').trim());
+    fd.append('salaryMin',        raw.get('salaryMin')         || '');
+    fd.append('salaryMax',        raw.get('salaryMax')         || '');
+    fd.append('salaryPeriod',     raw.get('salaryPeriod')      || 'month');
+    fd.append('vacancy',          raw.get('vacancy')           || '1');
+    fd.append('applyDeadline',    raw.get('applyDeadline')     || '');
+    fd.append('isActive',         raw.get('isActive')          || 'true');
+    fd.append('tags', JSON.stringify(
       (raw.get('tags') || '').split(',').map(t => t.trim()).filter(Boolean)
     ));
     fd.append('requirementsList',     JSON.stringify(reqList.filter(Boolean)));
@@ -268,7 +377,6 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
   return (
     <form onSubmit={handleSubmit} noValidate>
 
-      {/* Error banner */}
       {Object.keys(errors).length > 0 && (
         <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '12px 16px', marginBottom: 18 }}>
           <p style={{ margin: '0 0 6px', fontWeight: 700, color: '#dc2626', fontSize: 13 }}>Please fix:</p>
@@ -278,7 +386,6 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
         </div>
       )}
 
-      {/* Slug display (edit mode only — read-only, auto-generated) */}
       {initial?.slug && (
         <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
           <Link size={13} color="#15803d" style={{ flexShrink: 0 }} />
@@ -290,7 +397,7 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
           </div>
           <button
             type="button"
-            onClick={() => { navigator.clipboard?.writeText(initial.slug); }}
+            onClick={() => navigator.clipboard?.writeText(initial.slug)}
             style={{ padding: '4px 10px', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 6, fontSize: 11, color: '#15803d', cursor: 'pointer', fontWeight: 600, flexShrink: 0 }}
           >
             Copy
@@ -298,7 +405,6 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
         </div>
       )}
 
-      {/* Cover image */}
       <F label="Cover Image (optional)">
         {imgPreview ? (
           <div style={{ position: 'relative', height: 120, borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
@@ -319,16 +425,10 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
             <span style={{ fontSize: 13, color: '#6b7280' }}>Click to upload image</span>
           </div>
         )}
-        <input
-          type="file"
-          ref={fileInputRef}
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files[0]; if (f) setImgPreview(URL.createObjectURL(f)); }}
-        />
+        <input type="file" ref={fileInputRef} accept="image/*" style={{ display: 'none' }}
+          onChange={e => { const f = e.target.files[0]; if (f) setImgPreview(URL.createObjectURL(f)); }} />
       </F>
 
-      {/* Row 1: Title + Type */}
       <div style={G2}>
         <F label="Job Title" required err={errors.title}>
           <input name="title" style={{ ...IS, borderColor: border('title') }}
@@ -341,7 +441,6 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
         </F>
       </div>
 
-      {/* Row 2: Category + Location */}
       <div style={G2}>
         <F label="Category" required err={errors.category}>
           <input name="category" style={{ ...IS, borderColor: border('category') }}
@@ -353,18 +452,15 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
         </F>
       </div>
 
-      {/* Description */}
       <F label="Job Description" required err={errors.description}>
         <textarea name="description" style={{ ...IS, minHeight: 100, resize: 'vertical', borderColor: border('description') }}
           defaultValue={initial?.description || ''} placeholder="Describe the role…" />
       </F>
 
-      {/* Requirements intro */}
       <F label="Requirements (intro paragraph)">
         <textarea name="requirements" style={{ ...IS, minHeight: 70, resize: 'vertical' }} defaultValue={initial?.requirements || ''} />
       </F>
 
-      {/* Requirements list */}
       <div style={{ marginBottom: 14 }}>
         <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Requirements List</label>
         {reqList.map((item, i) => (
@@ -379,12 +475,10 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
           style={{ fontSize: 13, color: '#2563eb', background: '#eff6ff', border: '1px dashed #93c5fd', borderRadius: 7, padding: '5px 12px', cursor: 'pointer', fontWeight: 600 }}>+ Add</button>
       </div>
 
-      {/* Responsibilities intro */}
       <F label="Responsibilities (intro paragraph)">
         <textarea name="responsibilities" style={{ ...IS, minHeight: 70, resize: 'vertical' }} defaultValue={initial?.responsibilities || ''} />
       </F>
 
-      {/* Responsibilities list */}
       <div style={{ marginBottom: 14 }}>
         <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Responsibilities List</label>
         {respList.map((item, i) => (
@@ -524,24 +618,30 @@ export default function CareersAdmin() {
   const openApps = async (career) => {
     try {
       const r = await careerService.getApplications(career._id);
-      if (r.data?.success) { setApplications(r.data.data); setAppsTitle(r.data.jobTitle || career.title); setSelected(career); setModal('apps'); }
+      if (r.data?.success) {
+        setApplications(r.data.data);
+        setAppsTitle(r.data.jobTitle || career.title);
+        setSelected(career);
+        setModal('apps');
+      }
     } catch { showToast('Failed to load applications', 'error'); }
   };
 
   const updateAppStatus = async (appId, status) => {
     try {
       const r = await careerService.updateApplicationStatus(selected._id, appId, status);
-      if (r.data?.success) { setApplications(prev => prev.map(a => a._id === appId ? { ...a, status } : a)); showToast('Status updated'); }
+      if (r.data?.success) {
+        setApplications(prev => prev.map(a => a._id === appId ? { ...a, status } : a));
+        showToast('Status updated');
+      }
     } catch { showToast('Failed', 'error'); }
   };
 
-  // Frontend URL for career detail page (uses slug)
   const careerUrl = (c) => `/careers/${c.slug || c._id}`;
 
   return (
     <div style={{ padding: '24px 32px', minHeight: '100vh', background: '#f8fafc' }}>
 
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#111827' }}>Careers</h1>
@@ -552,7 +652,6 @@ export default function CareersAdmin() {
         </button>
       </div>
 
-      {/* Stats */}
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(175px,1fr))', gap: 12, marginBottom: 22 }}>
           <StatCard label="Total Jobs"   value={stats.total}             color="#2563eb" icon={<Briefcase size={19} color="#2563eb" />} />
@@ -562,7 +661,6 @@ export default function CareersAdmin() {
         </div>
       )}
 
-      {/* Filters */}
       <div style={{ background: '#fff', borderRadius: 12, padding: '12px 16px', border: '1px solid #e5e7eb', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 14 }}>
         <div style={{ position: 'relative' }}>
           <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
@@ -580,7 +678,6 @@ export default function CareersAdmin() {
         <span style={{ marginLeft: 'auto', fontSize: 13, color: '#9ca3af' }}>{total} job{total !== 1 ? 's' : ''}</span>
       </div>
 
-      {/* Table */}
       <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
         {loading ? (
           <div style={{ padding: 60, textAlign: 'center' }}>
@@ -617,21 +714,13 @@ export default function CareersAdmin() {
                       <div style={{ fontWeight: 600, color: '#111827', fontSize: 14 }}>{c.title}</div>
                       {c.company && <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 1 }}>{c.company}</div>}
                     </td>
-
-                    {/* ── SLUG COLUMN ── */}
                     <td style={{ padding: '12px 14px', maxWidth: 180 }}>
                       {c.slug ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <code style={{ fontSize: 11, background: '#f0fdf4', color: '#15803d', padding: '2px 7px', borderRadius: 5, border: '1px solid #bbf7d0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130, display: 'block' }}>
                             {c.slug}
                           </code>
-                          <a
-                            href={careerUrl(c)}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Open page"
-                            style={{ color: '#9ca3af', display: 'flex', flexShrink: 0 }}
-                          >
+                          <a href={careerUrl(c)} target="_blank" rel="noreferrer" title="Open page" style={{ color: '#9ca3af', display: 'flex', flexShrink: 0 }}>
                             <Eye size={12} />
                           </a>
                         </div>
@@ -639,7 +728,6 @@ export default function CareersAdmin() {
                         <span style={{ fontSize: 11, color: '#f59e0b', fontStyle: 'italic' }}>no slug yet</span>
                       )}
                     </td>
-
                     <td style={{ padding: '12px 14px', fontSize: 13, color: '#374151' }}>{c.category}</td>
                     <td style={{ padding: '12px 14px', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>{c.need}</td>
                     <td style={{ padding: '12px 14px', fontSize: 13, color: '#374151' }}>
@@ -688,7 +776,6 @@ export default function CareersAdmin() {
         )}
       </div>
 
-      {/* Modals */}
       {modal === 'create' && (
         <Modal title="Create New Job" onClose={closeModal} size="lg">
           <CareerForm key="create-form" onSubmit={handleCreate} onCancel={closeModal} saving={saving} />

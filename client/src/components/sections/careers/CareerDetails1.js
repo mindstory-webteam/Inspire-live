@@ -5,9 +5,40 @@ import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+// ── Reusable job icon/image component ────────────────────────────────────────
+const JobIcon = ({ image, iconName, title, size = 80 }) => {
+	const [imgFailed, setImgFailed] = useState(false);
+	const showImage = image?.url && !imgFailed;
+
+	return (
+		<div style={{
+			width: size, height: size, minWidth: size,
+			borderRadius: 12, overflow: "hidden",
+			display: "flex", alignItems: "center", justifyContent: "center",
+			background: showImage ? "transparent" : "linear-gradient(135deg, #1a598a, #015599)",
+			flexShrink: 0,
+		}}>
+			{showImage ? (
+				<img
+					src={image.url}
+					alt={title || "Career"}
+					style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+					onError={() => setImgFailed(true)}
+				/>
+			) : iconName ? (
+				<i className={iconName} style={{ fontSize: size * 0.4, color: "#fff" }}></i>
+			) : (
+				<span style={{ fontSize: size * 0.35, fontWeight: 700, color: "#fff" }}>
+					{(title || "J").charAt(0).toUpperCase()}
+				</span>
+			)}
+		</div>
+	);
+};
+
 const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 	const {
-		_id, slug, title, iconName, category, need, location,
+		_id, slug, title, iconName, image, category, need, location,
 		description, requirements, requirementsList,
 		responsibilities, responsibilitiesList,
 		tags, jobNumber, company, website,
@@ -16,23 +47,19 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 	} = career || {};
 
 	// ── Apply form state ─────────────────────────────────────────────────────
-	const [form, setForm]     = useState({ fullName: "", email: "", phone: "", coverLetter: "" });
-	const [file, setFile]     = useState(null);
+	const [form, setForm]       = useState({ fullName: "", email: "", phone: "", coverLetter: "" });
+	const [file, setFile]       = useState(null);
 	const [sending, setSending] = useState(false);
-	const [sent, setSent]     = useState(false);
-	const [error, setError]   = useState("");
-	const fileRef             = useRef(null);
+	const [sent, setSent]       = useState(false);
+	const [error, setError]     = useState("");
+	const fileRef               = useRef(null);
 
 	const setF = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
 	const handleApply = async (e) => {
 		e.preventDefault();
-		if (!form.fullName || !form.email) {
-			setError("Full name and email are required.");
-			return;
-		}
-		setSending(true);
-		setError("");
+		if (!form.fullName || !form.email) { setError("Full name and email are required."); return; }
+		setSending(true); setError("");
 		try {
 			const fd = new FormData();
 			fd.append("fullName",    form.fullName);
@@ -41,12 +68,8 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 			fd.append("coverLetter", form.coverLetter);
 			if (file) fd.append("resume", file);
 
-			// Use slug for clean URL, fall back to _id for backwards compat
 			const identifier = slug || _id;
-			const res = await fetch(`${API_BASE}/careers/${identifier}/apply`, {
-				method: "POST",
-				body: fd,
-			});
+			const res  = await fetch(`${API_BASE}/careers/${identifier}/apply`, { method: "POST", body: fd });
 			const data = await res.json();
 			if (data.success) {
 				setSent(true);
@@ -55,27 +78,21 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 			} else {
 				setError(data.message || "Submission failed. Please try again.");
 			}
-		} catch {
-			setError("Network error. Please try again.");
-		}
+		} catch { setError("Network error. Please try again."); }
 		setSending(false);
 	};
 
-	// ── Salary display ───────────────────────────────────────────────────────
+	// ── Display helpers ───────────────────────────────────────────────────────
 	const salaryDisplay = salaryMin && salaryMax
 		? `$${salaryMin}–$${salaryMax} / ${salaryPeriod}`
-		: salaryMin
-		? `From $${salaryMin} / ${salaryPeriod}`
-		: salaryMax
-		? `Up to $${salaryMax} / ${salaryPeriod}`
+		: salaryMin ? `From $${salaryMin} / ${salaryPeriod}`
+		: salaryMax ? `Up to $${salaryMax} / ${salaryPeriod}`
 		: null;
 
-	// ── Deadline display ─────────────────────────────────────────────────────
 	const deadlineDisplay = applyDeadline
 		? new Date(applyDeadline).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).toUpperCase()
 		: null;
 
-	// ── Vacancy display ──────────────────────────────────────────────────────
 	const vacancyDisplay = vacancy ? `${String(vacancy).padStart(2, "0")} Available` : null;
 
 	return (
@@ -88,13 +105,14 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 
 								{/* Top */}
 								<div className="tj-careers-top mb-30">
+									{/* ── Image replaces old static icon ── */}
 									<div className="tj-careers-top-icon">
-										<i className={iconName || "tji-manage"}></i>
+										<JobIcon image={image} iconName={iconName} title={title} size={80} />
 									</div>
 									<div className="tj-careers-top-content">
 										<div className="tj-careers-tag">
 											{category && <span>{category}</span>}
-											{need && <span>{need}</span>}
+											{need     && <span>{need}</span>}
 										</div>
 										<h3 className="tj-careers-top-title text-anim">{title}</h3>
 										{location && (
@@ -109,7 +127,6 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 								{/* Content */}
 								<div className="tj-entry-content">
 
-									{/* Description */}
 									{description && (
 										<>
 											<h4 className="text-anim">Job Description</h4>
@@ -117,22 +134,15 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 										</>
 									)}
 
-									{/* Requirements */}
 									{(requirements || (requirementsList && requirementsList.length > 0)) && (
 										<div className="tj-check-list">
 											<h4 className="text-anim">Requirements</h4>
-											{requirements && (
-												<p className="wow fadeInUp" data-wow-delay="0.1s">{requirements}</p>
-											)}
+											{requirements && <p className="wow fadeInUp" data-wow-delay="0.1s">{requirements}</p>}
 											{requirementsList && requirementsList.length > 0 && (
-												<div className="team-details__experience__list service-check-list mt-4 mb-4 wow fadeInUp"
-													data-wow-delay="0.3s">
+												<div className="team-details__experience__list service-check-list mt-4 mb-4 wow fadeInUp" data-wow-delay="0.3s">
 													<ul>
 														{requirementsList.map((item, i) => (
-															<li key={i}>
-																<i className="tji-check"></i>
-																<span>{item}</span>
-															</li>
+															<li key={i}><i className="tji-check"></i><span>{item}</span></li>
 														))}
 													</ul>
 												</div>
@@ -140,19 +150,14 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 										</div>
 									)}
 
-									{/* Responsibilities */}
 									{(responsibilities || (responsibilitiesList && responsibilitiesList.length > 0)) && (
 										<div className="tj-check-list">
 											<h4 className="text-anim">Responsibilities</h4>
-											{responsibilities && (
-												<p className="wow fadeInUp" data-wow-delay="0.1s">{responsibilities}</p>
-											)}
+											{responsibilities && <p className="wow fadeInUp" data-wow-delay="0.1s">{responsibilities}</p>}
 											{responsibilitiesList && responsibilitiesList.length > 0 && (
 												<ul className="wow fadeInUp" data-wow-delay="0.3s">
 													{responsibilitiesList.map((item, i) => (
-														<li key={i}>
-															<span><i className="tji-check"></i></span> {item}
-														</li>
+														<li key={i}><span><i className="tji-check"></i></span> {item}</li>
 													))}
 												</ul>
 											)}
@@ -165,9 +170,7 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 									<div className="tj-tags-post tj-post-details_tags_share wow fadeInUp" data-wow-delay=".1s">
 										<div className="tagcloud">
 											<span>Tags:</span>
-											{tags.map((tag, i) => (
-												<Link key={i} href="/careers">{tag}</Link>
-											))}
+											{tags.map((tag, i) => <Link key={i} href="/careers">{tag}</Link>)}
 										</div>
 										<div className="post-share">
 											<ul>
@@ -184,8 +187,7 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 
 							{/* Navigation */}
 							<div className="tj-post__navigation mb-0 wow fadeInUp" data-wow-delay="0.3s">
-								<div className="tj-nav__post previous"
-									style={{ visibility: isPrevItem ? "visible" : "hidden" }}>
+								<div className="tj-nav__post previous" style={{ visibility: isPrevItem ? "visible" : "hidden" }}>
 									<div className="tj-nav-post__nav prev_post">
 										<Link href={isPrevItem ? `/careers/${prevId}` : "#"}>
 											<span><i className="tji-arrow-left"></i></span>
@@ -196,8 +198,7 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 								<Link href="/careers" className="tj-nav-post__grid">
 									<i className="tji-window"></i>
 								</Link>
-								<div className="tj-nav__post next"
-									style={{ visibility: isNextItem ? "visible" : "hidden" }}>
+								<div className="tj-nav__post next" style={{ visibility: isNextItem ? "visible" : "hidden" }}>
 									<div className="tj-nav-post__nav next_post">
 										<Link href={isNextItem ? `/careers/${nextId}` : "#"}>
 											Next
@@ -218,11 +219,11 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 								<h4 className="widget-title">Job Information</h4>
 								<div className="project_catagory">
 									<ul>
-										{category && <li><span className="first-child">Category</span><span>{category}</span></li>}
-										{jobNumber && <li><span className="first-child">Number</span><span>{jobNumber}</span></li>}
-										{company && <li><span className="first-child">Company</span><span>{company}</span></li>}
-										{website && <li><span className="first-child">Website</span><span>{website}</span></li>}
-										{salaryDisplay && <li><span className="first-child">Salary</span><span>{salaryDisplay}</span></li>}
+										{category       && <li><span className="first-child">Category</span><span>{category}</span></li>}
+										{jobNumber      && <li><span className="first-child">Number</span><span>{jobNumber}</span></li>}
+										{company        && <li><span className="first-child">Company</span><span>{company}</span></li>}
+										{website        && <li><span className="first-child">Website</span><span>{website}</span></li>}
+										{salaryDisplay  && <li><span className="first-child">Salary</span><span>{salaryDisplay}</span></li>}
 										{vacancyDisplay && <li><span className="first-child">Vacancy</span><span>{vacancyDisplay}</span></li>}
 										{deadlineDisplay && <li><span className="first-child">Apply on</span><span>{deadlineDisplay}</span></li>}
 									</ul>
@@ -241,48 +242,29 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 										<form onSubmit={handleApply}>
 											<div className="form-input">
 												<input type="text" name="cr_name" placeholder="Full name*"
-													value={form.fullName}
-													onChange={(e) => setF("fullName", e.target.value)}
-													required />
+													value={form.fullName} onChange={(e) => setF("fullName", e.target.value)} required />
 											</div>
 											<div className="form-input">
 												<input type="email" name="cr_email" placeholder="Enter email*"
-													value={form.email}
-													onChange={(e) => setF("email", e.target.value)}
-													required />
+													value={form.email} onChange={(e) => setF("email", e.target.value)} required />
 											</div>
 											<div className="form-input">
 												<input type="text" name="cr_phone" placeholder="Phone number"
-													value={form.phone}
-													onChange={(e) => setF("phone", e.target.value)} />
+													value={form.phone} onChange={(e) => setF("phone", e.target.value)} />
 											</div>
 											<div className="form-input">
 												<textarea name="cr_cover_letter" placeholder="Cover letter"
-													value={form.coverLetter}
-													onChange={(e) => setF("coverLetter", e.target.value)}></textarea>
+													value={form.coverLetter} onChange={(e) => setF("coverLetter", e.target.value)}></textarea>
 											</div>
 											<div className="form-input reduce">
-												<label className="label" htmlFor="inputFile">
-													Attach resume (PDF/DOC)
-												</label>
-												<input type="file" id="inputFile" ref={fileRef}
-													accept=".pdf,.doc,.docx"
+												<label className="label" htmlFor="inputFile">Attach resume (PDF/DOC)</label>
+												<input type="file" id="inputFile" ref={fileRef} accept=".pdf,.doc,.docx"
 													onChange={(e) => setFile(e.target.files[0])} />
-												{file && (
-													<p style={{ fontSize: 12, color: "#67787a", marginTop: 4 }}>
-														Selected: {file.name}
-													</p>
-												)}
+												{file && <p style={{ fontSize: 12, color: "#67787a", marginTop: 4 }}>Selected: {file.name}</p>}
 											</div>
-											{error && (
-												<p style={{ color: "#dc2626", fontSize: 13, marginBottom: 8 }}>{error}</p>
-											)}
+											{error && <p style={{ color: "#dc2626", fontSize: 13, marginBottom: 8 }}>{error}</p>}
 											<div className="tj-careers-button">
-												<ButtonPrimary
-													text={sending ? "Submitting…" : "Submit now"}
-													type="submit"
-													disabled={sending}
-												/>
+												<ButtonPrimary text={sending ? "Submitting…" : "Submit now"} type="submit" disabled={sending} />
 											</div>
 										</form>
 									)}

@@ -20,7 +20,8 @@ const CareerCard = ({ career }) => {
 		<div className="col-lg-6 col-md-6">
 			<div className="tj-careers-item wow fadeInUp" data-wow-delay="0.1s">
 				<div className="tj-careers-item-header">
-					{/* Icon / Image */}
+
+					{/* ── Icon / Image ───────────────────────────────────────────── */}
 					<div
 						className="tj-careers-item-icon"
 						style={{
@@ -32,19 +33,44 @@ const CareerCard = ({ career }) => {
 							display: "flex",
 							alignItems: "center",
 							justifyContent: "center",
-							background: "#f1f5f9",
+							background: "#e8f0fe",
 							flexShrink: 0,
 						}}
 					>
 						{image?.url ? (
+							/* ── Cloudinary / uploaded image ── */
 							<img
 								src={image.url}
 								alt={title || "Career"}
 								style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+								onError={(e) => {
+									// If image fails to load, fall back to icon
+									e.target.style.display = "none";
+									e.target.nextSibling.style.display = "flex";
+								}}
 							/>
-						) : (
-							<i className={iconName || "tji-manage"} style={{ fontSize: "24px" }}></i>
-						)}
+						) : null}
+
+						{/* ── Fallback: custom icon class OR initial letter ── */}
+						<div
+							style={{
+								display: image?.url ? "none" : "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								width: "100%",
+								height: "100%",
+								background: "linear-gradient(135deg, #1a598a, #015599)",
+								borderRadius: "10px",
+							}}
+						>
+							{iconName ? (
+								<i className={iconName} style={{ fontSize: "22px", color: "#fff" }}></i>
+							) : (
+								<span style={{ fontSize: "20px", fontWeight: 700, color: "#fff" }}>
+									{(title || category || "J").charAt(0).toUpperCase()}
+								</span>
+							)}
+						</div>
 					</div>
 
 					{/* Tags */}
@@ -84,9 +110,9 @@ const CareerCard = ({ career }) => {
 };
 
 const Careers1 = () => {
-	const [careers, setCareers]   = useState([]);
-	const [loading, setLoading]   = useState(true);
-	const [error, setError]       = useState("");
+	const [careers, setCareers] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError]     = useState("");
 
 	useEffect(() => {
 		const fetchCareers = async () => {
