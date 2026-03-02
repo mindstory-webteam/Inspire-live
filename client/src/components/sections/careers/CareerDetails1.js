@@ -7,7 +7,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 	const {
-		_id, title, iconName, category, need, location,
+		_id, slug, title, iconName, category, need, location,
 		description, requirements, requirementsList,
 		responsibilities, responsibilitiesList,
 		tags, jobNumber, company, website,
@@ -41,7 +41,9 @@ const CareerDetails1 = ({ career, prevId, nextId, isPrevItem, isNextItem }) => {
 			fd.append("coverLetter", form.coverLetter);
 			if (file) fd.append("resume", file);
 
-			const res = await fetch(`${API_BASE}/careers/${_id}/apply`, {
+			// Use slug for clean URL, fall back to _id for backwards compat
+			const identifier = slug || _id;
+			const res = await fetch(`${API_BASE}/careers/${identifier}/apply`, {
 				method: "POST",
 				body: fd,
 			});

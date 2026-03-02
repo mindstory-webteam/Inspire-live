@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const applicationSchema = new mongoose.Schema({
   fullName:       { type: String, required: true },
@@ -18,6 +19,7 @@ const applicationSchema = new mongoose.Schema({
 const careerSchema = new mongoose.Schema(
   {
     title:    { type: String, required: [true, 'Title is required'], trim: true },
+    slug:     { type: String, unique: true, index: true },
 
     // ── Image (same pattern as Event model) ──────────────────────────────────
     image: {
@@ -61,6 +63,20 @@ const careerSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// ── Auto-generate unique slug from title ─────────────────────────────────────
+careerSchema.pre('save', async function (next) {
+  if (this.isModified('title') || !this.slug) {
+    let base = slugify(this.title, { lower: true, strict: true });
+    let slug = base;
+    let count = 1;
+    while (await mongoose.model('Career').exists({ slug, _id: { $ne: this._id } })) {
+      slug = `${base}-${count++}`;
+    }
+    this.slug = slug;
+  }
+  next();
+});
 
 careerSchema.index({ isActive: 1, createdAt: -1 });
 careerSchema.index({ category: 1 });

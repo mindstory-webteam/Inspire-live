@@ -1,5 +1,18 @@
+const mongoose = require('mongoose');
 const Career = require('../models/Career');
 const { deleteFromCloudinary } = require('../middleware/upload');
+
+// ── Helper: find by slug OR _id (backwards compat) ───────────────────────────
+const findBySlugOrId = (identifier, extraFilter = {}) => {
+  const isId = mongoose.isValidObjectId(identifier);
+  return Career.findOne({
+    $or: [
+      { slug: identifier },
+      ...(isId ? [{ _id: identifier }] : []),
+    ],
+    ...extraFilter,
+  });
+};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PUBLIC CONTROLLERS
@@ -43,11 +56,11 @@ const getAllCareers = async (req, res) => {
 
 /**
  * GET /api/careers/:id
- * Get single career (public)
+ * Get single career by slug or _id (public)
  */
 const getCareerById = async (req, res) => {
   try {
-    const career = await Career.findOne({ _id: req.params.id, isActive: true }).select('-applications');
+    const career = await findBySlugOrId(req.params.id, { isActive: true }).select('-applications');
     if (!career) return res.status(404).json({ success: false, message: 'Career not found' });
     res.status(200).json({ success: true, data: career });
   } catch (error) {
@@ -58,11 +71,11 @@ const getCareerById = async (req, res) => {
 
 /**
  * POST /api/careers/:id/apply
- * Submit job application (public)
+ * Submit job application by slug or _id (public)
  */
 const applyForCareer = async (req, res) => {
   try {
-    const career = await Career.findOne({ _id: req.params.id, isActive: true });
+    const career = await findBySlugOrId(req.params.id, { isActive: true });
     if (!career) return res.status(404).json({ success: false, message: 'Career not found' });
 
     const { fullName, email, phone, coverLetter } = req.body;
@@ -255,19 +268,25 @@ const deleteCareer = async (req, res) => {
     const career = await Career.findById(req.params.id);
     if (!career) return res.status(404).json({ success: false, message: 'Career not found' });
 
-    // delete career image from Cloudinary
-    if (career.image?.publicId) {
-      await deleteFromCloudinary(career.image.publicId, 'image').catch(() => {});
+    // Safely attempt Cloudinary cleanup without crashing if it fails
+    try {
+      const { deleteFromCloudinary } = require('../middleware/upload');
+      if (career.image?.publicId) {
+        await deleteFromCloudinary(career.image.publicId, 'image');
+      }
+      const resumeDeletions = career.applications
+        .filter((app) => app.resumePublicId)
+        .map((app) => deleteFromCloudinary(app.resumePublicId, 'raw'));
+      await Promise.allSettled(resumeDeletions);
+    } catch (cloudErr) {
+      console.warn('Cloudinary cleanup skipped:', cloudErr.message);
+      // Don't return — still delete the DB record
     }
-    // delete resume files from Cloudinary
-    const resumeDeletions = career.applications
-      .filter((app) => app.resumePublicId)
-      .map((app) => deleteFromCloudinary(app.resumePublicId, 'raw').catch(() => {}));
-    await Promise.allSettled(resumeDeletions);
 
     await career.deleteOne();
     res.status(200).json({ success: true, message: 'Career deleted successfully' });
   } catch (error) {
+    console.error('deleteCareer error:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
