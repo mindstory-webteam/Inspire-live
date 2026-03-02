@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, FileText, MessageSquare, Settings,
-  LogOut, BookOpen, Menu, Layers, Calendar, Briefcase,
+  LogOut, BookOpen, Menu, Layers, Calendar, Briefcase, Mail,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -14,7 +14,8 @@ const NAV = [
   { to: '/banner',    icon: Layers,          label: 'Banner'    },
   { to: '/services',  icon: Layers,          label: 'Services'  },
   { to: '/events',    icon: Calendar,        label: 'Events'    },
-  { to: '/careers',   icon: Briefcase,       label: 'Careers'   }, // ← NEW
+  { to: '/careers',   icon: Briefcase,       label: 'Careers'   },
+  { to: '/contacts',  icon: Mail,            label: 'Contacts'  }, // ← NEW
   { to: '/settings',  icon: Settings,        label: 'Settings'  },
 ];
 

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { blogService, eventService, careerService } from '../services/api';
+import { blogService, eventService, careerService, contactService } from '../services/api';
 import { Link } from 'react-router-dom';
 import {
   FileText, CheckCircle, Star, MessageSquare,
-  Plus, TrendingUp, Layers, ArrowUpRight, Calendar, Briefcase,
+  Plus, TrendingUp, Layers, ArrowUpRight, Calendar, Briefcase, Mail,
 } from 'lucide-react';
 
 const StatCard = ({ label, value, icon: Icon, color, bg, to }) => {
@@ -29,11 +29,12 @@ const StatCard = ({ label, value, icon: Icon, color, bg, to }) => {
 };
 
 export default function Dashboard() {
-  const [stats, setStats]               = useState(null);
+  const [stats,        setStats]        = useState(null);
   const [bannerSlides, setBannerSlides] = useState(null);
-  const [eventCount, setEventCount]     = useState(null);
-  const [careerStats, setCareerStats]   = useState(null); // ← NEW
-  const [loading, setLoading]           = useState(true);
+  const [eventCount,   setEventCount]   = useState(null);
+  const [careerStats,  setCareerStats]  = useState(null);
+  const [contactStats, setContactStats] = useState(null); // ← NEW
+  const [loading,      setLoading]      = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
@@ -57,15 +58,21 @@ export default function Dashboard() {
         .then((r) => r.data?.count ?? r.data?.data?.length ?? 0)
         .catch(() => null),
 
-      // Careers stats ← NEW
+      // Careers stats
       careerService.getStats()
         .then((r) => r.data?.data ?? null)
         .catch(() => null),
-    ]).then(([s, slides, evtCount, careers]) => {
+
+      // Contact stats ← NEW
+      contactService.getStats()
+        .then((r) => r.data?.data ?? null)
+        .catch(() => null),
+    ]).then(([s, slides, evtCount, careers, contacts]) => {
       setStats(s);
       setBannerSlides(slides);
       setEventCount(evtCount);
-      setCareerStats(careers); // ← NEW
+      setCareerStats(careers);
+      setContactStats(contacts); // ← NEW
     }).finally(() => setLoading(false));
   }, []);
 
@@ -141,7 +148,6 @@ export default function Dashboard() {
           bg="#05966912"
           to="/events"
         />
-        {/* ── NEW — Careers stat cards ── */}
         <StatCard
           label="Active Jobs"
           value={careerStats?.active}
@@ -157,6 +163,23 @@ export default function Dashboard() {
           color="#0369a1"
           bg="#0369a112"
           to="/careers"
+        />
+        {/* ── NEW — Contact stat cards ── */}
+        <StatCard
+          label="New Messages"
+          value={contactStats?.new}
+          icon={Mail}
+          color="#dc2626"
+          bg="#dc262612"
+          to="/contacts"
+        />
+        <StatCard
+          label="Total Messages"
+          value={contactStats?.total}
+          icon={Mail}
+          color="#7c3aed"
+          bg="#7c3aed12"
+          to="/contacts"
         />
       </div>
 
@@ -252,8 +275,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick-links row — Banner + Events + Careers */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+      {/* Quick-links row — Banner + Events + Careers + Contacts */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
         {/* Banner quick link */}
         <div
           className="rounded-2xl p-5 flex items-center justify-between"
@@ -310,7 +333,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* ── NEW — Careers quick link ── */}
+        {/* Careers quick link */}
         <div
           className="rounded-2xl p-5 flex items-center justify-between"
           style={{ background: 'linear-gradient(135deg, #b4530908, #b4530904)', border: '1px solid #b4530920' }}
@@ -333,6 +356,34 @@ export default function Dashboard() {
             to="/careers"
             className="flex items-center gap-2 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:shadow-md hover:-translate-y-0.5"
             style={{ background: 'linear-gradient(135deg, #b45309, #92400e)' }}
+          >
+            Manage
+          </Link>
+        </div>
+
+        {/* ── NEW — Contacts quick link ── */}
+        <div
+          className="rounded-2xl p-5 flex items-center justify-between"
+          style={{ background: 'linear-gradient(135deg, #dc262608, #dc262604)', border: '1px solid #dc262620' }}
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #dc2626, #b91c1c)' }}
+            >
+              <Mail size={19} className="text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm" style={{ color: '#0c1e21' }}>Contact Messages</p>
+              <p className="text-xs" style={{ color: '#67787a' }}>
+                {contactStats?.new ?? 0} new · {contactStats?.total ?? 0} total
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/contacts"
+            className="flex items-center gap-2 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:shadow-md hover:-translate-y-0.5"
+            style={{ background: 'linear-gradient(135deg, #dc2626, #b91c1c)' }}
           >
             Manage
           </Link>

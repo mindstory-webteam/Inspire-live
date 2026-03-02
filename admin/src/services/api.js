@@ -64,50 +64,59 @@ export const serviceService = {
 
 // ── Events ─────────────────────────────────────────────────────────────────────
 export const eventService = {
-  getAll:   (params)   => api.get('/events', { params }),
-  getById:  (id)       => api.get(`/events/${id}`),
+  getAll:     (params)   => api.get('/events', { params }),
+  getById:    (id)       => api.get(`/events/${id}`),
   getAllAdmin: (params)   => api.get('/admin/events', { params }),
-  create:     (formData) => api.post('/admin/events', formData, {
+  create: (formData) => api.post('/admin/events', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   update: (id, formData) => api.put(`/admin/events/${id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
-  toggle:  (id)    => api.patch(`/admin/events/${id}/toggle`),
-  reorder: (data)  => api.patch('/admin/events/reorder', data),
-  delete:  (id)    => api.delete(`/admin/events/${id}`),
+  toggle:  (id)   => api.patch(`/admin/events/${id}/toggle`),
+  reorder: (data) => api.patch('/admin/events/reorder', data),
+  delete:  (id)   => api.delete(`/admin/events/${id}`),
 };
 
 // ── Careers ────────────────────────────────────────────────────────────────────
 export const careerService = {
-  // ── Public ───────────────────────────────────────────────────────────────
+  // Public
   getAll:  (params) => api.get('/careers', { params }),
   getById: (id)     => api.get(`/careers/${id}`),
-
-  // Apply — FormData (fullName, email, phone, coverLetter, resume file)
   apply: (id, formData) => api.post(`/careers/${id}/apply`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
 
-  // ── Admin (JWT auto-attached via interceptor) ─────────────────────────────
-  getStats:     ()        => api.get('/admin/careers/stats'),
-  getAllAdmin:   (params)  => api.get('/admin/careers', { params }),
-  getByIdAdmin: (id)      => api.get(`/admin/careers/${id}`),
-
-  // create / update now send FormData so careerImage file can be uploaded
+  // Admin
+  getStats:     ()       => api.get('/admin/careers/stats'),
+  getAllAdmin:   (params) => api.get('/admin/careers', { params }),
+  getByIdAdmin: (id)     => api.get(`/admin/careers/${id}`),
   create: (formData) => api.post('/admin/careers', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   update: (id, formData) => api.put(`/admin/careers/${id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
-
   delete: (id)  => api.delete(`/admin/careers/${id}`),
   toggle: (id)  => api.patch(`/admin/careers/${id}/toggle`),
-
-  getApplications: (careerId) => api.get(`/admin/careers/${careerId}/applications`),
+  getApplications: (careerId) =>
+    api.get(`/admin/careers/${careerId}/applications`),
   updateApplicationStatus: (careerId, appId, status) =>
     api.patch(`/admin/careers/${careerId}/applications/${appId}`, { status }),
+};
+
+// ── Contacts ───────────────────────────────────────────────────────────────────
+export const contactService = {
+  // Public — submit contact form
+  submit: (data) => api.post('/contact', data),
+
+  // Admin
+  getStats:     ()           => api.get('/admin/contacts/stats'),
+  getAll:       (params)     => api.get('/admin/contacts', { params }),
+  getById:      (id)         => api.get(`/admin/contacts/${id}`),
+  updateStatus: (id, status) => api.patch(`/admin/contacts/${id}/status`, { status }),
+  delete:       (id)         => api.delete(`/admin/contacts/${id}`),
+  bulkDelete:   (ids)        => api.delete('/admin/contacts/bulk', { data: { ids } }),
 };
 
 export default api;
