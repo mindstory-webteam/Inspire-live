@@ -1,4 +1,4 @@
-const Contact = require('../model/Contact');
+const Contact = require('../models/Contact');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PUBLIC

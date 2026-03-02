@@ -10,7 +10,7 @@ const {
   updateStatus,
   deleteContact,
   bulkDelete,
-} = require('../controller/contactController');
+} = require('../controllers/contactController');
 
 const { protect } = require('../middleware/auth'); // reuse your existing auth middleware
 
