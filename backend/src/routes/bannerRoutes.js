@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bannerController = require('../controllers/bannerController');
 const { uploadMedia } = require('../middleware/uploadMiddleware');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, adminOrAbove } = require('../middleware/auth');
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PUBLIC BANNER ROUTES - /api/banner
@@ -15,16 +15,16 @@ router.get('/', bannerController.getPublicBanner);
 // ADMIN BANNER ROUTES - /api/banner/admin
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Protect all admin routes
-router.use('/admin', protect, authorize('admin', 'editor'));
+// Protect all admin routes — admin AND superadmin
+router.use('/admin', protect, adminOrAbove);
 
 // GET /api/banner/admin - Get banner with all slides
 router.get('/admin', bannerController.getBanner);
 
-// POST /api/banner/admin/slides - Add new slide (with optional media upload)
+// POST /api/banner/admin/slides - Add new slide
 router.post(
   '/admin/slides',
-  uploadMedia.single('media'), // Field name: 'media'
+  uploadMedia.single('media'),
   bannerController.addSlide
 );
 
@@ -44,7 +44,4 @@ router.put('/admin/slides/reorder', bannerController.reorderSlides);
 // PUT /api/banner/admin/toggle - Toggle banner active state
 router.put('/admin/toggle', bannerController.toggleBanner);
 
-// ═══════════════════════════════════════════════════════════════════════════
-// EXPORTS - Must match server.js import
-// ═══════════════════════════════════════════════════════════════════════════
 module.exports = router;

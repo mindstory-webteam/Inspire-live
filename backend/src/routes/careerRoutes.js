@@ -21,9 +21,8 @@ const {
   getStats,
 } = require('../controllers/careerController');
 
-const { protect } = require('../middleware/auth');
-const { uploadImage } = require('../middleware/uploadMiddleware'); // ✅ Proper import
-
+const { protect, adminOrAbove } = require('../middleware/auth');
+const { uploadImage } = require('../middleware/uploadMiddleware');
 
 // ═══════════════════════════════════════════════════════════════
 // RESUME UPLOAD (PDF / DOC / DOCX → Cloudinary RAW)
@@ -41,7 +40,6 @@ const resumeStorage = new CloudinaryStorage({
 const resumeFilter = (req, file, cb) => {
   const okMime = /pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
   const okExt  = /\.(pdf|doc|docx)$/i;
-
   if (okMime.test(file.mimetype) || okExt.test(file.originalname)) {
     cb(null, true);
   } else {
@@ -52,9 +50,8 @@ const resumeFilter = (req, file, cb) => {
 const uploadResume = multer({
   storage: resumeStorage,
   fileFilter: resumeFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
-
 
 // ═══════════════════════════════════════════════════════════════
 // PUBLIC ROUTES  → /api/careers
@@ -63,61 +60,34 @@ const uploadResume = multer({
 router.get('/', getAllCareers);
 router.get('/:id', getCareerById);
 
-// Apply for job (resume optional, non-blocking)
 router.post(
   '/:id/apply',
   (req, res, next) => {
     uploadResume.single('resume')(req, res, (err) => {
-      if (err) {
-        console.warn('Resume upload warning (non-fatal):', err.message);
-        // Continue without blocking application
-      }
+      if (err) console.warn('Resume upload warning (non-fatal):', err.message);
       next();
     });
   },
   applyForCareer
 );
 
-
 // ═══════════════════════════════════════════════════════════════
 // ADMIN ROUTES  → /api/admin/careers
 // ═══════════════════════════════════════════════════════════════
 
-adminRouter.use(protect);
+// admin AND superadmin can access everything below
+adminRouter.use(protect, adminOrAbove);
 
-// Stats
 adminRouter.get('/stats', getStats);
-
-// CRUD
 adminRouter.get('/', adminGetAllCareers);
 adminRouter.get('/:id', adminGetCareerById);
 
-// ✅ ALWAYS use multer for FormData
-adminRouter.post(
-  '/',
-  uploadImage.single('careerImage'),
-  createCareer
-);
-
-adminRouter.put(
-  '/:id',
-  uploadImage.single('careerImage'),
-  updateCareer
-);
-
+adminRouter.post('/', uploadImage.single('careerImage'), createCareer);
+adminRouter.put('/:id', uploadImage.single('careerImage'), updateCareer);
 adminRouter.delete('/:id', deleteCareer);
-
-// Toggle status
 adminRouter.patch('/:id/toggle', toggleCareerStatus);
-
-// Applications
 adminRouter.get('/:id/applications', getApplications);
 adminRouter.patch('/:careerId/applications/:appId', updateApplicationStatus);
-
-
-// ═══════════════════════════════════════════════════════════════
-// EXPORT
-// ═══════════════════════════════════════════════════════════════
 
 module.exports = {
   careerRoutes: router,

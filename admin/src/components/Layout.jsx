@@ -1,22 +1,31 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  LayoutDashboard, FileText, MessageSquare, Settings,
-  LogOut, BookOpen, Menu, Layers, Calendar, Briefcase, Mail,
+  LayoutDashboard,
+  FileText,
+  MessageSquare,
+  Settings,
+  LogOut,
+  BookOpen,
+  Menu,
+  Layers,
+  Calendar,
+  Briefcase,
+  Mail,
 } from 'lucide-react';
 import { useState } from 'react';
 
 // ─── Add / remove nav items here ────────────────────────────────────────────
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/blogs',     icon: FileText,        label: 'Blogs'     },
-  { to: '/comments',  icon: MessageSquare,   label: 'Comments'  },
-  { to: '/banner',    icon: Layers,          label: 'Banner'    },
-  { to: '/services',  icon: Layers,          label: 'Services'  },
-  { to: '/events',    icon: Calendar,        label: 'Events'    },
-  { to: '/careers',   icon: Briefcase,       label: 'Careers'   },
-  { to: '/contacts',  icon: Mail,            label: 'Contacts'  }, // ← NEW
-  { to: '/settings',  icon: Settings,        label: 'Settings'  },
+  { to: '/blogs', icon: FileText, label: 'Blogs' },
+  { to: '/comments', icon: MessageSquare, label: 'Comments' },
+  { to: '/banner', icon: Layers, label: 'Banner' },
+  { to: '/services', icon: Layers, label: 'Services' },
+  { to: '/events', icon: Calendar, label: 'Events' },
+  { to: '/careers', icon: Briefcase, label: 'Careers' },
+  { to: '/contacts', icon: Mail, label: 'Contacts' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Layout() {
@@ -24,12 +33,21 @@ export default function Layout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const Sidebar = () => (
-    <aside className="w-64 flex flex-col h-full" style={{ background: '#ffffff', borderRight: '1px solid #ecf0f0' }}>
+    <aside
+      className="w-64 flex flex-col h-full"
+      style={{ background: '#ffffff', borderRight: '1px solid #ecf0f0' }}
+    >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5" style={{ borderBottom: '1px solid #ecf0f0' }}>
+      <div
+        className="flex items-center gap-3 px-6 py-5"
+        style={{ borderBottom: '1px solid #ecf0f0' }}
+      >
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
           style={{ background: 'linear-gradient(135deg, #1a598a, #015599)' }}
@@ -37,8 +55,12 @@ export default function Layout() {
           <BookOpen size={19} className="text-white" />
         </div>
         <div>
-          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Blog Admin</p>
-          <p className="text-xs" style={{ color: '#a9b8b8' }}>Control Panel</p>
+          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>
+            Blog Admin
+          </p>
+          <p className="text-xs" style={{ color: '#a9b8b8' }}>
+            Control Panel
+          </p>
         </div>
       </div>
 
@@ -90,8 +112,12 @@ export default function Layout() {
             {user?.name?.[0]?.toUpperCase() || 'A'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate" style={{ color: '#0c1e21' }}>{user?.name}</p>
-            <p className="text-xs truncate capitalize" style={{ color: '#a9b8b8' }}>{user?.role}</p>
+            <p className="text-xs font-semibold truncate" style={{ color: '#0c1e21' }}>
+              {user?.name}
+            </p>
+            <p className="text-xs truncate capitalize" style={{ color: '#a9b8b8' }}>
+              {user?.role}
+            </p>
           </div>
         </div>
         <button
@@ -140,7 +166,9 @@ export default function Layout() {
           >
             <Menu size={22} />
           </button>
-          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Blog Admin</p>
+          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>
+            Blog Admin
+          </p>
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
             style={{ background: 'linear-gradient(135deg, #1a598a, #015599)' }}

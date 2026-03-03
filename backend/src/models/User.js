@@ -24,8 +24,17 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['admin', 'editor'],
+      enum: ['superadmin', 'admin', 'editor'],
       default: 'editor',
+    },
+    designation: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    profileImage: {
+      type: String,
+      default: null,
     },
     avatar: {
       type: String,

@@ -64,6 +64,22 @@ const mediaStorage = new CloudinaryStorage({
   },
 });
 
+// ─── Service Image Storage ────────────────────────────────────────────────────
+const serviceImageStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'uploads/services',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [
+      {
+        quality: 'auto:best',
+        fetch_format: 'auto',
+      },
+    ],
+    resource_type: 'image',
+  },
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // FILE FILTERS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -137,6 +153,21 @@ const uploadMedia = multer({
     files: 10
   },
 });
+
+// ─── Service Upload ───────────────────────────────────────────────────────────
+// Accepts 3 named image fields: heroImage, detailImage1, detailImage2
+const serviceUpload = multer({
+  storage: serviceImageStorage,
+  fileFilter: imageFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB
+    files: 3,
+  },
+}).fields([
+  { name: 'heroImage',    maxCount: 1 },
+  { name: 'detailImage1', maxCount: 1 },
+  { name: 'detailImage2', maxCount: 1 },
+]);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS
@@ -309,7 +340,8 @@ module.exports = {
   uploadImage,
   uploadVideo,
   uploadMedia,
-  
+  serviceUpload,       // ← added for service image uploads
+
   // Cloudinary instance
   cloudinary,
   

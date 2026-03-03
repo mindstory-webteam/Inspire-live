@@ -5,7 +5,7 @@ import BackToTop from "@/components/shared/others/BackToTop";
 import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 import HeroInner from "@/components/sections/hero/HeroInner";
-import DynamicServiceDetails from "@/components/sections/services/DynamicServiceDetails";
+import ServicesDetailsPrimary from "@/components/sections/services/ServicesDetailsPrimary";
 import { notFound } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -65,6 +65,25 @@ export default async function ServicePage({ params }) {
     notFound();
   }
 
+  // Fetch all services to compute prev/next index-based navigation
+  const allServices = await getAllServices();
+  const currentIndex = allServices.findIndex((s) => s.slug === slug);
+  const isPrevItem = currentIndex > 0;
+  const isNextItem = currentIndex < allServices.length - 1;
+  const prevId = isPrevItem ? allServices[currentIndex - 1].slug : null;
+  const nextId = isNextItem ? allServices[currentIndex + 1].slug : null;
+
+  // Build the option object that ServicesDetailsPrimary expects
+  const option = {
+    currentItem: service,      // full service data from API
+    items: allServices,
+    currentId: service._id,
+    isPrevItem,
+    isNextItem,
+    prevId,
+    nextId,
+  };
+
   return (
     <div>
       <BackToTop />
@@ -79,7 +98,7 @@ export default async function ServicePage({ params }) {
               text={service.title}
               breadcrums={[{ name: "Services", path: "/services" }]}
             />
-            <DynamicServiceDetails service={service} />
+            <ServicesDetailsPrimary option={option} />
             <Cta />
           </main>
           <Footer />

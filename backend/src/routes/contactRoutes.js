@@ -1,6 +1,6 @@
-const express      = require('express');
-const router       = express.Router();
-const adminRouter  = express.Router();
+const express = require('express');
+const router = express.Router();
+const adminRouter = express.Router();
 
 const {
   submitContact,
@@ -12,7 +12,7 @@ const {
   bulkDelete,
 } = require('../controllers/contactController');
 
-const { protect } = require('../middleware/auth'); // reuse your existing auth middleware
+const { protect, adminOrAbove } = require('../middleware/auth');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PUBLIC  →  /api/contact
@@ -22,14 +22,16 @@ router.post('/', submitContact);
 // ═══════════════════════════════════════════════════════════════════════════════
 // ADMIN  →  /api/admin/contacts
 // ═══════════════════════════════════════════════════════════════════════════════
-adminRouter.use(protect);
 
-adminRouter.get('/stats',       getStats);
-adminRouter.get('/',            getAllContacts);
-adminRouter.get('/:id',         getContactById);
+// admin AND superadmin can access everything below
+adminRouter.use(protect, adminOrAbove);
+
+adminRouter.get('/stats',        getStats);
+adminRouter.get('/',             getAllContacts);
+adminRouter.get('/:id',          getContactById);
 adminRouter.patch('/:id/status', updateStatus);
-adminRouter.delete('/bulk',     bulkDelete);   // must be before /:id
-adminRouter.delete('/:id',      deleteContact);
+adminRouter.delete('/bulk',      bulkDelete);   // must be before /:id
+adminRouter.delete('/:id',       deleteContact);
 
 module.exports = {
   contactRoutes:      router,

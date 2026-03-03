@@ -9,7 +9,8 @@ const { blogRouter, adminRouter } = require('./routes/blogRoutes');
 const bannerRoutes = require('./routes/bannerRoutes');
 const { eventRouter, eventAdminRouter } = require('./routes/eventRoutes');
 const { careerRoutes, careerAdminRoutes } = require('./routes/careerRoutes');
-const { contactRoutes, contactAdminRoutes } = require('./routes/contactRoutes'); // ← ADD THIS
+const { contactRoutes, contactAdminRoutes } = require('./routes/contactRoutes');
+const serviceRoutes = require('./routes/serviceRoutes'); // ← ADD THIS
 
 // Connect to MongoDB
 connectDB();
@@ -62,8 +63,9 @@ app.use('/api/events',          eventRouter);
 app.use('/api/admin/events',    eventAdminRouter);
 app.use('/api/careers',         careerRoutes);
 app.use('/api/admin/careers',   careerAdminRoutes);
-app.use('/api/contact',         contactRoutes);         // ← ADD THIS  (public)
-app.use('/api/admin/contacts',  contactAdminRoutes);    // ← ADD THIS  (admin, protected)
+app.use('/api/contact',         contactRoutes);
+app.use('/api/admin/contacts',  contactAdminRoutes);
+app.use('/api/services',        serviceRoutes);         // ← ADD THIS
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) =>

@@ -141,7 +141,7 @@ function PdfViewer({ url, filename, onClose }) {
 
   const viewUrl = cleanPdfUrl(url);
   const dlUrl   = downloadUrl(url);
-  const gdocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(viewUrl)}&embedded=true`;
+  const gdocsUrl = `https://docs.google.com/viewer?url= ${encodeURIComponent(viewUrl)}&embedded=true`;
 
   const currentSrc = mode === 'gdocs' ? gdocsUrl : viewUrl;
 
