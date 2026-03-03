@@ -114,13 +114,33 @@ const applyForCareer = async (req, res) => {
 const adminGetAllCareers = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, isActive } = req.query;
+
     const filter = {};
-    if (isActive !== undefined) filter.isActive = isActive === 'true';
-    if (search) filter.$text = { $search: search };
+
+    // ✅ ACTIVE / INACTIVE FILTER
+    if (isActive !== undefined) {
+      filter.isActive = isActive === 'true';
+    }
+
+    // ✅ IMPROVED SEARCH (works without text index)
+    if (search && search.trim()) {
+      filter.$or = [
+        { title: { $regex: search.trim(), $options: 'i' } },
+        { company: { $regex: search.trim(), $options: 'i' } },
+        { location: { $regex: search.trim(), $options: 'i' } },
+        { category: { $regex: search.trim(), $options: 'i' } },
+      ];
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
+
     const [careers, total] = await Promise.all([
-      Career.find(filter).select('-applications').sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
+      Career.find(filter)
+        .select('-applications')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+
       Career.countDocuments(filter),
     ]);
 
@@ -134,8 +154,14 @@ const adminGetAllCareers = async (req, res) => {
         totalPages: Math.ceil(total / parseInt(limit)),
       },
     });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    console.error('adminGetAllCareers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
   }
 };
 

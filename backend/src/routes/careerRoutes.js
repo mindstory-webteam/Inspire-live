@@ -89,7 +89,7 @@ adminRouter.use(protect);
 adminRouter.get('/stats', getStats);
 
 // CRUD
-adminRouter.get('/', getAllCareers);
+adminRouter.get('/', adminGetAllCareers);
 adminRouter.get('/:id', adminGetCareerById);
 
 // ✅ ALWAYS use multer for FormData
