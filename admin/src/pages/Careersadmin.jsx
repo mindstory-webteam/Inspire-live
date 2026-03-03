@@ -3,6 +3,7 @@
  * - Slug column in table
  * - Slug shown in edit modal (read-only)
  * - Fixed PDF viewer: uses Google Docs for preview, clean URL for download
+ * - Fixed filter buttons: All / Active / Inactive now work correctly
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { careerService } from '../services/api';
@@ -565,7 +566,9 @@ export default function CareersAdmin() {
     try {
       const params = { page, limit: 10 };
       if (search) params.search = search;
-      if (filter !== 'all') params.isActive = filter;
+      // ✅ FIX: send proper boolean values for isActive filter
+      if (filter === 'active')   params.isActive = true;
+      if (filter === 'inactive') params.isActive = false;
       const r = await careerService.getAllAdmin(params);
       if (r.data?.success) {
         setCareers(r.data.data);
@@ -668,7 +671,8 @@ export default function CareersAdmin() {
             onChange={e => { setSearch(e.target.value); setPage(1); }} />
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {[['all', 'All'], ['true', 'Active'], ['false', 'Inactive']].map(([v, l]) => (
+          {/* ✅ FIX: changed filter values from 'true'/'false' strings to 'active'/'inactive' */}
+          {[['all', 'All'], ['active', 'Active'], ['inactive', 'Inactive']].map(([v, l]) => (
             <button key={v} onClick={() => { setFilter(v); setPage(1); }}
               style={{ padding: '7px 14px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: filter === v ? '#1a598a' : '#f3f4f6', color: filter === v ? '#fff' : '#374151' }}>
               {l}
