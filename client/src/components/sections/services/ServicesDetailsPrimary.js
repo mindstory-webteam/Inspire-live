@@ -3,7 +3,7 @@ import BootstrapWrapper from "@/components/shared/wrappers/BootstrapWrapper";
 import Image from "next/image";
 import Link from "next/link";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function getImageSrc(src) {
   if (!src) return "/images/service/service-1.webp";
