@@ -5,7 +5,7 @@
  * Drop this in your lib/api/ (or utils/api/) folder.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Fetch all active services (ordered).
