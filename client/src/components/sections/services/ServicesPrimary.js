@@ -5,7 +5,7 @@ import usePagination from "@/hooks/usePagination";
 import makeWowDelay from "@/libs/makeWowDelay";
 import { useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const ServicesPrimary = function () {
   var limit = 6;
