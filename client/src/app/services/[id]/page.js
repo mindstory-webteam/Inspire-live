@@ -8,7 +8,7 @@ import HeroInner from "@/components/sections/hero/HeroInner";
 import ServicesDetailsPrimary from "@/components/sections/services/ServicesDetailsPrimary";
 import { notFound } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getServiceBySlug(slug) {
   try {
