@@ -8,40 +8,39 @@ import HeroInner from "@/components/sections/hero/HeroInner";
 import ServicesDetailsPrimary from "@/components/sections/services/ServicesDetailsPrimary";
 import { notFound } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+// Always fallback so SSR never fetches "undefined/api/..."
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 async function getServiceBySlug(slug) {
   try {
-    const res = await fetch(API_BASE + "/services/slug/" + slug, {
-      next: { revalidate: 60 },
+    const res = await fetch(`${API_BASE}/services/slug/${slug}`, {
+      cache: "no-store",
     });
     if (!res.ok) return null;
     const data = await res.json();
     return data.data || null;
   } catch (err) {
+    console.error("getServiceBySlug error:", err.message);
     return null;
   }
 }
 
 async function getAllServices() {
   try {
-    const res = await fetch(API_BASE + "/services", {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(`${API_BASE}/services`, { cache: "no-store" });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || [];
   } catch (err) {
+    console.error("getAllServices error:", err.message);
     return [];
   }
 }
 
 export async function generateMetadata({ params }) {
-  const slug = params.slug;
+  const slug = (await params).slug;
   const service = await getServiceBySlug(slug);
-  if (!service) {
-    return { title: "Service Not Found" };
-  }
+  if (!service) return { title: "Service Not Found" };
   return {
     title: service.title + " - InspirePhD",
     description: service.description1
@@ -52,32 +51,31 @@ export async function generateMetadata({ params }) {
 
 export async function generateStaticParams() {
   const services = await getAllServices();
-  return services.map(function (s) {
-    return { slug: s.slug };
-  });
+  return services.map((s) => ({ slug: s.slug }));
 }
 
 export default async function ServicePage({ params }) {
-  const slug = params.slug;
-  const service = await getServiceBySlug(slug);
+  const slug = (await params).slug;
+
+  const [service, allServices] = await Promise.all([
+    getServiceBySlug(slug),
+    getAllServices(),
+  ]);
 
   if (!service) {
     notFound();
   }
 
-  // Fetch all services to compute prev/next index-based navigation
-  const allServices = await getAllServices();
   const currentIndex = allServices.findIndex((s) => s.slug === slug);
-  const isPrevItem = currentIndex > 0;
-  const isNextItem = currentIndex < allServices.length - 1;
-  const prevId = isPrevItem ? allServices[currentIndex - 1].slug : null;
-  const nextId = isNextItem ? allServices[currentIndex + 1].slug : null;
+  const isPrevItem   = currentIndex > 0;
+  const isNextItem   = currentIndex < allServices.length - 1;
+  const prevId       = isPrevItem ? allServices[currentIndex - 1].slug : null;
+  const nextId       = isNextItem ? allServices[currentIndex + 1].slug : null;
 
-  // Build the option object that ServicesDetailsPrimary expects
   const option = {
-    currentItem: service,      // full service data from API
-    items: allServices,
-    currentId: service._id,
+    currentItem: service,
+    items:       allServices,
+    currentId:   service._id,
     isPrevItem,
     isNextItem,
     prevId,

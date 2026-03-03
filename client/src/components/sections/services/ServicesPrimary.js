@@ -5,7 +5,9 @@ import usePagination from "@/hooks/usePagination";
 import makeWowDelay from "@/libs/makeWowDelay";
 import { useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+// Always fallback so client never fetches "undefined/services"
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 const ServicesPrimary = function () {
   var limit = 6;
@@ -14,16 +16,12 @@ const ServicesPrimary = function () {
 
   useEffect(function () {
     fetch(API_BASE + "/services")
-      .then(function (res) {
-        return res.json();
-      })
+      .then(function (res) { return res.json(); })
       .then(function (data) {
         setItems(data.data || []);
         setLoading(false);
       })
-      .catch(function () {
-        setLoading(false);
-      });
+      .catch(function () { setLoading(false); });
   }, []);
 
   var {
