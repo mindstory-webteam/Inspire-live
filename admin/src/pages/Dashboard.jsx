@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { blogService, eventService, careerService, contactService } from '../services/api';
+import { blogService, eventService, careerService, contactService, teamService } from '../services/api';
 import { Link } from 'react-router-dom';
 import {
-  FileText, TrendingUp, ArrowUpRight, Calendar, Briefcase, Mail, Layers, Tag,
+  FileText, ArrowUpRight, Calendar, Briefcase, Mail, Layers, Tag, Users,
 } from 'lucide-react';
 
 const StatCard = ({ label, value, icon: Icon, color, bg, to }) => {
@@ -16,7 +16,7 @@ const StatCard = ({ label, value, icon: Icon, color, bg, to }) => {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-2xl font-bold" style={{ color: '#0c1e21' }}>{value ?? '—'}</p>
-        <p className="text-sm" style={{ color: '#67787a' }}>{label}</p>
+        <p className="text-sm"            style={{ color: '#67787a' }}>{label}</p>
       </div>
       {to && <ArrowUpRight size={16} style={{ color: '#a9b8b8' }} />}
     </div>
@@ -24,18 +24,20 @@ const StatCard = ({ label, value, icon: Icon, color, bg, to }) => {
   return to ? <Link to={to} className="block">{inner}</Link> : inner;
 };
 
-// Helper: pick first truthy value from multiple possible field names
 const pick = (obj, ...keys) => {
   for (const k of keys) if (obj?.[k]) return obj[k];
   return null;
 };
 
+// Safe wrapper — NEVER throws, always returns fallback
+const safe = (promise, fallback = null) => promise.then(r => r).catch(() => fallback);
+
 export default function Dashboard() {
-  const [stats,        setStats]        = useState(null);
   const [bannerSlides, setBannerSlides] = useState(null);
   const [eventCount,   setEventCount]   = useState(null);
   const [careerStats,  setCareerStats]  = useState(null);
   const [contactStats, setContactStats] = useState(null);
+  const [teamCount,    setTeamCount]    = useState(null);
   const [applications, setApplications] = useState([]);
   const [blogs,        setBlogs]        = useState([]);
   const [loading,      setLoading]      = useState(true);
@@ -44,22 +46,63 @@ export default function Dashboard() {
     const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
     const BASE  = import.meta.env.VITE_API_URL || '/api';
 
-    const fetchAllApplications = async () => {
+    // ── Each fetch is fully isolated — one failure never blocks others ──
+
+    const fetchBanner = () =>
+      safe(
+        fetch(`${BASE}/banner/admin`, { headers: { Authorization: `Bearer ${token}` } })
+          .then(r => r.ok ? r.json() : { data: null })
+          .then(r => r.data?.slides?.length ?? 0),
+        0
+      );
+
+    const fetchEvents = () =>
+      safe(
+        eventService.getAllAdmin()
+          .then(r => r.data?.count ?? r.data?.data?.length ?? r.data?.length ?? 0),
+        0
+      );
+
+    const fetchCareerStats = () =>
+      safe(
+        careerService.getStats().then(r => r.data?.data ?? null),
+        null
+      );
+
+    const fetchContactStats = () =>
+      safe(
+        contactService.getStats().then(r => r.data?.data ?? null),
+        null
+      );
+
+    const fetchTeamCount = () =>
+      safe(
+        teamService.getAllAdmin().then(r => (r.data?.data ?? r.data ?? []).length),
+        null
+      );
+
+    const fetchRecentBlogs = () =>
+      safe(
+        blogService.getAll({ limit: 5, sort: '-createdAt' })
+          .then(r => r.data?.data ?? r.data?.blogs ?? r.data ?? []),
+        []
+      );
+
+    const fetchApplications = async () => {
       try {
         const careersRes = await careerService.getAllAdmin();
         const careers    = careersRes.data?.data ?? careersRes.data ?? [];
-
-        const appArrays = await Promise.all(
-          careers.map((c) =>
-            careerService.getApplications(c._id)
-              .then((r) => {
+        const appArrays  = await Promise.all(
+          careers.map(c =>
+            safe(
+              careerService.getApplications(c._id).then(r => {
                 const list = r.data?.data ?? r.data?.applications ?? r.data ?? [];
-                return list.map((app) => ({ ...app, jobTitle: c.title }));
-              })
-              .catch(() => [])
+                return list.map(app => ({ ...app, jobTitle: c.title }));
+              }),
+              []
+            )
           )
         );
-
         return appArrays
           .flat()
           .sort((a, b) => new Date(b.createdAt || b.appliedAt || 0) - new Date(a.createdAt || a.appliedAt || 0))
@@ -69,47 +112,32 @@ export default function Dashboard() {
       }
     };
 
-    // Fetch recent blogs separately via admin blogs endpoint
-    const fetchRecentBlogs = async () => {
-      try {
-        const res = await blogService.getAll({ limit: 5, sort: '-createdAt' });
-        return res.data?.data ?? res.data?.blogs ?? res.data ?? [];
-      } catch {
-        return [];
-      }
-    };
-
+    // Run all in parallel — Promise.all can never reject because every item is wrapped in safe()
     Promise.all([
-      blogService.getStats().then((r) => r.data?.data ?? r.data).catch(() => null),
-
-      fetch(`${BASE}/banner/admin`, { headers: { Authorization: `Bearer ${token}` } })
-        .then((r) => r.json()).then((r) => r.data?.slides?.length ?? 0).catch(() => null),
-
-      eventService.getAllAdmin()
-        .then((r) => r.data?.count ?? r.data?.data?.length ?? r.data?.length ?? 0).catch(() => null),
-
-      careerService.getStats().then((r) => r.data?.data ?? null).catch(() => null),
-
-      contactService.getStats().then((r) => r.data?.data ?? null).catch(() => null),
-
-      fetchAllApplications(),
-
+      fetchBanner(),
+      fetchEvents(),
+      fetchCareerStats(),
+      fetchContactStats(),
+      fetchTeamCount(),
       fetchRecentBlogs(),
-    ]).then(([s, slides, evtCount, careers, contacts, apps, recentBlogs]) => {
-      setStats(s);
+      fetchApplications(),
+    ]).then(([slides, evtCount, careers, contacts, tCount, recentBlogs, apps]) => {
       setBannerSlides(slides);
       setEventCount(evtCount);
       setCareerStats(careers);
       setContactStats(contacts);
+      setTeamCount(tCount);
+      setBlogs(recentBlogs);
       setApplications(apps);
-      // Use recentBlogs from separate call OR fallback to stats.recentBlogs
-      setBlogs(recentBlogs?.length ? recentBlogs : (s?.recentBlogs ?? []));
     }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return (
     <div className="p-8 flex justify-center items-center min-h-64">
-      <div className="w-8 h-8 rounded-full animate-spin" style={{ border: '3px solid #ecf0f0', borderTopColor: '#1a598a' }} />
+      <div
+        className="w-8 h-8 rounded-full animate-spin"
+        style={{ border: '3px solid #ecf0f0', borderTopColor: '#1a598a' }}
+      />
     </div>
   );
 
@@ -119,17 +147,18 @@ export default function Dashboard() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold" style={{ color: '#0c1e21' }}>Dashboard</h1>
-        <p className="text-sm mt-0.5" style={{ color: '#67787a' }}>Overview of your content</p>
+        <p className="text-sm mt-0.5"     style={{ color: '#67787a' }}>Overview of your content</p>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard label="Banner Slides"      value={bannerSlides}                   icon={Layers}    color="#015599" bg="#01559912" to="/banner"   />
         <StatCard label="Total Events"       value={eventCount}                     icon={Calendar}  color="#059669" bg="#05966912" to="/events"   />
         <StatCard label="Active Jobs"        value={careerStats?.active}            icon={Briefcase} color="#b45309" bg="#b4530912" to="/careers"  />
         <StatCard label="Total Applications" value={careerStats?.totalApplications} icon={FileText}  color="#0369a1" bg="#0369a112" to="/careers"  />
         <StatCard label="New Messages"       value={contactStats?.new}              icon={Mail}      color="#dc2626" bg="#dc262612" to="/contacts" />
         <StatCard label="Total Messages"     value={contactStats?.total}            icon={Mail}      color="#7c3aed" bg="#7c3aed12" to="/contacts" />
+        <StatCard label="Team Members"       value={teamCount}                      icon={Users}     color="#0f766e" bg="#0f766e12" to="/team"     />
       </div>
 
       {/* Recent Blog Cards */}
@@ -148,7 +177,6 @@ export default function Dashboard() {
                 className="group rounded-xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col"
                 style={{ border: '1px solid #ecf0f0' }}
               >
-                {/* Thumbnail */}
                 <div className="relative h-32 overflow-hidden flex-shrink-0" style={{ background: '#ecf0f0' }}>
                   {pick(blog, 'img', 'image', 'thumbnail', 'coverImage') ? (
                     <img
@@ -162,7 +190,6 @@ export default function Dashboard() {
                       <FileText size={28} style={{ color: '#a9b8b8' }} />
                     </div>
                   )}
-                  {/* Status badge */}
                   <span
                     className="absolute top-2 right-2 text-xs px-2 py-0.5 rounded-full font-medium"
                     style={blog.isPublished
@@ -172,8 +199,6 @@ export default function Dashboard() {
                     {blog.isPublished ? 'Live' : 'Draft'}
                   </span>
                 </div>
-
-                {/* Info */}
                 <div className="p-3 flex flex-col gap-1 flex-1">
                   {blog.category && (
                     <div className="flex items-center gap-1">
@@ -194,7 +219,7 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <p className="text-sm" style={{ color: '#a9b8b8' }}>No recent posts</p>
+          <p className="text-sm" style={{ color: '#a9b8b8' }}>No recent posts found.</p>
         )}
       </div>
 
@@ -222,14 +247,10 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {applications.map((app, i) => {
-                  // Try all possible name fields
-                  const name = pick(app, 'name', 'fullName', 'applicantName', 'firstName') 
+                  const name = pick(app, 'name', 'fullName', 'applicantName', 'firstName')
                     || (app.firstName && app.lastName ? `${app.firstName} ${app.lastName}` : null)
                     || '—';
-
-                  // Try all possible date fields
                   const dateRaw = pick(app, 'createdAt', 'appliedAt', 'submittedAt', 'date');
-
                   return (
                     <tr key={app._id ?? i} className="hover:bg-gray-50 transition-colors" style={{ borderBottom: '1px solid #ecf0f0' }}>
                       <td className="py-3 pr-4">
@@ -243,16 +264,10 @@ export default function Dashboard() {
                           <span className="font-medium" style={{ color: '#0c1e21' }}>{name}</span>
                         </div>
                       </td>
-                      <td className="py-3 pr-4" style={{ color: '#1a425c' }}>
-                        {app.jobTitle || app.position || '—'}
-                      </td>
-                      <td className="py-3 pr-4 hidden sm:table-cell" style={{ color: '#67787a' }}>
-                        {app.email || '—'}
-                      </td>
+                      <td className="py-3 pr-4" style={{ color: '#1a425c' }}>{app.jobTitle || app.position || '—'}</td>
+                      <td className="py-3 pr-4 hidden sm:table-cell" style={{ color: '#67787a' }}>{app.email || '—'}</td>
                       <td className="py-3 pr-4 hidden md:table-cell" style={{ color: '#a9b8b8' }}>
-                        {dateRaw
-                          ? new Date(dateRaw).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                          : '—'}
+                        {dateRaw ? new Date(dateRaw).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                       </td>
                       <td className="py-3">
                         <span
@@ -273,7 +288,7 @@ export default function Dashboard() {
             </table>
           </div>
         ) : (
-          <p className="text-sm" style={{ color: '#a9b8b8' }}>No applications yet</p>
+          <p className="text-sm" style={{ color: '#a9b8b8' }}>No applications yet.</p>
         )}
       </div>
 

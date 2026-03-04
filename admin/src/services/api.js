@@ -1,8 +1,5 @@
 /**
  * src/services/api.js  (admin panel)
- *
- * Drop-in replacement for your existing api.js.
- * Only the serviceService block has been updated — everything else is unchanged.
  */
 
 import axios from 'axios';
@@ -63,37 +60,18 @@ export const commentService = {
 };
 
 // ── Services ───────────────────────────────────────────────────────────────────
-// Supports multipart/form-data for image uploads (heroImage, detailImage1, detailImage2)
 export const serviceService = {
-  // Public
-  getAll:    (params) => api.get('/services', { params }),
-  getBySlug: (slug)   => api.get(`/services/slug/${slug}`),
-  getById:   (id)     => api.get(`/services/${id}`),
-
-  // Admin — list
+  getAll:     (params) => api.get('/services', { params }),
+  getBySlug:  (slug)   => api.get(`/services/slug/${slug}`),
+  getById:    (id)     => api.get(`/services/${id}`),
   getAllAdmin: (params) => api.get('/services/admin/all', { params }),
-
-  // Admin — create (FormData with optional image files)
   create: (formData) =>
-    api.post('/services', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-
-  // Admin — update (FormData with optional image files)
+    api.post('/services', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   update: (id, formData) =>
-    api.put(`/services/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-
-  // Admin — toggle active/inactive
-  toggle: (id) => api.patch(`/services/${id}/toggle`),
-
-  // Admin — drag-and-drop reorder
-  // payload: { items: [{ id, order }] }
+    api.put(`/services/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  toggle:  (id)  => api.patch(`/services/${id}/toggle`),
   reorder: (data) => api.put('/services/reorder', data),
-
-  // Admin — delete (also removes Cloudinary images on backend)
-  delete: (id) => api.delete(`/services/${id}`),
+  delete:  (id)  => api.delete(`/services/${id}`),
 };
 
 // ── Events ─────────────────────────────────────────────────────────────────────
@@ -132,13 +110,29 @@ export const careerService = {
 
 // ── Contacts ───────────────────────────────────────────────────────────────────
 export const contactService = {
-  submit:       (data)         => api.post('/contact', data),
-  getStats:     ()             => api.get('/admin/contacts/stats'),
-  getAll:       (params)       => api.get('/admin/contacts', { params }),
-  getById:      (id)           => api.get(`/admin/contacts/${id}`),
-  updateStatus: (id, status)   => api.patch(`/admin/contacts/${id}/status`, { status }),
-  delete:       (id)           => api.delete(`/admin/contacts/${id}`),
-  bulkDelete:   (ids)          => api.delete('/admin/contacts/bulk', { data: { ids } }),
+  submit:       (data)       => api.post('/contact', data),
+  getStats:     ()           => api.get('/admin/contacts/stats'),
+  getAll:       (params)     => api.get('/admin/contacts', { params }),
+  getById:      (id)         => api.get(`/admin/contacts/${id}`),
+  updateStatus: (id, status) => api.patch(`/admin/contacts/${id}/status`, { status }),
+  delete:       (id)         => api.delete(`/admin/contacts/${id}`),
+  bulkDelete:   (ids)        => api.delete('/admin/contacts/bulk', { data: { ids } }),
+};
+
+// ── Team ───────────────────────────────────────────────────────────────────────
+export const teamService = {
+  // Public
+  getAll:  (params) => api.get('/team', { params }),
+  getById: (id)     => api.get(`/team/${id}`),
+
+  // Admin
+  getAllAdmin: (params) => api.get('/admin/team', { params }),
+  create: (formData) =>
+    api.post('/admin/team', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/admin/team/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  toggle: (id) => api.patch(`/admin/team/${id}/toggle`),
+  delete: (id) => api.delete(`/admin/team/${id}`),
 };
 
 export default api;

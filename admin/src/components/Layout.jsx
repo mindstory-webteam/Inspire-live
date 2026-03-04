@@ -12,20 +12,22 @@ import {
   Calendar,
   Briefcase,
   Mail,
+  Users,         // ← Team
 } from 'lucide-react';
 import { useState } from 'react';
 
 // ─── Add / remove nav items here ────────────────────────────────────────────
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/blogs', icon: FileText, label: 'Blogs' },
-  { to: '/comments', icon: MessageSquare, label: 'Comments' },
-  { to: '/banner', icon: Layers, label: 'Banner' },
-  { to: '/services', icon: Layers, label: 'Services' },
-  { to: '/events', icon: Calendar, label: 'Events' },
-  { to: '/careers', icon: Briefcase, label: 'Careers' },
-  { to: '/contacts', icon: Mail, label: 'Contacts' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+  { to: '/blogs',     icon: FileText,        label: 'Blogs'     },
+  { to: '/comments',  icon: MessageSquare,   label: 'Comments'  },
+  { to: '/banner',    icon: Layers,          label: 'Banner'    },
+  { to: '/services',  icon: Layers,          label: 'Services'  },
+  { to: '/events',    icon: Calendar,        label: 'Events'    },
+  { to: '/careers',   icon: Briefcase,       label: 'Careers'   },
+  { to: '/contacts',  icon: Mail,            label: 'Contacts'  },
+  { to: '/team',      icon: Users,           label: 'Team'      }, // ← NEW
+  { to: '/settings',  icon: Settings,        label: 'Settings'  },
 ];
 
 export default function Layout() {
@@ -55,17 +57,13 @@ export default function Layout() {
           <BookOpen size={19} className="text-white" />
         </div>
         <div>
-          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>
-            Blog Admin
-          </p>
-          <p className="text-xs" style={{ color: '#a9b8b8' }}>
-            Control Panel
-          </p>
+          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Blog Admin</p>
+          <p className="text-xs"           style={{ color: '#a9b8b8' }}>Control Panel</p>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-5 space-y-1">
+      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
         {NAV.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
@@ -78,15 +76,8 @@ export default function Layout() {
             }
             style={({ isActive }) =>
               isActive
-                ? {
-                    background: 'linear-gradient(135deg, #1a598a15, #1a598a08)',
-                    color: '#1a598a',
-                    borderLeft: '3px solid #1a598a',
-                  }
-                : {
-                    color: '#67787a',
-                    borderLeft: '3px solid transparent',
-                  }
+                ? { background: 'linear-gradient(135deg, #1a598a15, #1a598a08)', color: '#1a598a', borderLeft: '3px solid #1a598a' }
+                : { color: '#67787a', borderLeft: '3px solid transparent' }
             }
           >
             {({ isActive }) => (
@@ -112,12 +103,8 @@ export default function Layout() {
             {user?.name?.[0]?.toUpperCase() || 'A'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate" style={{ color: '#0c1e21' }}>
-              {user?.name}
-            </p>
-            <p className="text-xs truncate capitalize" style={{ color: '#a9b8b8' }}>
-              {user?.role}
-            </p>
+            <p className="text-xs font-semibold truncate" style={{ color: '#0c1e21' }}>{user?.name}</p>
+            <p className="text-xs truncate capitalize"    style={{ color: '#a9b8b8' }}>{user?.role}</p>
           </div>
         </div>
         <button
@@ -142,13 +129,8 @@ export default function Layout() {
       {/* Mobile sidebar */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="relative z-10 flex shadow-xl">
-            <Sidebar />
-          </div>
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <div className="relative z-10 flex shadow-xl"><Sidebar /></div>
         </div>
       )}
 
@@ -159,16 +141,10 @@ export default function Layout() {
           className="flex items-center justify-between px-5 py-3.5 lg:hidden shadow-sm"
           style={{ background: '#ffffff', borderBottom: '1px solid #ecf0f0' }}
         >
-          <button
-            onClick={() => setSidebarOpen(true)}
-            style={{ color: '#67787a' }}
-            className="hover:text-gray-900 transition-colors"
-          >
+          <button onClick={() => setSidebarOpen(true)} style={{ color: '#67787a' }} className="hover:text-gray-900 transition-colors">
             <Menu size={22} />
           </button>
-          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>
-            Blog Admin
-          </p>
+          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Blog Admin</p>
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
             style={{ background: 'linear-gradient(135deg, #1a598a, #015599)' }}

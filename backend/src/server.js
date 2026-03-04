@@ -10,7 +10,8 @@ const bannerRoutes = require('./routes/bannerRoutes');
 const { eventRouter, eventAdminRouter } = require('./routes/eventRoutes');
 const { careerRoutes, careerAdminRoutes } = require('./routes/careerRoutes');
 const { contactRoutes, contactAdminRoutes } = require('./routes/contactRoutes');
-const serviceRoutes = require('./routes/serviceRoutes'); // ← ADD THIS
+const serviceRoutes = require('./routes/serviceRoutes');
+const { teamRouter, teamAdminRouter } = require('./routes/teamRoutes'); // ← ADD THIS
 
 // Connect to MongoDB
 connectDB();
@@ -65,7 +66,9 @@ app.use('/api/careers',         careerRoutes);
 app.use('/api/admin/careers',   careerAdminRoutes);
 app.use('/api/contact',         contactRoutes);
 app.use('/api/admin/contacts',  contactAdminRoutes);
-app.use('/api/services',        serviceRoutes);         // ← ADD THIS
+app.use('/api/services',        serviceRoutes);
+app.use('/api/team',            teamRouter);          // ← ADD THIS
+app.use('/api/admin/team',      teamAdminRouter);     // ← ADD THIS
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) =>
