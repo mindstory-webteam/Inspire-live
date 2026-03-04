@@ -69,9 +69,9 @@ export const serviceService = {
     api.post('/services', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   update: (id, formData) =>
     api.put(`/services/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  toggle:  (id)  => api.patch(`/services/${id}/toggle`),
+  toggle:  (id)   => api.patch(`/services/${id}/toggle`),
   reorder: (data) => api.put('/services/reorder', data),
-  delete:  (id)  => api.delete(`/services/${id}`),
+  delete:  (id)   => api.delete(`/services/${id}`),
 };
 
 // ── Events ─────────────────────────────────────────────────────────────────────
@@ -121,11 +121,8 @@ export const contactService = {
 
 // ── Team ───────────────────────────────────────────────────────────────────────
 export const teamService = {
-  // Public
   getAll:  (params) => api.get('/team', { params }),
   getById: (id)     => api.get(`/team/${id}`),
-
-  // Admin
   getAllAdmin: (params) => api.get('/admin/team', { params }),
   create: (formData) =>
     api.post('/admin/team', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
@@ -133,6 +130,16 @@ export const teamService = {
     api.put(`/admin/team/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   toggle: (id) => api.patch(`/admin/team/${id}/toggle`),
   delete: (id) => api.delete(`/admin/team/${id}`),
+};
+
+// ── Testimonials ───────────────────────────────────────────────────────────────
+export const testimonialService = {
+  getAll:  (params)        => api.get('/admin/testimonials', { params }),
+  create:  (formData)      => api.post('/admin/testimonials', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update:  (id, formData)  => api.put(`/admin/testimonials/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  toggle:  (id)            => api.patch(`/admin/testimonials/${id}/toggle`),
+  reorder: (data)          => api.patch('/admin/testimonials/reorder', data),
+  delete:  (id)            => api.delete(`/admin/testimonials/${id}`),
 };
 
 export default api;

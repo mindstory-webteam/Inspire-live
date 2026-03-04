@@ -11,11 +11,11 @@ import Settings from './pages/Settings';
 import BannerManager from './pages/BannerManager';
 import ServiceManager from './pages/Servicemanager';
 import ServiceForm from './pages/Serviceform';
-import EventManager from './pages/Eventmanager'; // ← NEW
-import Careers from './pages/Careersadmin'; // ← NEW
+import EventManager from './pages/Eventmanager';
 import CareersAdmin from './pages/Careersadmin';
 import ContactAdmin from './pages/Contactadmin';
 import AdminTeamPage from './pages/Adminteampage';
+import TestimonialsAdmin from './pages/Testimonialsadmin'; // ← NEW
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -40,23 +40,21 @@ export default function App() {
             </PrivateRoute>
           }>
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="blogs" element={<BlogList />} />
-            <Route path="blogs/new" element={<BlogForm />} />
-            <Route path="blogs/edit/:id" element={<BlogForm />} />
-            <Route path="comments" element={<Comments />} />
-            <Route path="settings" element={<Settings />} />
-             {/* ← NEW banner route */}
-          <Route path="banner" element={<BannerManager />} />
-
-          {/* ↓ NEW SERVICE ROUTES */}
-        <Route path="services"           element={<ServiceManager />} />
-        <Route path="services/new"       element={<ServiceForm />} />
-        <Route path="services/edit/:id"  element={<ServiceForm />} />
-        <Route path="/events"    element={<EventManager />} /> {/* ← NEW events route */}
-         <Route path="/careers"   element={<CareersAdmin />} /> {/* ← NEW careers route */}
-          <Route path="/contacts"   element={<ContactAdmin />} /> {/* ← NEW contacts route */}
-          <Route path="/team"   element={<AdminTeamPage />} /> {/* ← NEW contacts route */}
+            <Route path="dashboard"          element={<Dashboard />} />
+            <Route path="blogs"              element={<BlogList />} />
+            <Route path="blogs/new"          element={<BlogForm />} />
+            <Route path="blogs/edit/:id"     element={<BlogForm />} />
+            <Route path="comments"           element={<Comments />} />
+            <Route path="settings"           element={<Settings />} />
+            <Route path="banner"             element={<BannerManager />} />
+            <Route path="services"           element={<ServiceManager />} />
+            <Route path="services/new"       element={<ServiceForm />} />
+            <Route path="services/edit/:id"  element={<ServiceForm />} />
+            <Route path="events"             element={<EventManager />} />
+            <Route path="careers"            element={<CareersAdmin />} />
+            <Route path="contacts"           element={<ContactAdmin />} />
+            <Route path="team"               element={<AdminTeamPage />} />
+            <Route path="testimonials"       element={<TestimonialsAdmin />} /> {/* ← NEW */}
           </Route>
         </Routes>
       </BrowserRouter>

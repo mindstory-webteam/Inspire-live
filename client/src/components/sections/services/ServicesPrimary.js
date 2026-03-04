@@ -5,14 +5,13 @@ import usePagination from "@/hooks/usePagination";
 import makeWowDelay from "@/libs/makeWowDelay";
 import { useEffect, useState } from "react";
 
-// Always fallback so client never fetches "undefined/services"
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 const ServicesPrimary = function () {
-  var limit = 6;
-  var [items, setItems] = useState([]);
-  var [loading, setLoading] = useState(true);
+  const limit = 6;
+  const [items, setItems]     = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(function () {
     fetch(API_BASE + "/services")
@@ -24,7 +23,7 @@ const ServicesPrimary = function () {
       .catch(function () { setLoading(false); });
   }, []);
 
-  var {
+  const {
     currentItems,
     currentpage,
     setCurrentpage,
@@ -36,40 +35,57 @@ const ServicesPrimary = function () {
     lastItem,
   } = usePagination(items, limit);
 
-  var totalItems = items.length;
-  var totalItemsToShow = currentItems ? currentItems.length : 0;
+  const totalItems      = items.length;
+  const totalItemsToShow = currentItems ? currentItems.length : 0;
 
-  if (loading) {
-    return (
-      <div className="tj-service-section service-4 section-gap">
-        <div className="container">
+  return (
+    <div className="tj-service-section service-4 section-gap">
+      {/* Hover micro-interactions */}
+      <style>{`
+        .sc4-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 12px 32px rgba(26,89,138,0.14) !important;
+        }
+        .sc4-card:hover img {
+          transform: scale(1.05);
+        }
+        .sc4-btn:hover {
+          gap: 6px;
+          color: #0f3d62 !important;
+        }
+      `}</style>
+
+      <div className="container">
+        {/* Loading skeleton */}
+        {loading && (
           <div className="row row-gap-4">
             {[1, 2, 3, 4, 5, 6].map(function (i) {
               return (
                 <div key={i} className="col-lg-4 col-md-6">
-                  <div
-                    style={{
-                      height: "280px",
-                      background: "#f1f5f9",
-                      borderRadius: "12px",
-                      animation: "pulse 1.5s ease-in-out infinite",
-                    }}
-                  />
+                  <div style={{
+                    height: "340px",
+                    background: "linear-gradient(90deg, #f0f4f8 25%, #e8eef4 50%, #f0f4f8 75%)",
+                    backgroundSize: "200% 100%",
+                    borderRadius: "16px",
+                    animation: "pulse 1.5s ease-in-out infinite",
+                  }} />
                 </div>
               );
             })}
           </div>
-        </div>
-      </div>
-    );
-  }
+        )}
 
-  return (
-    <div className="tj-service-section service-4 section-gap">
-      <div className="container">
-        <div className="row row-gap-4">
-          {currentItems &&
-            currentItems.map(function (item, idx) {
+        {/* Empty state */}
+        {!loading && items.length === 0 && (
+          <p style={{ textAlign: "center", color: "#888", padding: "60px 0" }}>
+            No services found.
+          </p>
+        )}
+
+        {/* Cards grid */}
+        {!loading && currentItems?.length > 0 && (
+          <div className="row row-gap-4">
+            {currentItems.map(function (item, idx) {
               return (
                 <div
                   key={item._id || item.id}
@@ -80,7 +96,8 @@ const ServicesPrimary = function () {
                 </div>
               );
             })}
-        </div>
+          </div>
+        )}
 
         {totalItemsToShow < totalItems && (
           <Paginations

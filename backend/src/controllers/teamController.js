@@ -1,4 +1,6 @@
 const Team = require('../models/Team');
+
+// ✅ Correct filename — matches your project's uploadMiddleware.js
 const { deleteFromCloudinary, getPublicIdFromUrl, isCloudinaryUrl } = require('../middleware/uploadMiddleware');
 
 // ─── Public: GET all active team members ──────────────────────────────────────
@@ -38,7 +40,7 @@ exports.createTeamMember = async (req, res) => {
   try {
     const { name, desig, email, facebook, instagram, twitter, linkedin, order, isActive } = req.body;
 
-    // req.file.path = Cloudinary secure URL (set by teamUpload from upload.js)
+    // req.file.path = Cloudinary secure URL (set by teamUpload from uploadMiddleware.js)
     const img = req.file ? req.file.path : (req.body.img || '/images/team/team-1.webp');
 
     const member = await Team.create({

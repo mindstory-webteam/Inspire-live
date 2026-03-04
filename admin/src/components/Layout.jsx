@@ -1,162 +1,145 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import {
-  LayoutDashboard,
-  FileText,
-  MessageSquare,
-  Settings,
-  LogOut,
-  BookOpen,
-  Menu,
-  Layers,
-  Calendar,
-  Briefcase,
-  Mail,
-  Users,         // ← Team
-} from 'lucide-react';
-import { useState } from 'react';
+/**
+ * src/services/api.js  (admin panel)
+ */
 
-// ─── Add / remove nav items here ────────────────────────────────────────────
-const NAV = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/blogs',     icon: FileText,        label: 'Blogs'     },
-  { to: '/comments',  icon: MessageSquare,   label: 'Comments'  },
-  { to: '/banner',    icon: Layers,          label: 'Banner'    },
-  { to: '/services',  icon: Layers,          label: 'Services'  },
-  { to: '/events',    icon: Calendar,        label: 'Events'    },
-  { to: '/careers',   icon: Briefcase,       label: 'Careers'   },
-  { to: '/contacts',  icon: Mail,            label: 'Contacts'  },
-  { to: '/team',      icon: Users,           label: 'Team'      }, // ← NEW
-  { to: '/settings',  icon: Settings,        label: 'Settings'  },
-];
+import axios from 'axios';
 
-export default function Layout() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+const api = axios.create({ baseURL: API_BASE });
 
-  const Sidebar = () => (
-    <aside
-      className="w-64 flex flex-col h-full"
-      style={{ background: '#ffffff', borderRight: '1px solid #ecf0f0' }}
-    >
-      {/* Logo */}
-      <div
-        className="flex items-center gap-3 px-6 py-5"
-        style={{ borderBottom: '1px solid #ecf0f0' }}
-      >
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
-          style={{ background: 'linear-gradient(135deg, #1a598a, #015599)' }}
-        >
-          <BookOpen size={19} className="text-white" />
-        </div>
-        <div>
-          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Blog Admin</p>
-          <p className="text-xs"           style={{ color: '#a9b8b8' }}>Control Panel</p>
-        </div>
-      </div>
+// Attach token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('adminToken');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
-        {NAV.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            onClick={() => setSidebarOpen(false)}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isActive ? 'active-nav' : 'inactive-nav'
-              }`
-            }
-            style={({ isActive }) =>
-              isActive
-                ? { background: 'linear-gradient(135deg, #1a598a15, #1a598a08)', color: '#1a598a', borderLeft: '3px solid #1a598a' }
-                : { color: '#67787a', borderLeft: '3px solid transparent' }
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <Icon size={17} style={{ color: isActive ? '#1a598a' : '#a9b8b8' }} />
-                {label}
-              </>
-            )}
-          </NavLink>
-        ))}
-      </nav>
+// Handle 401 globally
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('adminToken');
+      window.location.href = '/login';
+    }
+    return Promise.reject(err);
+  }
+);
 
-      {/* User */}
-      <div className="px-3 py-4" style={{ borderTop: '1px solid #ecf0f0' }}>
-        <div
-          className="flex items-center gap-3 px-3 py-3 mb-2 rounded-xl"
-          style={{ background: '#f8fafb' }}
-        >
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm"
-            style={{ background: 'linear-gradient(135deg, #1a598a, #015599)' }}
-          >
-            {user?.name?.[0]?.toUpperCase() || 'A'}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate" style={{ color: '#0c1e21' }}>{user?.name}</p>
-            <p className="text-xs truncate capitalize"    style={{ color: '#a9b8b8' }}>{user?.role}</p>
-          </div>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-red-50 group"
-          style={{ color: '#67787a' }}
-        >
-          <LogOut size={15} className="group-hover:text-red-500 transition-colors" />
-          <span className="group-hover:text-red-500 transition-colors">Logout</span>
-        </button>
-      </div>
-    </aside>
-  );
+// ── Auth ───────────────────────────────────────────────────────────────────────
+export const authService = {
+  login:          (data)     => api.post('/auth/login', data),
+  getMe:          ()         => api.get('/auth/me'),
+  updatePassword: (data)     => api.put('/auth/update-password', data),
+  updateProfile:  (data)     => api.put('/auth/update-profile', data),
+  getAllUsers:     ()         => api.get('/auth/users'),
+  createUser:     (data)     => api.post('/auth/users', data),
+  updateUser:     (id, data) => api.put(`/auth/users/${id}`, data),
+  deleteUser:     (id)       => api.delete(`/auth/users/${id}`),
+};
 
-  return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#f8fafb' }}>
-      {/* Desktop sidebar */}
-      <div className="hidden lg:flex flex-shrink-0 shadow-sm">
-        <Sidebar />
-      </div>
+// ── Blogs ──────────────────────────────────────────────────────────────────────
+export const blogService = {
+  getAll:   (params)   => api.get('/admin/blogs', { params }),
+  getById:  (id)       => api.get(`/blogs/${id}`),
+  create:   (data)     => api.post('/admin/blogs', data),
+  update:   (id, data) => api.put(`/admin/blogs/${id}`, data),
+  delete:   (id)       => api.delete(`/admin/blogs/${id}`),
+  getStats: ()         => api.get('/admin/stats'),
+};
 
-      {/* Mobile sidebar */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <div className="relative z-10 flex shadow-xl"><Sidebar /></div>
-        </div>
-      )}
+// ── Comments ───────────────────────────────────────────────────────────────────
+export const commentService = {
+  approve: (blogId, commentId) =>
+    api.patch(`/admin/blogs/${blogId}/comments/${commentId}/approve`),
+  delete: (blogId, commentId) =>
+    api.delete(`/admin/blogs/${blogId}/comments/${commentId}`),
+  reply: (blogId, commentId, data) =>
+    api.post(`/admin/blogs/${blogId}/comments/${commentId}/reply`, data),
+};
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile topbar */}
-        <header
-          className="flex items-center justify-between px-5 py-3.5 lg:hidden shadow-sm"
-          style={{ background: '#ffffff', borderBottom: '1px solid #ecf0f0' }}
-        >
-          <button onClick={() => setSidebarOpen(true)} style={{ color: '#67787a' }} className="hover:text-gray-900 transition-colors">
-            <Menu size={22} />
-          </button>
-          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Blog Admin</p>
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-            style={{ background: 'linear-gradient(135deg, #1a598a, #015599)' }}
-          >
-            {user?.name?.[0]?.toUpperCase()}
-          </div>
-        </header>
+// ── Services ───────────────────────────────────────────────────────────────────
+export const serviceService = {
+  getAll:     (params) => api.get('/services', { params }),
+  getBySlug:  (slug)   => api.get(`/services/slug/${slug}`),
+  getById:    (id)     => api.get(`/services/${id}`),
+  getAllAdmin: (params) => api.get('/services/admin/all', { params }),
+  create: (formData) =>
+    api.post('/services', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/services/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  toggle:  (id)   => api.patch(`/services/${id}/toggle`),
+  reorder: (data) => api.put('/services/reorder', data),
+  delete:  (id)   => api.delete(`/services/${id}`),
+};
 
-        <main className="flex-1 overflow-y-auto">
-          <Outlet />
-        </main>
-      </div>
-    </div>
-  );
-}
+// ── Events ─────────────────────────────────────────────────────────────────────
+export const eventService = {
+  getAll:     (params) => api.get('/events', { params }),
+  getById:    (id)     => api.get(`/events/${id}`),
+  getAllAdmin: (params) => api.get('/admin/events', { params }),
+  create: (formData) =>
+    api.post('/admin/events', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/admin/events/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  toggle:  (id)   => api.patch(`/admin/events/${id}/toggle`),
+  reorder: (data) => api.patch('/admin/events/reorder', data),
+  delete:  (id)   => api.delete(`/admin/events/${id}`),
+};
+
+// ── Careers ────────────────────────────────────────────────────────────────────
+export const careerService = {
+  getAll:  (params) => api.get('/careers', { params }),
+  getById: (id)     => api.get(`/careers/${id}`),
+  apply: (id, formData) =>
+    api.post(`/careers/${id}/apply`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  getStats:     ()       => api.get('/admin/careers/stats'),
+  getAllAdmin:   (params) => api.get('/admin/careers', { params }),
+  getByIdAdmin: (id)     => api.get(`/admin/careers/${id}`),
+  create: (formData) =>
+    api.post('/admin/careers', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/admin/careers/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  delete:  (id) => api.delete(`/admin/careers/${id}`),
+  toggle:  (id) => api.patch(`/admin/careers/${id}/toggle`),
+  getApplications: (careerId) => api.get(`/admin/careers/${careerId}/applications`),
+  updateApplicationStatus: (careerId, appId, status) =>
+    api.patch(`/admin/careers/${careerId}/applications/${appId}`, { status }),
+};
+
+// ── Contacts ───────────────────────────────────────────────────────────────────
+export const contactService = {
+  submit:       (data)       => api.post('/contact', data),
+  getStats:     ()           => api.get('/admin/contacts/stats'),
+  getAll:       (params)     => api.get('/admin/contacts', { params }),
+  getById:      (id)         => api.get(`/admin/contacts/${id}`),
+  updateStatus: (id, status) => api.patch(`/admin/contacts/${id}/status`, { status }),
+  delete:       (id)         => api.delete(`/admin/contacts/${id}`),
+  bulkDelete:   (ids)        => api.delete('/admin/contacts/bulk', { data: { ids } }),
+};
+
+// ── Team ───────────────────────────────────────────────────────────────────────
+export const teamService = {
+  getAll:  (params) => api.get('/team', { params }),
+  getById: (id)     => api.get(`/team/${id}`),
+  getAllAdmin: (params) => api.get('/admin/team', { params }),
+  create: (formData) =>
+    api.post('/admin/team', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/admin/team/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  toggle: (id) => api.patch(`/admin/team/${id}/toggle`),
+  delete: (id) => api.delete(`/admin/team/${id}`),
+};
+
+// ── Testimonials ───────────────────────────────────────────────────────────────
+export const testimonialService = {
+  getAll:  (params)        => api.get('/admin/testimonials', { params }),
+  create:  (formData)      => api.post('/admin/testimonials', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update:  (id, formData)  => api.put(`/admin/testimonials/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  toggle:  (id)            => api.patch(`/admin/testimonials/${id}/toggle`),
+  reorder: (data)          => api.patch('/admin/testimonials/reorder', data),
+  delete:  (id)            => api.delete(`/admin/testimonials/${id}`),
+};
+
+export default api;

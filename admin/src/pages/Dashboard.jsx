@@ -5,6 +5,19 @@ import {
   FileText, ArrowUpRight, Calendar, Briefcase, Mail, Layers, Tag, Users,
 } from 'lucide-react';
 
+// ─── Timeout wrapper — rejects after `ms` milliseconds ───────────────────────
+function withTimeout(promise, ms = 8000) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('timeout')), ms)
+  );
+  return Promise.race([promise, timeout]);
+}
+
+// ─── Safe wrapper — NEVER throws, returns fallback on error or timeout ────────
+const safe = (promise, fallback = null, ms = 8000) =>
+  withTimeout(promise, ms).then(r => r).catch(() => fallback);
+
+// ─── Stat card ────────────────────────────────────────────────────────────────
 const StatCard = ({ label, value, icon: Icon, color, bg, to }) => {
   const inner = (
     <div
@@ -29,9 +42,7 @@ const pick = (obj, ...keys) => {
   return null;
 };
 
-// Safe wrapper — NEVER throws, always returns fallback
-const safe = (promise, fallback = null) => promise.then(r => r).catch(() => fallback);
-
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [bannerSlides, setBannerSlides] = useState(null);
   const [eventCount,   setEventCount]   = useState(null);
@@ -41,12 +52,17 @@ export default function Dashboard() {
   const [applications, setApplications] = useState([]);
   const [blogs,        setBlogs]        = useState([]);
   const [loading,      setLoading]      = useState(true);
+  const [timedOut,     setTimedOut]     = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
     const BASE  = import.meta.env.VITE_API_URL || '/api';
 
-    // ── Each fetch is fully isolated — one failure never blocks others ──
+    // Hard deadline — dashboard ALWAYS resolves within 10s no matter what
+    const hardDeadline = setTimeout(() => {
+      setLoading(false);
+      setTimedOut(true);
+    }, 10000);
 
     const fetchBanner = () =>
       safe(
@@ -90,7 +106,7 @@ export default function Dashboard() {
 
     const fetchApplications = async () => {
       try {
-        const careersRes = await careerService.getAllAdmin();
+        const careersRes = await withTimeout(careerService.getAllAdmin());
         const careers    = careersRes.data?.data ?? careersRes.data ?? [];
         const appArrays  = await Promise.all(
           careers.map(c =>
@@ -112,7 +128,6 @@ export default function Dashboard() {
       }
     };
 
-    // Run all in parallel — Promise.all can never reject because every item is wrapped in safe()
     Promise.all([
       fetchBanner(),
       fetchEvents(),
@@ -122,6 +137,7 @@ export default function Dashboard() {
       fetchRecentBlogs(),
       fetchApplications(),
     ]).then(([slides, evtCount, careers, contacts, tCount, recentBlogs, apps]) => {
+      clearTimeout(hardDeadline);
       setBannerSlides(slides);
       setEventCount(evtCount);
       setCareerStats(careers);
@@ -129,22 +145,51 @@ export default function Dashboard() {
       setTeamCount(tCount);
       setBlogs(recentBlogs);
       setApplications(apps);
-    }).finally(() => setLoading(false));
+      setLoading(false);
+    }).catch(() => {
+      clearTimeout(hardDeadline);
+      setLoading(false);
+    });
+
+    return () => clearTimeout(hardDeadline);
   }, []);
 
+  // ── Loading state ──────────────────────────────────────────────────────────
   if (loading) return (
-    <div className="p-8 flex justify-center items-center min-h-64">
+    <div className="p-8 flex flex-col justify-center items-center min-h-64 gap-4">
       <div
         className="w-8 h-8 rounded-full animate-spin"
         style={{ border: '3px solid #ecf0f0', borderTopColor: '#1a598a' }}
       />
+      <p className="text-sm" style={{ color: '#a9b8b8' }}>
+        Connecting to server… (first load may take ~30s on free tier)
+      </p>
     </div>
   );
 
+  // ── Timeout / wake-up notice ───────────────────────────────────────────────
+  if (timedOut) return (
+    <div className="p-8 flex flex-col justify-center items-center min-h-64 gap-4">
+      <div className="rounded-2xl p-6 text-center" style={{ background: '#fff', border: '1px solid #ecf0f0', maxWidth: 420 }}>
+        <p className="font-bold text-lg mb-2" style={{ color: '#0c1e21' }}>Server is waking up…</p>
+        <p className="text-sm mb-4" style={{ color: '#67787a' }}>
+          Your Render backend is on a free tier and spins down when idle. It usually takes 30–60 seconds to wake up.
+        </p>
+        <button
+          onClick={() => { setLoading(true); setTimedOut(false); window.location.reload(); }}
+          className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+          style={{ background: 'linear-gradient(135deg,#1a598a,#015599)' }}
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── Dashboard ──────────────────────────────────────────────────────────────
   return (
     <div className="p-6 lg:p-8 space-y-6">
 
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold" style={{ color: '#0c1e21' }}>Dashboard</h1>
         <p className="text-sm mt-0.5"     style={{ color: '#67787a' }}>Overview of your content</p>

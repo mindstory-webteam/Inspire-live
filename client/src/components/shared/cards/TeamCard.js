@@ -1,12 +1,8 @@
-import Link from "next/link";
-
 const TeamCard = ({ teamMember }) => {
   const {
-    id,
     name,
     desig,
     img       = "/images/team/team-1.webp",
-    email     = "info@bexon.com",
     facebook  = "https://www.facebook.com/",
     instagram = "https://www.instagram.com/",
     twitter   = "https://x.com/",
@@ -22,36 +18,34 @@ const TeamCard = ({ teamMember }) => {
         <div className="social-links">
           <ul>
             <li>
-              <Link href={facebook} target="_blank" rel="noopener noreferrer">
+              <a href={facebook} target="_blank" rel="noopener noreferrer">
                 <i className="fa-brands fa-facebook-f"></i>
-              </Link>
+              </a>
             </li>
             <li>
-              <Link href={instagram} target="_blank" rel="noopener noreferrer">
+              <a href={instagram} target="_blank" rel="noopener noreferrer">
                 <i className="fa-brands fa-instagram"></i>
-              </Link>
+              </a>
             </li>
             <li>
-              <Link href={twitter} target="_blank" rel="noopener noreferrer">
+              <a href={twitter} target="_blank" rel="noopener noreferrer">
                 <i className="fa-brands fa-x-twitter"></i>
-              </Link>
+              </a>
             </li>
             <li>
-              <Link href={linkedin} target="_blank" rel="noopener noreferrer">
+              <a href={linkedin} target="_blank" rel="noopener noreferrer">
                 <i className="fa-brands fa-linkedin-in"></i>
-              </Link>
+              </a>
             </li>
           </ul>
         </div>
       </div>
       <div className="team-content">
-        <h4 className="title">
-          <Link href={`/team/${id}`}>{name}</Link>
-        </h4>
+        <h4 className="title">{name}</h4>
         <span className="designation">{desig}</span>
-        <Link className="mail-at" href={`mailto:${email}`}>
+        <span className="mail-at">
           <i className="tji-at"></i>
-        </Link>
+        </span>
       </div>
     </div>
   );
