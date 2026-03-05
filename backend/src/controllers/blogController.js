@@ -146,20 +146,26 @@ exports.addComment = async (req, res, next) => {
 // @access  Admin/Editor
 exports.createBlog = async (req, res, next) => {
   try {
-    // ✅ ADD THIS: Parse JSON-stringified fields from FormData
+    // Parse JSON-stringified fields from FormData
     if (typeof req.body.tags === 'string') {
       try { req.body.tags = JSON.parse(req.body.tags); } catch { req.body.tags = []; }
     }
+    if (typeof req.body.blogTopList === 'string') {
+      try { req.body.blogTopList = JSON.parse(req.body.blogTopList); } catch { req.body.blogTopList = []; }
+    }
+    // Parse booleans (FormData sends them as strings)
     if (typeof req.body.isPublished === 'string') req.body.isPublished = req.body.isPublished === 'true';
-    if (typeof req.body.isFeatured === 'string')  req.body.isFeatured  = req.body.isFeatured  === 'true';
+    if (typeof req.body.isFeatured  === 'string') req.body.isFeatured  = req.body.isFeatured  === 'true';
+    if (typeof req.body.isBlogQuote === 'string') req.body.isBlogQuote = req.body.isBlogQuote === 'true';
 
+    // Handle Cloudinary uploads - multer-storage-cloudinary stores URL in req.file.path
     if (req.files) {
       Object.keys(req.files).forEach((field) => {
-        req.body[field] = req.files[field][0].path;
+        req.body[field] = req.files[field][0].path; // Cloudinary secure_url
       });
     }
     if (req.file) {
-      req.body.img = req.file.path;
+      req.body.img = req.file.path; // Cloudinary secure_url
     }
 
     const blog = await Blog.create(req.body);
@@ -171,15 +177,15 @@ exports.createBlog = async (req, res, next) => {
 
 // @route   PUT /api/admin/blogs/:id
 // @access  Admin/Editor
-// @route   PUT /api/admin/blogs/:id
 exports.updateBlog = async (req, res, next) => {
   try {
+    // Get existing blog to track old images
     const existingBlog = await Blog.findById(req.params.id);
     if (!existingBlog) {
       return res.status(404).json({ success: false, message: 'Blog not found' });
     }
 
-    // ✅ ADD THIS: Parse JSON-stringified fields coming from FormData
+    // Parse JSON-stringified fields coming from FormData
     if (typeof req.body.tags === 'string') {
       try { req.body.tags = JSON.parse(req.body.tags); } catch { req.body.tags = []; }
     }
@@ -188,16 +194,20 @@ exports.updateBlog = async (req, res, next) => {
     }
     // Parse booleans (FormData sends them as strings)
     if (typeof req.body.isPublished === 'string') req.body.isPublished = req.body.isPublished === 'true';
-    if (typeof req.body.isFeatured === 'string')  req.body.isFeatured  = req.body.isFeatured  === 'true';
+    if (typeof req.body.isFeatured  === 'string') req.body.isFeatured  = req.body.isFeatured  === 'true';
     if (typeof req.body.isBlogQuote === 'string') req.body.isBlogQuote = req.body.isBlogQuote === 'true';
 
+    // Track old image URLs for cleanup
     const oldImages = {};
 
+    // Handle new file uploads
     if (req.files) {
       Object.keys(req.files).forEach((field) => {
+        // Store old URL if it exists
         if (existingBlog[field] && isCloudinaryUrl(existingBlog[field])) {
           oldImages[field] = existingBlog[field];
         }
+        // Set new Cloudinary URL
         req.body[field] = req.files[field][0].path;
       });
     }
@@ -208,16 +218,23 @@ exports.updateBlog = async (req, res, next) => {
       req.body.img = req.file.path;
     }
 
-    const blog = await Blog.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    // Use $set to prevent Mongoose from treating the payload as a raw object replacement
+    const blog = await Blog.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
 
+    // Delete old images from Cloudinary (async, don't block response)
     if (Object.keys(oldImages).length > 0) {
       Promise.all(
         Object.values(oldImages).map(url => {
           const publicId = getPublicIdFromUrl(url);
-          if (publicId) return deleteFromCloudinary(publicId, 'image').catch(err => console.error(err));
+          if (publicId) {
+            return deleteFromCloudinary(publicId, 'image').catch(err =>
+              console.error('Failed to delete old image from Cloudinary:', err)
+            );
+          }
         })
       ).catch(err => console.error('Error cleaning up old images:', err));
     }
