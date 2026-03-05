@@ -60,6 +60,9 @@ const serviceSchema = new mongoose.Schema(
     // ── Status & Order ────────────────────────────────────────────────────────
     isActive: { type: Boolean, default: true },
     order:    { type: Number,  default: 0 },
+
+    // ── Visibility (hidden from client/public, still exists in DB) ────────────
+    isHidden: { type: Boolean, default: false },
   },
   {
     timestamps: true,
@@ -83,5 +86,6 @@ serviceSchema.pre('validate', function (next) {
 serviceSchema.index({ order: 1 });
 serviceSchema.index({ slug: 1 });
 serviceSchema.index({ isActive: 1 });
+serviceSchema.index({ isHidden: 1 });
 
 module.exports = mongoose.model('Service', serviceSchema);

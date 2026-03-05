@@ -458,7 +458,7 @@ const ServiceManager = () => {
                           </a>
 
                           {/* Hide / Show toggle */}
-                          <button
+                          {/* <button
                             className={"sm-icon-btn " + (isHidden ? "sm-icon-btn--show" : "sm-icon-btn--hide")}
                             title={isHidden ? "Show in list" : "Hide from list"}
                             onClick={() => toggleHidden(service._id)}
@@ -474,7 +474,7 @@ const ServiceManager = () => {
                                 <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                               </svg>
                             )}
-                          </button>
+                          </button> */}
 
                           <button
                             className="sm-icon-btn sm-icon-btn--edit"

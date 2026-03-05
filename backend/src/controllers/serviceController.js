@@ -58,6 +58,7 @@ async function adjacentSlugs(currentOrder, currentId) {
   const [prev, next] = await Promise.all([
     Service.findOne({
       isActive: true,
+      isHidden: false,
       $or: [
         { order: { $lt: currentOrder } },
         { order: currentOrder, _id: { $lt: currentId } },
@@ -69,6 +70,7 @@ async function adjacentSlugs(currentOrder, currentId) {
 
     Service.findOne({
       isActive: true,
+      isHidden: false,
       $or: [
         { order: { $gt: currentOrder } },
         { order: currentOrder, _id: { $gt: currentId } },
@@ -87,12 +89,19 @@ async function adjacentSlugs(currentOrder, currentId) {
 
 // ── Public Controllers ─────────────────────────────────────────────────────────
 
+/**
+ * GET /api/services
+ * Returns only active AND not hidden services (shown on client/website)
+ */
 const getAll = async (req, res) => {
   try {
     const { page, limit } = req.query;
-    const filter = { isActive: true };
+
+    // isHidden: false ensures hidden services never appear on the public site
+    const filter = { isActive: true, isHidden: false };
+
     const selectFields =
-      'title slug subtitle shortDescription icon heroImage order isActive createdAt';
+      'title slug subtitle shortDescription icon heroImage order isActive isHidden createdAt';
 
     let q = Service.find(filter)
       .sort({ order: 1, createdAt: 1 })
@@ -120,11 +129,16 @@ const getAll = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/services/slug/:slug
+ * Public single service — blocked if hidden
+ */
 const getBySlug = async (req, res) => {
   try {
     const service = await Service.findOne({
       slug: req.params.slug,
       isActive: true,
+      isHidden: false,   // hidden services are not accessible on the public site
     }).lean();
 
     if (!service) {
@@ -139,9 +153,17 @@ const getBySlug = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/services/:id
+ * Public by Mongo ID — also blocked if hidden
+ */
 const getById = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id).lean();
+    const service = await Service.findOne({
+      _id: req.params.id,
+      isHidden: false,   // hidden services return 404 on public routes
+    }).lean();
+
     if (!service) {
       return res.status(404).json({ success: false, message: 'Service not found' });
     }
@@ -154,13 +176,18 @@ const getById = async (req, res) => {
 
 // ── Admin Controllers ──────────────────────────────────────────────────────────
 
+/**
+ * GET /api/services/admin/all
+ * Admin list — returns ALL services including hidden ones
+ */
 const getAllAdmin = async (req, res) => {
   try {
-    const { page = 1, limit = 20, search, status } = req.query;
+    const { page = 1, limit = 20, search, status, hidden } = req.query;
     const p = Math.max(1, parseInt(page, 10));
     const l = Math.max(1, parseInt(limit, 10));
 
     const filter = {};
+
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -169,6 +196,10 @@ const getAllAdmin = async (req, res) => {
     }
     if (status === 'active')   filter.isActive = true;
     if (status === 'inactive') filter.isActive = false;
+
+    // Filter by hidden state if query param provided
+    if (hidden === 'true')  filter.isHidden = true;
+    if (hidden === 'false') filter.isHidden = false;
 
     const [services, total] = await Promise.all([
       Service.find(filter)
@@ -179,10 +210,19 @@ const getAllAdmin = async (req, res) => {
       Service.countDocuments(filter),
     ]);
 
+    // Also return counts for the stats cards
+    const [hiddenCount, activeCount, inactiveCount, totalCount] = await Promise.all([
+      Service.countDocuments({ isHidden: true }),
+      Service.countDocuments({ isActive: true }),
+      Service.countDocuments({ isActive: false }),
+      Service.countDocuments({}),
+    ]);
+
     res.json({
       success: true,
       data: services,
       pagination: { total, page: p, limit: l, pages: Math.ceil(total / l) },
+      counts: { total: totalCount, active: activeCount, inactive: inactiveCount, hidden: hiddenCount },
     });
   } catch (err) {
     console.error('getAllAdmin error:', err);
@@ -190,6 +230,10 @@ const getAllAdmin = async (req, res) => {
   }
 };
 
+/**
+ * POST /api/services
+ * Create a new service
+ */
 const create = async (req, res) => {
   try {
     const body  = req.body;
@@ -240,6 +284,10 @@ const create = async (req, res) => {
         body.isActive !== undefined
           ? body.isActive === 'true' || body.isActive === true
           : true,
+      isHidden:
+        body.isHidden !== undefined
+          ? body.isHidden === 'true' || body.isHidden === true
+          : false,
       order,
     });
 
@@ -257,6 +305,10 @@ const create = async (req, res) => {
   }
 };
 
+/**
+ * PUT /api/services/:id
+ * Update a service
+ */
 const update = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
@@ -333,6 +385,10 @@ const update = async (req, res) => {
           body.isActive !== undefined
             ? body.isActive === 'true' || body.isActive === true
             : service.isActive,
+        isHidden:
+          body.isHidden !== undefined
+            ? body.isHidden === 'true' || body.isHidden === true
+            : service.isHidden,
         order:
           body.order !== undefined && body.order !== ''
             ? parseInt(body.order, 10)
@@ -351,6 +407,10 @@ const update = async (req, res) => {
   }
 };
 
+/**
+ * PATCH /api/services/:id/toggle
+ * Toggle isActive (active / inactive)
+ */
 const toggleStatus = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
@@ -361,7 +421,7 @@ const toggleStatus = async (req, res) => {
     await service.save();
     res.json({
       success: true,
-      data: { isActive: service.isActive },
+      data: { isActive: service.isActive, isHidden: service.isHidden },
       message: `Service ${service.isActive ? 'activated' : 'deactivated'} successfully`,
     });
   } catch (err) {
@@ -370,6 +430,43 @@ const toggleStatus = async (req, res) => {
   }
 };
 
+/**
+ * PATCH /api/services/:id/hide
+ * Toggle isHidden (hide from / show on public client site)
+ * When isHidden = true  → service is NOT returned by any public endpoint
+ * When isHidden = false → service is visible on the public site (if also isActive)
+ */
+const toggleHidden = async (req, res) => {
+  try {
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
+    }
+
+    service.isHidden = !service.isHidden;
+    await service.save();
+
+    res.json({
+      success: true,
+      data: {
+        _id:      service._id,
+        isHidden: service.isHidden,
+        isActive: service.isActive,
+      },
+      message: service.isHidden
+        ? 'Service is now hidden from the public site'
+        : 'Service is now visible on the public site',
+    });
+  } catch (err) {
+    console.error('toggleHidden error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+/**
+ * PUT /api/services/reorder
+ * Bulk reorder
+ */
 const reorder = async (req, res) => {
   try {
     const { items } = req.body;
@@ -389,6 +486,10 @@ const reorder = async (req, res) => {
   }
 };
 
+/**
+ * DELETE /api/services/:id
+ * Permanently delete a service and its Cloudinary images
+ */
 const remove = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
@@ -419,6 +520,7 @@ module.exports = {
   create,
   update,
   toggleStatus,
+  toggleHidden,
   reorder,
   remove,
 };
