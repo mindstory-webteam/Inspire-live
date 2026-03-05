@@ -48,7 +48,7 @@ function formatDate(d) {
 }
 
 function resolveImg(src) {
-  if (!src) return null;
+  if (!src || typeof src !== 'string' || src.trim() === '') return null;
   if (src.startsWith('http')) return src;
   const base = API_BASE_URL.replace(/\/api\/?$/, '');
   return base + (src.startsWith('/') ? src : '/' + src);
@@ -229,7 +229,7 @@ function Sidebar({ currentId }) {
       .finally(() => setLoadingRecent(false));
 
     fetchCategories()
-      .then(d => setCats(Array.isArray(d) ? d : (d.categories || [])))
+      .then(d => setCats(Array.isArray(d) ? d : (d.categories || d.data || [])))
       .catch(() => {});
   }, [currentId]);
 
@@ -299,7 +299,6 @@ export default function BlogDetailsPage() {
     setLoading(true); setError(null);
     fetchBlogBySlug(slug)
       .then(d => {
-        // Handles all common backend response shapes
         const b = d?.blog || d?.data || d?.post || (d?._id ? d : null);
         if (!b) throw new Error('No blog data returned from server.');
         setBlog(b);
@@ -310,13 +309,15 @@ export default function BlogDetailsPage() {
 
   useEffect(() => { loadBlog(); }, [slug]);
 
-  // Derived from schema fields
   const approvedComments = blog ? (blog.comments || []).filter(c => c.isApproved) : [];
-  const hasImgGrid1      = blog?.img1 || blog?.img2;
-  const extraImgs        = blog ? [blog.img3, blog.img4, blog.img5, blog.img6].filter(Boolean) : [];
-  const hasSlider        = blog?.slider?.length > 0;
-  const hasVideo         = blog?.videoUrl || blog?.popupVideo;
-  const displayDate      = blog?.day && blog?.month
+
+  // ── FIX: collect ALL image fields from schema ──────────────────────────
+  const hasImgGrid1  = blog && (blog.img1 || blog.img2);
+  const hasImgGrid2  = blog && (blog.img3 || blog.img4);
+  const hasImgGrid3  = blog && (blog.img5 || blog.img6);
+  const hasSlider    = blog?.slider?.length > 0;
+  const hasVideo     = blog?.videoUrl || blog?.popupVideo;
+  const displayDate  = blog?.day && blog?.month
     ? `${blog.day} ${blog.month}`
     : formatDate(blog?.createdAt);
 
@@ -356,27 +357,53 @@ export default function BlogDetailsPage() {
         .bd-title{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,4vw,2.4rem);font-weight:700;color:var(--td);line-height:1.3;margin-bottom:28px;}
 
         /* TOP LIST */
-        .bd-top-list{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;}
+        .bd-top-list{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px;}
         .bd-top-list-item{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;background:var(--tbg2);border:1.5px solid var(--tg2);font-size:.8rem;color:var(--tb3);text-decoration:none;transition:all .2s;}
         .bd-top-list-item:hover{background:var(--tp);color:#fff;border-color:var(--tp);}
 
-        /* TEXT */
-        .bd-desc{font-size:1rem;color:var(--tb);line-height:1.9;margin-bottom:22px;}
+        /* ── FIX: paragraph spacing ── */
+        .bd-desc{
+          font-size:1rem;
+          color:var(--tb);
+          line-height:1.9;
+          margin-bottom:28px;   /* was missing — adds space below every paragraph */
+        }
+        .bd-desc:last-of-type{ margin-bottom: 0; }
+
+        /* BODY */
         .bd-body{font-size:1rem;color:var(--tb);line-height:1.9;margin-bottom:32px;}
         .bd-body h1,.bd-body h2,.bd-body h3{font-family:'Playfair Display',serif;color:var(--td);margin:32px 0 14px;}
-        .bd-body p{margin:0 0 18px;}
+        .bd-body p{margin:0 0 20px;}           /* space between HTML paragraphs in body */
+        .bd-body p:last-child{margin-bottom:0;}
         .bd-body img{max-width:100%;border-radius:12px;margin:16px 0;display:block;}
         .bd-body a{color:var(--tp);text-decoration:underline;}
         .bd-body ul,.bd-body ol{padding-left:24px;margin-bottom:18px;}
         .bd-body li{margin-bottom:6px;}
 
-        /* IMG GRID */
-        .bd-img-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
-        .bd-img-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;display:block;}
+        /* ── FIX: image grid — always show with proper aspect ratio ── */
+        .bd-img-grid{
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:16px;
+          margin:28px 0 32px;   /* top + bottom spacing around every image pair */
+        }
+        .bd-img-grid-cell{
+          border-radius:14px;
+          overflow:hidden;
+          aspect-ratio:4/3;
+          background:var(--tg1);
+          display:block;
+        }
+        .bd-img-grid-cell img{
+          width:100%;
+          height:100%;
+          object-fit:cover;
+          display:block;
+        }
         @media(max-width:560px){.bd-img-grid{grid-template-columns:1fr;}}
 
         /* SLIDER */
-        .bd-slider{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin:28px 0;}
+        .bd-slider{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin:28px 0 32px;}
         .bd-slider-img{border-radius:14px;overflow:hidden;aspect-ratio:16/9;background:var(--tg1);}
         .bd-slider-img img{width:100%;height:100%;object-fit:cover;display:block;}
 
@@ -529,8 +556,11 @@ export default function BlogDetailsPage() {
               {/* Cover — detailsImg > img */}
               <div className="bd-cover">
                 {(blog.detailsImg || blog.img)
-                  ? <SafeImg src={blog.detailsImg || blog.img} alt={blog.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  ? <SafeImg
+                      src={blog.detailsImg || blog.img}
+                      alt={blog.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
                   : <div className="bd-cover-fallback">
                       <svg width="64" height="64" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="1" viewBox="0 0 24 24">
                         <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
@@ -539,7 +569,7 @@ export default function BlogDetailsPage() {
                 }
               </div>
 
-              {/* Meta — category (clickable), status, author, date (day+month or createdAt), commentCount */}
+              {/* Meta */}
               <div className="bd-meta-bar">
                 {blog.category && (
                   <Link href={`/blogs?category=${encodeURIComponent(blog.category)}`} className="bd-meta-chip">
@@ -574,55 +604,114 @@ export default function BlogDetailsPage() {
               {/* Title */}
               <h1 className="bd-title">{blog.title}</h1>
 
-              {/* blogTopList — social/quick-meta links from schema */}
+              {/* blogTopList */}
               {blog.blogTopList?.length > 0 && <BlogTopList items={blog.blogTopList} />}
 
-              {/* desc — short excerpt */}
-              {blog.desc && <p className="bd-desc">{blog.desc}</p>}
+              {/* ── FIX: desc — short excerpt with bottom spacing ── */}
+              {blog.desc && (
+                <p className="bd-desc">{blog.desc}</p>
+              )}
 
-              {/* img1 + img2 grid */}
+              {/* ── FIX: img1 + img2 — rendered with bd-img-grid-cell for proper sizing ── */}
               {hasImgGrid1 && (
                 <div className="bd-img-grid">
-                  {blog.img1 && <SafeImg src={blog.img1} alt="Blog image 1"
-                    style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 14, display: 'block' }} />}
-                  {blog.img2 && <SafeImg src={blog.img2} alt="Blog image 2"
-                    style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 14, display: 'block' }} />}
+                  {blog.img1 && (
+                    <div className="bd-img-grid-cell">
+                      <SafeImg
+                        src={blog.img1}
+                        alt={`${blog.title} – image 1`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </div>
+                  )}
+                  {blog.img2 && (
+                    <div className="bd-img-grid-cell">
+                      <SafeImg
+                        src={blog.img2}
+                        alt={`${blog.title} – image 2`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* desc1 */}
-              {blog.desc1 && <p className="bd-desc">{blog.desc1}</p>}
+              {/* ── FIX: desc1 with spacing ── */}
+              {blog.desc1 && (
+                <p className="bd-desc">{blog.desc1}</p>
+              )}
 
-              {/* desc2 — blockquote if isBlogQuote=true */}
+              {/* ── FIX: desc2 — blockquote if isBlogQuote, otherwise normal paragraph ── */}
               {blog.desc2 && (
                 blog.isBlogQuote
                   ? <blockquote className="bd-quote"><p>{blog.desc2}</p></blockquote>
                   : <p className="bd-desc">{blog.desc2}</p>
               )}
 
-              {/* img3–img6 extra grid */}
-              {extraImgs.length > 0 && (
+              {/* ── FIX: img3 + img4 grid ── */}
+              {hasImgGrid2 && (
                 <div className="bd-img-grid">
-                  {extraImgs.map((src, i) => (
-                    <SafeImg key={i} src={src} alt={`Blog image ${i + 3}`}
-                      style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 14, display: 'block' }} />
-                  ))}
+                  {blog.img3 && (
+                    <div className="bd-img-grid-cell">
+                      <SafeImg
+                        src={blog.img3}
+                        alt={`${blog.title} – image 3`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </div>
+                  )}
+                  {blog.img4 && (
+                    <div className="bd-img-grid-cell">
+                      <SafeImg
+                        src={blog.img4}
+                        alt={`${blog.title} – image 4`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* slider[] images */}
+              {/* ── FIX: img5 + img6 grid ── */}
+              {hasImgGrid3 && (
+                <div className="bd-img-grid">
+                  {blog.img5 && (
+                    <div className="bd-img-grid-cell">
+                      <SafeImg
+                        src={blog.img5}
+                        alt={`${blog.title} – image 5`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </div>
+                  )}
+                  {blog.img6 && (
+                    <div className="bd-img-grid-cell">
+                      <SafeImg
+                        src={blog.img6}
+                        alt={`${blog.title} – image 6`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── FIX: slider[] images ── */}
               {hasSlider && (
                 <div className="bd-slider">
                   {blog.slider.map((src, i) => (
                     <div key={i} className="bd-slider-img">
-                      <SafeImg src={src} alt={`Slide ${i + 1}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <SafeImg
+                        src={src}
+                        alt={`Slide ${i + 1}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* videoUrl / popupVideo + videoImg thumbnail */}
+              {/* videoUrl / popupVideo + videoImg */}
               {hasVideo && (
                 <VideoPlayer videoUrl={blog.videoUrl} popupVideo={blog.popupVideo} videoImg={blog.videoImg} />
               )}
@@ -640,7 +729,7 @@ export default function BlogDetailsPage() {
               </div>
               <div className="bd-divider" />
 
-              {/* Author — author, author_role, authorImg */}
+              {/* Author */}
               <div className="bd-author-card">
                 <div className="bd-author-avatar">
                   {blog.authorImg
@@ -657,10 +746,10 @@ export default function BlogDetailsPage() {
 
               <div className="bd-divider" />
 
-              {/* comments[] — filtered by isApproved, with replies[] */}
+              {/* Comments */}
               <CommentList comments={blog.comments} />
 
-              {/* New comment form */}
+              {/* Comment form */}
               <CommentForm blogId={blog._id} onPosted={loadBlog} />
 
             </article>

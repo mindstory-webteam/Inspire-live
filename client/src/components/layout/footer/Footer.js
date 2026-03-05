@@ -6,6 +6,12 @@ import { subscribeNewsletter } from "../../../utils/newsletterApi";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+// ── Static items always shown at the top of the Services list ──
+const STATIC_SERVICES = [
+  { id: "phd-india",  name: "PhD India",  path: "/services/phd-india" },
+  { id: "phd-abroad", name: "PhD Abroad", path: "/services/phd-abroad" },
+];
+
 const Footer = () => {
   const [services,    setServices]    = useState([]);
   const [email,       setEmail]       = useState("");
@@ -59,6 +65,11 @@ const Footer = () => {
     }
   };
 
+  // Merge: static items first, then dynamic services (skip any that duplicate a static path)
+  const staticPaths = new Set(STATIC_SERVICES.map((s) => s.path));
+  const dynamicServices = services.filter((s) => !staticPaths.has(s.path));
+  const allServices = [...STATIC_SERVICES, ...dynamicServices];
+
   return (
     <footer className="tj-footer-section footer-1 section-gap-x">
       <div className="footer-main-area">
@@ -90,7 +101,7 @@ const Footer = () => {
               </div>
             </div>
 
-            {/* ── Services (dynamic from API) ── */}
+            {/* ── Services: static first, dynamic below ── */}
             <div className="col-xl-3 col-lg-4 col-md-6">
               <div
                 className="footer-widget widget-nav-menu wow fadeInUp"
@@ -98,19 +109,11 @@ const Footer = () => {
               >
                 <h5 className="title">Services</h5>
                 <ul>
-                  {services.length === 0 ? (
-                    <>
-                      <li><Link href="/services/phd-india">PhD India</Link></li>
-                      <li><Link href="/services/study-abroad">Study Abroad</Link></li>
-                      <li><Link href="/services/phd-abroad">PhD Abroad</Link></li>
-                    </>
-                  ) : (
-                    services.map((service) => (
-                      <li key={service.id}>
-                        <Link href={service.path}>{service.name}</Link>
-                      </li>
-                    ))
-                  )}
+                  {allServices.map((service) => (
+                    <li key={service.id}>
+                      <Link href={service.path}>{service.name}</Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
