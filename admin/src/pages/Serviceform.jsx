@@ -18,6 +18,16 @@ const blankForm = {
   isActive: true,
 };
 
+// Default all sections enabled
+const blankSections = {
+  description: true,
+  keyFeatures: true,
+  whyChoose: true,
+  benefits: true,
+  faqs: true,
+  images: true,
+};
+
 // ─── Slugify helper ───────────────────────────────────────────────────────────
 const toSlug = (str) =>
   str
@@ -25,6 +35,32 @@ const toSlug = (str) =>
     .replace(/[^a-z0-9\s-]/g, "")
     .trim()
     .replace(/\s+/g, "-");
+
+// ─── Section Toggle Button ────────────────────────────────────────────────────
+const SectionToggle = ({ enabled, onToggle }) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    className={"sf-section-toggle " + (enabled ? "sf-section-toggle--on" : "sf-section-toggle--off")}
+    title={enabled ? "Click to disable this section" : "Click to enable this section"}
+  >
+    {enabled ? (
+      <>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        Included
+      </>
+    ) : (
+      <>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
+        Skipped
+      </>
+    )}
+  </button>
+);
 
 const ServiceForm = () => {
   const { api } = useAuth();
@@ -34,6 +70,7 @@ const ServiceForm = () => {
 
   // ─── State ────────────────────────────────────────────────────────────────
   const [form, setForm] = useState(blankForm);
+  const [sections, setSections] = useState(blankSections);
   const [images, setImages] = useState({
     heroImage: null,
     detailImage1: null,
@@ -81,6 +118,15 @@ const ServiceForm = () => {
           detailImage1: s.detailImage1 || "",
           detailImage2: s.detailImage2 || "",
         });
+        // Auto-detect which sections have content when editing
+        setSections({
+          description: !!(s.description1 || s.description2),
+          keyFeatures: !!(s.keyFeatures?.length),
+          whyChoose:   !!(s.whyChooseHeading || s.whyChooseText),
+          benefits:    !!(s.benefits?.length),
+          faqs:        !!(s.faqs?.length),
+          images:      !!(s.heroImage || s.detailImage1 || s.detailImage2),
+        });
         setSlugManual(true);
       } catch (err) {
         setError("Failed to load service data.");
@@ -93,6 +139,7 @@ const ServiceForm = () => {
 
   // ─── Field helpers ────────────────────────────────────────────────────────
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+  const toggleSection = (key) => setSections((s) => ({ ...s, [key]: !s[key] }));
 
   const handleTitleChange = (val) => {
     set("title", val);
@@ -148,21 +195,53 @@ const ServiceForm = () => {
     setLoading(true);
     try {
       const fd = new FormData();
-      fd.append("title",            form.title);
-      fd.append("slug",             form.slug);
-      fd.append("subtitle",         form.subtitle);
-      fd.append("description1",     form.description1);
-      fd.append("description2",     form.description2);
-      fd.append("whyChooseHeading", form.whyChooseHeading);
-      fd.append("whyChooseText",    form.whyChooseText);
-      fd.append("order",            form.order);
-      fd.append("isActive",         form.isActive);
-      fd.append("keyFeatures", JSON.stringify(form.keyFeatures.filter(Boolean)));
-      fd.append("benefits",    JSON.stringify(form.benefits));
-      fd.append("faqs",        JSON.stringify(form.faqs));
-      if (images.heroImage)    fd.append("heroImage",    images.heroImage);
-      if (images.detailImage1) fd.append("detailImage1", images.detailImage1);
-      if (images.detailImage2) fd.append("detailImage2", images.detailImage2);
+      fd.append("title",   form.title);
+      fd.append("slug",    form.slug);
+      fd.append("subtitle", form.subtitle);
+      fd.append("order",   form.order);
+      fd.append("isActive", form.isActive);
+
+      // Only append section data if section is enabled
+      if (sections.description) {
+        fd.append("description1", form.description1);
+        fd.append("description2", form.description2);
+      } else {
+        fd.append("description1", "");
+        fd.append("description2", "");
+      }
+
+      if (sections.keyFeatures) {
+        fd.append("keyFeatures", JSON.stringify(form.keyFeatures.filter(Boolean)));
+      } else {
+        fd.append("keyFeatures", JSON.stringify([]));
+      }
+
+      if (sections.whyChoose) {
+        fd.append("whyChooseHeading", form.whyChooseHeading);
+        fd.append("whyChooseText",    form.whyChooseText);
+      } else {
+        fd.append("whyChooseHeading", "");
+        fd.append("whyChooseText",    "");
+      }
+
+      if (sections.benefits) {
+        fd.append("benefits", JSON.stringify(form.benefits));
+      } else {
+        fd.append("benefits", JSON.stringify([]));
+      }
+
+      if (sections.faqs) {
+        fd.append("faqs", JSON.stringify(form.faqs));
+      } else {
+        fd.append("faqs", JSON.stringify([]));
+      }
+
+      if (sections.images) {
+        if (images.heroImage)    fd.append("heroImage",    images.heroImage);
+        if (images.detailImage1) fd.append("detailImage1", images.detailImage1);
+        if (images.detailImage2) fd.append("detailImage2", images.detailImage2);
+      }
+
       if (isEdit) { await api.put("/services/" + id, fd); }
       else        { await api.post("/services", fd); }
       navigate("/services");
@@ -189,6 +268,8 @@ const ServiceForm = () => {
     { field: "detailImage2", label: "Detail Image 2",      ref: detail2Ref, hint: "Right image in detail section · 570×400px" },
   ];
 
+  const enabledSectionsCount = Object.values(sections).filter(Boolean).length;
+
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="sf-root">
@@ -203,10 +284,6 @@ const ServiceForm = () => {
             Back
           </button>
           <div>
-            {/* <div className="sf-eyebrow">
-              <span className="sf-eyebrow-dot"></span>
-              {isEdit ? "Edit Service" : "New Service"}
-            </div> */}
             <h1 className="sf-page-title">{isEdit ? "Update Service" : "Add New Service"}</h1>
             <p className="sf-page-sub">
               {isEdit ? "Update service details and content" : "Fill in the details for the new service"}
@@ -236,13 +313,53 @@ const ServiceForm = () => {
         </div>
       )}
 
+      {/* ── Section Visibility Banner ── */}
+      <div className="sf-sections-bar">
+        <div className="sf-sections-bar__label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2"/>
+            <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+          </svg>
+          Sections
+        </div>
+        <div className="sf-sections-bar__pills">
+          {[
+            { key: "description", label: "Description" },
+            { key: "keyFeatures", label: "Key Features" },
+            { key: "whyChoose",   label: "Why Choose" },
+            { key: "benefits",    label: "Benefits" },
+            { key: "faqs",        label: "FAQs" },
+            { key: "images",      label: "Images" },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              className={"sf-section-pill " + (sections[key] ? "sf-section-pill--on" : "sf-section-pill--off")}
+              onClick={() => toggleSection(key)}
+            >
+              {sections[key] ? (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                </svg>
+              )}
+              {label}
+            </button>
+          ))}
+        </div>
+        <span className="sf-sections-bar__count">{enabledSectionsCount}/6 active</span>
+      </div>
+
       <form onSubmit={handleSubmit} className="sf-form">
         <div className="sf-grid">
 
           {/* ════ LEFT COLUMN ════ */}
           <div className="sf-col-main">
 
-            {/* Basic Info */}
+            {/* Basic Info — always shown */}
             <div className="sf-card">
               <div className="sf-card-label">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -250,6 +367,7 @@ const ServiceForm = () => {
                   <path d="M8 12h8M8 8h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
                 Basic Information
+                <span className="sf-required-badge">Required</span>
               </div>
 
               <div className="sf-field">
@@ -318,30 +436,45 @@ const ServiceForm = () => {
             </div>
 
             {/* Description */}
-            <div className="sf-card">
-              <div className="sf-card-label">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                Description
+            <div className={"sf-card sf-card--toggleable " + (!sections.description ? "sf-card--disabled" : "")}>
+              <div className="sf-card-header">
+                <div className="sf-card-label" style={{marginBottom:0}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Description
+                </div>
+                <SectionToggle enabled={sections.description} onToggle={() => toggleSection("description")} />
               </div>
-              <div className="sf-field">
-                <label className="sf-label">Paragraph 1</label>
-                <textarea className="sf-textarea" rows={4} value={form.description1}
-                  onChange={(e) => set("description1", e.target.value)}
-                  placeholder="Main introductory paragraph about this service…"/>
-              </div>
-              <div className="sf-field">
-                <label className="sf-label">Paragraph 2</label>
-                <textarea className="sf-textarea" rows={4} value={form.description2}
-                  onChange={(e) => set("description2", e.target.value)}
-                  placeholder="Second paragraph with additional details…"/>
-              </div>
+              {sections.description ? (
+                <div className="sf-card-body">
+                  <div className="sf-field">
+                    <label className="sf-label">Paragraph 1</label>
+                    <textarea className="sf-textarea" rows={4} value={form.description1}
+                      onChange={(e) => set("description1", e.target.value)}
+                      placeholder="Main introductory paragraph about this service…"/>
+                  </div>
+                  <div className="sf-field">
+                    <label className="sf-label">Paragraph 2</label>
+                    <textarea className="sf-textarea" rows={4} value={form.description2}
+                      onChange={(e) => set("description2", e.target.value)}
+                      placeholder="Second paragraph with additional details…"/>
+                  </div>
+                </div>
+              ) : (
+                <div className="sf-skipped-msg">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  This section is skipped and won't be saved
+                </div>
+              )}
             </div>
 
             {/* Key Features */}
-            <div className="sf-card">
+            <div className={"sf-card sf-card--toggleable " + (!sections.keyFeatures ? "sf-card--disabled" : "")}>
               <div className="sf-card-header">
                 <div className="sf-card-label" style={{marginBottom:0}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -350,55 +483,85 @@ const ServiceForm = () => {
                   </svg>
                   Key Features
                 </div>
-                <button type="button" className="sf-add-btn" onClick={addFeature}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                  </svg>
-                  Add Feature
-                </button>
-              </div>
-              <div className="sf-feature-list">
-                {form.keyFeatures.map((feat, i) => (
-                  <div key={i} className="sf-feature-row">
-                    <span className="sf-list-num">{i + 1}</span>
-                    <input className="sf-input" value={feat}
-                      onChange={(e) => updateFeature(i, e.target.value)}
-                      placeholder="e.g. Personalized One-on-One Sessions"/>
-                    <button type="button" className="sf-rm-btn" onClick={() => removeFeature(i)}
-                      disabled={form.keyFeatures.length === 1}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                <div className="sf-card-header-right">
+                  {sections.keyFeatures && (
+                    <button type="button" className="sf-add-btn" onClick={addFeature}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
                       </svg>
+                      Add Feature
                     </button>
-                  </div>
-                ))}
+                  )}
+                  <SectionToggle enabled={sections.keyFeatures} onToggle={() => toggleSection("keyFeatures")} />
+                </div>
               </div>
+              {sections.keyFeatures ? (
+                <div className="sf-feature-list">
+                  {form.keyFeatures.map((feat, i) => (
+                    <div key={i} className="sf-feature-row">
+                      <span className="sf-list-num">{i + 1}</span>
+                      <input className="sf-input" value={feat}
+                        onChange={(e) => updateFeature(i, e.target.value)}
+                        placeholder="e.g. Personalized One-on-One Sessions"/>
+                      <button type="button" className="sf-rm-btn" onClick={() => removeFeature(i)}
+                        disabled={form.keyFeatures.length === 1}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="sf-skipped-msg">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  This section is skipped and won't be saved
+                </div>
+              )}
             </div>
 
             {/* Why Choose */}
-            <div className="sf-card">
-              <div className="sf-card-label">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Why Choose Section
+            <div className={"sf-card sf-card--toggleable " + (!sections.whyChoose ? "sf-card--disabled" : "")}>
+              <div className="sf-card-header">
+                <div className="sf-card-label" style={{marginBottom:0}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Why Choose Section
+                </div>
+                <SectionToggle enabled={sections.whyChoose} onToggle={() => toggleSection("whyChoose")} />
               </div>
-              <div className="sf-field">
-                <label className="sf-label">Section Heading</label>
-                <input className="sf-input" value={form.whyChooseHeading}
-                  onChange={(e) => set("whyChooseHeading", e.target.value)}
-                  placeholder="e.g. Why Choose Our Continuous Mentorship Program?"/>
-              </div>
-              <div className="sf-field">
-                <label className="sf-label">Section Text</label>
-                <textarea className="sf-textarea" rows={4} value={form.whyChooseText}
-                  onChange={(e) => set("whyChooseText", e.target.value)}
-                  placeholder="Compelling paragraph explaining why students should choose this service…"/>
-              </div>
+              {sections.whyChoose ? (
+                <div className="sf-card-body">
+                  <div className="sf-field">
+                    <label className="sf-label">Section Heading</label>
+                    <input className="sf-input" value={form.whyChooseHeading}
+                      onChange={(e) => set("whyChooseHeading", e.target.value)}
+                      placeholder="e.g. Why Choose Our Continuous Mentorship Program?"/>
+                  </div>
+                  <div className="sf-field">
+                    <label className="sf-label">Section Text</label>
+                    <textarea className="sf-textarea" rows={4} value={form.whyChooseText}
+                      onChange={(e) => set("whyChooseText", e.target.value)}
+                      placeholder="Compelling paragraph explaining why students should choose this service…"/>
+                  </div>
+                </div>
+              ) : (
+                <div className="sf-skipped-msg">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  This section is skipped and won't be saved
+                </div>
+              )}
             </div>
 
             {/* Benefits */}
-            <div className="sf-card">
+            <div className={"sf-card sf-card--toggleable " + (!sections.benefits ? "sf-card--disabled" : "")}>
               <div className="sf-card-header">
                 <div className="sf-card-label" style={{marginBottom:0}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -407,53 +570,68 @@ const ServiceForm = () => {
                   </svg>
                   Benefits
                 </div>
-                <button type="button" className="sf-add-btn" onClick={addBenefit}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                <div className="sf-card-header-right">
+                  {sections.benefits && (
+                    <button type="button" className="sf-add-btn" onClick={addBenefit}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                      </svg>
+                      Add Benefit
+                    </button>
+                  )}
+                  <SectionToggle enabled={sections.benefits} onToggle={() => toggleSection("benefits")} />
+                </div>
+              </div>
+              {sections.benefits ? (
+                <div className="sf-benefit-list">
+                  {form.benefits.map((b, i) => (
+                    <div key={i} className="sf-benefit-card">
+                      <div className="sf-benefit-top">
+                        <div className="sf-benefit-badge">{b.number}</div>
+                        <button type="button" className="sf-rm-btn" onClick={() => removeBenefit(i)}
+                          disabled={form.benefits.length === 1}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="sf-row2">
+                        <div className="sf-field">
+                          <label className="sf-label">Number Label</label>
+                          <input className="sf-input" value={b.number}
+                            onChange={(e) => updateBenefit(i, "number", e.target.value)} placeholder="01"/>
+                        </div>
+                        <div className="sf-field">
+                          <label className="sf-label">
+                            Title <span className="sf-hint-inline">use &lt;br/&gt; for break</span>
+                          </label>
+                          <input className="sf-input" value={b.title}
+                            onChange={(e) => updateBenefit(i, "title", e.target.value)}
+                            placeholder="End-to-End Support"/>
+                        </div>
+                      </div>
+                      <div className="sf-field">
+                        <label className="sf-label">Description</label>
+                        <textarea className="sf-textarea" rows={3} value={b.description}
+                          onChange={(e) => updateBenefit(i, "description", e.target.value)}
+                          placeholder="Describe this benefit in 1–2 sentences…"/>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="sf-skipped-msg">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
-                  Add Benefit
-                </button>
-              </div>
-              <div className="sf-benefit-list">
-                {form.benefits.map((b, i) => (
-                  <div key={i} className="sf-benefit-card">
-                    <div className="sf-benefit-top">
-                      <div className="sf-benefit-badge">{b.number}</div>
-                      <button type="button" className="sf-rm-btn" onClick={() => removeBenefit(i)}
-                        disabled={form.benefits.length === 1}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="sf-row2">
-                      <div className="sf-field">
-                        <label className="sf-label">Number Label</label>
-                        <input className="sf-input" value={b.number}
-                          onChange={(e) => updateBenefit(i, "number", e.target.value)} placeholder="01"/>
-                      </div>
-                      <div className="sf-field">
-                        <label className="sf-label">
-                          Title <span className="sf-hint-inline">use &lt;br/&gt; for break</span>
-                        </label>
-                        <input className="sf-input" value={b.title}
-                          onChange={(e) => updateBenefit(i, "title", e.target.value)}
-                          placeholder="End-to-End Support"/>
-                      </div>
-                    </div>
-                    <div className="sf-field">
-                      <label className="sf-label">Description</label>
-                      <textarea className="sf-textarea" rows={3} value={b.description}
-                        onChange={(e) => updateBenefit(i, "description", e.target.value)}
-                        placeholder="Describe this benefit in 1–2 sentences…"/>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  This section is skipped and won't be saved
+                </div>
+              )}
             </div>
 
             {/* FAQs */}
-            <div className="sf-card">
+            <div className={"sf-card sf-card--toggleable " + (!sections.faqs ? "sf-card--disabled" : "")}>
               <div className="sf-card-header">
                 <div className="sf-card-label" style={{marginBottom:0}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -461,40 +639,55 @@ const ServiceForm = () => {
                   </svg>
                   FAQs
                 </div>
-                <button type="button" className="sf-add-btn" onClick={addFaq}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                  </svg>
-                  Add FAQ
-                </button>
-              </div>
-              <div className="sf-faq-list">
-                {form.faqs.map((faq, i) => (
-                  <div key={i} className="sf-faq-card">
-                    <div className="sf-faq-index">Q{i + 1}</div>
-                    <div className="sf-faq-body">
-                      <div className="sf-field">
-                        <label className="sf-label">Question</label>
-                        <input className="sf-input" value={faq.question}
-                          onChange={(e) => updateFaq(i, "question", e.target.value)}
-                          placeholder="e.g. What does this service include?"/>
-                      </div>
-                      <div className="sf-field">
-                        <label className="sf-label">Answer</label>
-                        <textarea className="sf-textarea" rows={3} value={faq.answer}
-                          onChange={(e) => updateFaq(i, "answer", e.target.value)}
-                          placeholder="Provide a clear, helpful answer…"/>
-                      </div>
-                    </div>
-                    <button type="button" className="sf-rm-btn sf-rm-abs" onClick={() => removeFaq(i)}
-                      disabled={form.faqs.length === 1}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                <div className="sf-card-header-right">
+                  {sections.faqs && (
+                    <button type="button" className="sf-add-btn" onClick={addFaq}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
                       </svg>
+                      Add FAQ
                     </button>
-                  </div>
-                ))}
+                  )}
+                  <SectionToggle enabled={sections.faqs} onToggle={() => toggleSection("faqs")} />
+                </div>
               </div>
+              {sections.faqs ? (
+                <div className="sf-faq-list">
+                  {form.faqs.map((faq, i) => (
+                    <div key={i} className="sf-faq-card">
+                      <div className="sf-faq-index">Q{i + 1}</div>
+                      <div className="sf-faq-body">
+                        <div className="sf-field">
+                          <label className="sf-label">Question</label>
+                          <input className="sf-input" value={faq.question}
+                            onChange={(e) => updateFaq(i, "question", e.target.value)}
+                            placeholder="e.g. What does this service include?"/>
+                        </div>
+                        <div className="sf-field">
+                          <label className="sf-label">Answer</label>
+                          <textarea className="sf-textarea" rows={3} value={faq.answer}
+                            onChange={(e) => updateFaq(i, "answer", e.target.value)}
+                            placeholder="Provide a clear, helpful answer…"/>
+                        </div>
+                      </div>
+                      <button type="button" className="sf-rm-btn sf-rm-abs" onClick={() => removeFaq(i)}
+                        disabled={form.faqs.length === 1}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="sf-skipped-msg">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  This section is skipped and won't be saved
+                </div>
+              )}
             </div>
 
           </div>
@@ -503,59 +696,72 @@ const ServiceForm = () => {
           <div className="sf-col-side">
 
             {/* Images */}
-            <div className="sf-card">
-              <div className="sf-card-label">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M3 15l5-5 4 4 3-3 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-                </svg>
-                Images
+            <div className={"sf-card sf-card--toggleable " + (!sections.images ? "sf-card--disabled" : "")}>
+              <div className="sf-card-header">
+                <div className="sf-card-label" style={{marginBottom:0}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M3 15l5-5 4 4 3-3 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                  </svg>
+                  Images
+                </div>
+                <SectionToggle enabled={sections.images} onToggle={() => toggleSection("images")} />
               </div>
 
-              {imageFields.map(({ field, label, ref, hint }) => (
-                <div key={field} className="sf-img-block">
-                  <label className="sf-label">{label}</label>
-                  <p className="sf-img-hint">{hint}</p>
-                  {previews[field] ? (
-                    <div className="sf-preview-wrap">
-                      <img src={previews[field]} alt={label} className="sf-preview-img"/>
-                      <div className="sf-preview-overlay">
-                        <button type="button" className="sf-prev-btn sf-prev-btn--change"
-                          onClick={() => ref.current?.click()}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                          </svg>
-                          Change
-                        </button>
-                        <button type="button" className="sf-prev-btn sf-prev-btn--remove"
-                          onClick={() => clearImage(field, ref)}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                          </svg>
-                          Remove
-                        </button>
+              {sections.images ? (
+                imageFields.map(({ field, label, ref, hint }) => (
+                  <div key={field} className="sf-img-block">
+                    <label className="sf-label">{label}</label>
+                    <p className="sf-img-hint">{hint}</p>
+                    {previews[field] ? (
+                      <div className="sf-preview-wrap">
+                        <img src={previews[field]} alt={label} className="sf-preview-img"/>
+                        <div className="sf-preview-overlay">
+                          <button type="button" className="sf-prev-btn sf-prev-btn--change"
+                            onClick={() => ref.current?.click()}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
+                            Change
+                          </button>
+                          <button type="button" className="sf-prev-btn sf-prev-btn--remove"
+                            onClick={() => clearImage(field, ref)}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
+                            Remove
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="sf-drop" onClick={() => ref.current?.click()}>
-                      <div className="sf-drop-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                          <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-                          <path d="M3 15l5-5 4 4 3-3 5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-                        </svg>
+                    ) : (
+                      <div className="sf-drop" onClick={() => ref.current?.click()}>
+                        <div className="sf-drop-icon">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/>
+                            <path d="M3 15l5-5 4 4 3-3 5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                          </svg>
+                        </div>
+                        <p className="sf-drop-text">Click to upload</p>
+                        <p className="sf-drop-sub">JPG, PNG, WebP · Max 10MB</p>
                       </div>
-                      <p className="sf-drop-text">Click to upload</p>
-                      <p className="sf-drop-sub">JPG, PNG, WebP · Max 10MB</p>
-                    </div>
-                  )}
-                  <input ref={ref} type="file" accept="image/jpeg,image/png,image/webp,image/gif"
-                    style={{ display: "none" }}
-                    onChange={(e) => handleImage(field, e.target.files[0])}/>
+                    )}
+                    <input ref={ref} type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+                      style={{ display: "none" }}
+                      onChange={(e) => handleImage(field, e.target.files[0])}/>
+                  </div>
+                ))
+              ) : (
+                <div className="sf-skipped-msg">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Images section is skipped
                 </div>
-              ))}
+              )}
             </div>
 
             {/* Summary Card */}
@@ -576,9 +782,9 @@ const ServiceForm = () => {
               <div className="sf-meta-list">
                 {[
                   { label: "Title",     value: form.title || "—" },
-                  { label: "Features",  value: form.keyFeatures.filter(Boolean).length },
-                  { label: "Benefits",  value: form.benefits.length },
-                  { label: "FAQs",      value: form.faqs.length },
+                  { label: "Features",  value: sections.keyFeatures ? form.keyFeatures.filter(Boolean).length : "—" },
+                  { label: "Benefits",  value: sections.benefits ? form.benefits.length : "—" },
+                  { label: "FAQs",      value: sections.faqs ? form.faqs.length : "—" },
                 ].map(({ label, value }) => (
                   <div key={label} className="sf-meta-row">
                     <span className="sf-meta-key">{label}</span>
@@ -591,6 +797,10 @@ const ServiceForm = () => {
                     <span className="sf-status-dot"></span>
                     {form.isActive ? "Active" : "Inactive"}
                   </span>
+                </div>
+                <div className="sf-meta-row">
+                  <span className="sf-meta-key">Sections</span>
+                  <span className="sf-meta-val">{enabledSectionsCount}/6</span>
                 </div>
               </div>
 
@@ -648,7 +858,7 @@ const ServiceForm = () => {
         .sf-header {
           display: flex; justify-content: space-between;
           align-items: flex-start; flex-wrap: wrap; gap: 16px;
-          margin-bottom: 24px;
+          margin-bottom: 18px;
         }
         .sf-header-left  { display: flex; align-items: flex-start; gap: 14px; }
         .sf-header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -664,15 +874,6 @@ const ServiceForm = () => {
         }
         .sf-back-btn:hover { background: #f5f6fa; color: #1a425c; border-color: #c8d0d0; }
 
-        .sf-eyebrow {
-          display: flex; align-items: center; gap: 7px;
-          font-size: 11px; font-weight: 700; letter-spacing: .1em;
-          text-transform: uppercase; color: #1a598a; margin-bottom: 4px;
-        }
-        .sf-eyebrow-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: #1a598a; box-shadow: 0 0 0 3px rgba(26,89,138,.18);
-        }
         .sf-page-title {
           font-size: 26px; font-weight: 800; color: #0c1e21;
           margin: 0 0 4px; letter-spacing: -.03em; line-height: 1.1;
@@ -685,9 +886,92 @@ const ServiceForm = () => {
         .sf-alert {
           display: flex; align-items: center; gap: 10px;
           padding: 13px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 500;
-          margin-bottom: 20px;
+          margin-bottom: 16px;
           background: #fff1f2; color: #be123c;
           border: 1px solid #fecdd3;
+        }
+
+        /* ─ Sections Bar ─ */
+        .sf-sections-bar {
+          display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+          background: #fff; border: 1px solid #e8ecf0; border-radius: 12px;
+          padding: 12px 18px; margin-bottom: 20px;
+        }
+        .sf-sections-bar__label {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 11px; font-weight: 800; letter-spacing: .08em;
+          text-transform: uppercase; color: #a9b8b8; white-space: nowrap;
+          flex-shrink: 0;
+        }
+        .sf-sections-bar__label svg { color: #1a598a; }
+        .sf-sections-bar__pills {
+          display: flex; gap: 7px; flex-wrap: wrap; flex: 1;
+        }
+        .sf-sections-bar__count {
+          font-size: 11.5px; color: #a9b8b8; font-weight: 700;
+          white-space: nowrap; margin-left: auto;
+        }
+        .sf-section-pill {
+          display: inline-flex; align-items: center; gap: 5px;
+          padding: 5px 11px; border-radius: 20px;
+          font-size: 12px; font-weight: 700; cursor: pointer;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          border: 1.5px solid; transition: all .15s;
+          white-space: nowrap;
+        }
+        .sf-section-pill--on {
+          background: #f0fdf4; color: #15803d; border-color: #bbf7d0;
+        }
+        .sf-section-pill--on:hover { background: #dcfce7; }
+        .sf-section-pill--off {
+          background: #f5f6fa; color: #a9b8b8; border-color: #e8ecf0;
+        }
+        .sf-section-pill--off:hover { background: #e8ecf0; color: #67787a; }
+
+        /* ─ Section Toggle Button (inside card) ─ */
+        .sf-section-toggle {
+          display: inline-flex; align-items: center; gap: 5px;
+          padding: 5px 12px; border-radius: 8px;
+          font-size: 12px; font-weight: 700; cursor: pointer;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          border: 1.5px solid; transition: all .15s;
+          white-space: nowrap;
+        }
+        .sf-section-toggle--on {
+          background: #f0fdf4; color: #15803d; border-color: #bbf7d0;
+        }
+        .sf-section-toggle--on:hover { background: #dcfce7; }
+        .sf-section-toggle--off {
+          background: #fff7ed; color: #c2410c; border-color: #fed7aa;
+        }
+        .sf-section-toggle--off:hover { background: #ffedd5; }
+
+        /* ─ Skipped message ─ */
+        .sf-skipped-msg {
+          display: flex; align-items: center; gap: 9px;
+          padding: 14px 16px; border-radius: 10px; margin-top: 14px;
+          background: #fafbfc; border: 1.5px dashed #e8ecf0;
+          font-size: 13px; color: #a9b8b8; font-weight: 600;
+        }
+
+        /* ─ Disabled card overlay ─ */
+        .sf-card--disabled {
+          opacity: .7;
+        }
+        .sf-card--disabled .sf-card-body,
+        .sf-card--disabled .sf-feature-list,
+        .sf-card--disabled .sf-benefit-list,
+        .sf-card--disabled .sf-faq-list {
+          pointer-events: none;
+        }
+
+        /* ─ Required badge ─ */
+        .sf-required-badge {
+          margin-left: 8px; padding: 2px 8px; border-radius: 20px;
+          font-size: 10px; font-weight: 700;
+          background: #eff6ff; color: #1d4ed8;
+          border: 1px solid #dbeafe;
+          text-transform: uppercase; letter-spacing: .06em;
         }
 
         /* ─ Buttons ─ */
@@ -747,6 +1031,7 @@ const ServiceForm = () => {
           border-radius: 16px;
           padding: 22px 24px;
           box-shadow: 0 1px 4px rgba(0,0,0,.04);
+          transition: opacity .2s;
         }
         .sf-card-label {
           display: flex; align-items: center; gap: 7px;
@@ -759,6 +1044,10 @@ const ServiceForm = () => {
           display: flex; justify-content: space-between;
           align-items: center; margin-bottom: 16px;
         }
+        .sf-card-header-right {
+          display: flex; align-items: center; gap: 8px;
+        }
+        .sf-card-body { margin-top: 0; }
 
         /* ─ Fields ─ */
         .sf-field { margin-bottom: 14px; }
@@ -1010,6 +1299,7 @@ const ServiceForm = () => {
           .sf-header { flex-direction: column; }
           .sf-header-actions { width: 100%; }
           .sf-btn--full { margin-top: 12px; }
+          .sf-sections-bar { flex-direction: column; align-items: flex-start; }
         }
       `}</style>
     </div>
