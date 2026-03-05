@@ -28,6 +28,45 @@ const buildQuery = (reqQuery) => {
   return query;
 };
 
+// ─── Helper: parse & sanitize all FormData fields before DB write ─────────────
+const parseFormFields = (body) => {
+  const parsed = { ...body };
+
+  // Remove Mongoose / MongoDB internal fields — NEVER let these into an update
+  delete parsed._id;
+  delete parsed.__v;
+  delete parsed.createdAt;
+  delete parsed.updatedAt;
+  delete parsed.slug;       // auto-generated from title via pre-save hook
+  delete parsed.comments;   // managed via separate comment routes
+  delete parsed.id;
+
+  // Arrays that FormData sends as JSON strings
+  ['tags', 'blogTopList', 'slider'].forEach(field => {
+    if (typeof parsed[field] === 'string') {
+      try { parsed[field] = JSON.parse(parsed[field]); }
+      catch { parsed[field] = []; }
+    }
+  });
+
+  // Booleans that FormData sends as strings 'true' / 'false'
+  ['isPublished', 'isFeatured', 'isBlogQuote'].forEach(field => {
+    if (typeof parsed[field] === 'string') {
+      parsed[field] = parsed[field] === 'true';
+    }
+  });
+
+  // Numbers that FormData sends as strings
+  ['day'].forEach(field => {
+    if (typeof parsed[field] === 'string' && parsed[field] !== '') {
+      const n = Number(parsed[field]);
+      if (!isNaN(n)) parsed[field] = n;
+    }
+  });
+
+  return parsed;
+};
+
 // ─── PUBLIC ROUTES ────────────────────────────────────────────────────────────
 
 // @route   GET /api/blogs
@@ -146,18 +185,6 @@ exports.addComment = async (req, res, next) => {
 // @access  Admin/Editor
 exports.createBlog = async (req, res, next) => {
   try {
-    // Parse JSON-stringified fields from FormData
-    if (typeof req.body.tags === 'string') {
-      try { req.body.tags = JSON.parse(req.body.tags); } catch { req.body.tags = []; }
-    }
-    if (typeof req.body.blogTopList === 'string') {
-      try { req.body.blogTopList = JSON.parse(req.body.blogTopList); } catch { req.body.blogTopList = []; }
-    }
-    // Parse booleans (FormData sends them as strings)
-    if (typeof req.body.isPublished === 'string') req.body.isPublished = req.body.isPublished === 'true';
-    if (typeof req.body.isFeatured  === 'string') req.body.isFeatured  = req.body.isFeatured  === 'true';
-    if (typeof req.body.isBlogQuote === 'string') req.body.isBlogQuote = req.body.isBlogQuote === 'true';
-
     // Handle Cloudinary uploads - multer-storage-cloudinary stores URL in req.file.path
     if (req.files) {
       Object.keys(req.files).forEach((field) => {
@@ -168,7 +195,8 @@ exports.createBlog = async (req, res, next) => {
       req.body.img = req.file.path; // Cloudinary secure_url
     }
 
-    const blog = await Blog.create(req.body);
+    const data = parseFormFields(req.body);
+    const blog = await Blog.create(data);
     res.status(201).json({ success: true, data: blog });
   } catch (error) {
     next(error);
@@ -184,18 +212,6 @@ exports.updateBlog = async (req, res, next) => {
     if (!existingBlog) {
       return res.status(404).json({ success: false, message: 'Blog not found' });
     }
-
-    // Parse JSON-stringified fields coming from FormData
-    if (typeof req.body.tags === 'string') {
-      try { req.body.tags = JSON.parse(req.body.tags); } catch { req.body.tags = []; }
-    }
-    if (typeof req.body.blogTopList === 'string') {
-      try { req.body.blogTopList = JSON.parse(req.body.blogTopList); } catch { req.body.blogTopList = []; }
-    }
-    // Parse booleans (FormData sends them as strings)
-    if (typeof req.body.isPublished === 'string') req.body.isPublished = req.body.isPublished === 'true';
-    if (typeof req.body.isFeatured  === 'string') req.body.isFeatured  = req.body.isFeatured  === 'true';
-    if (typeof req.body.isBlogQuote === 'string') req.body.isBlogQuote = req.body.isBlogQuote === 'true';
 
     // Track old image URLs for cleanup
     const oldImages = {};
@@ -218,10 +234,20 @@ exports.updateBlog = async (req, res, next) => {
       req.body.img = req.file.path;
     }
 
-    // Use $set to prevent Mongoose from treating the payload as a raw object replacement
+    // Parse and sanitize — strips internal fields, parses arrays/booleans
+    const data = parseFormFields(req.body);
+
+    // DEBUG LOG — check your server terminal after hitting Update
+    console.log('── updateBlog DEBUG ──────────────────');
+    console.log('tags :', typeof data.tags, data.tags);
+    console.log('isPublished:', data.isPublished, '| isFeatured:', data.isFeatured);
+    console.log('all keys:', Object.keys(data));
+    console.log('─────────────────────────────────────');
+
+    // $set prevents Mongoose treating payload as raw document replacement
     const blog = await Blog.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: data },
       { new: true, runValidators: true }
     );
 
@@ -241,6 +267,12 @@ exports.updateBlog = async (req, res, next) => {
 
     res.json({ success: true, data: blog });
   } catch (error) {
+    // Full error in server terminal — tells us EXACTLY which field is wrong
+    console.error('── updateBlog ERROR ──────────────────');
+    console.error('message :', error.message);
+    console.error('req.body keys:', Object.keys(req.body));
+    console.error('stack   :', error.stack);
+    console.error('─────────────────────────────────────');
     next(error);
   }
 };
