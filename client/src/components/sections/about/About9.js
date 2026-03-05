@@ -51,9 +51,9 @@ const About9 = () => {
 										<p className="desc wow fadeInUp" data-wow-delay=".5s">
 											We specialize in PhD admissions support, supervisor identification, research assistance, and end-to-end mentoring, ensuring students receive expert guidance from enrollment to successful completion. Our structured approach combines academic expertise, personalized counselling, and ethical practices to deliver measurable outcomes.
 										</p>
-										<p className="desc wow fadeInUp" data-wow-delay=".6s">
+										{/* <p className="desc wow fadeInUp" data-wow-delay=".6s">
 											With experience supporting students across multiple countries, we have built a reputation for reliability, transparency, and results. Our team works closely with each candidate to understand their academic background, research interests, and career aspirations—offering tailored solutions that align with global education standards.
-										</p>
+										</p> */}
 									</div>
 								</div>
 							</div>

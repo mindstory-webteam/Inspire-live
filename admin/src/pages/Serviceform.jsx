@@ -29,7 +29,7 @@ const toSlug = (str) =>
 const ServiceForm = () => {
   const { api } = useAuth();
   const navigate = useNavigate();
-  const { id } = useParams(); // present when editing
+  const { id } = useParams();
   const isEdit = Boolean(id);
 
   // ─── State ────────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ const ServiceForm = () => {
   const [error, setError] = useState("");
   const [slugManual, setSlugManual] = useState(false);
 
-  const heroRef = useRef();
+  const heroRef    = useRef();
   const detail1Ref = useRef();
   const detail2Ref = useRef();
 
@@ -77,11 +77,11 @@ const ServiceForm = () => {
           isActive: s.isActive ?? true,
         });
         setPreviews({
-          heroImage: s.heroImage || "",
+          heroImage:    s.heroImage    || "",
           detailImage1: s.detailImage1 || "",
           detailImage2: s.detailImage2 || "",
         });
-        setSlugManual(true); // don't auto-overwrite slug on edit
+        setSlugManual(true);
       } catch (err) {
         setError("Failed to load service data.");
       } finally {
@@ -108,10 +108,7 @@ const ServiceForm = () => {
   const handleImage = (field, file) => {
     if (!file) return;
     setImages((prev) => ({ ...prev, [field]: file }));
-    setPreviews((prev) => ({
-      ...prev,
-      [field]: URL.createObjectURL(file),
-    }));
+    setPreviews((prev) => ({ ...prev, [field]: URL.createObjectURL(file) }));
   };
 
   const clearImage = (field, inputRef) => {
@@ -121,80 +118,53 @@ const ServiceForm = () => {
   };
 
   // ─── Dynamic list helpers ─────────────────────────────────────────────────
-  const addFeature = () => set("keyFeatures", [...form.keyFeatures, ""]);
-  const removeFeature = (i) =>
-    set("keyFeatures", form.keyFeatures.filter((_, idx) => idx !== i));
+  const addFeature    = () => set("keyFeatures", [...form.keyFeatures, ""]);
+  const removeFeature = (i) => set("keyFeatures", form.keyFeatures.filter((_, idx) => idx !== i));
   const updateFeature = (i, val) => {
-    const arr = [...form.keyFeatures];
-    arr[i] = val;
-    set("keyFeatures", arr);
+    const arr = [...form.keyFeatures]; arr[i] = val; set("keyFeatures", arr);
   };
 
   const addBenefit = () =>
-    set("benefits", [
-      ...form.benefits,
-      {
-        number: String(form.benefits.length + 1).padStart(2, "0"),
-        title: "",
-        description: "",
-      },
-    ]);
-  const removeBenefit = (i) =>
-    set("benefits", form.benefits.filter((_, idx) => idx !== i));
+    set("benefits", [...form.benefits, {
+      number: String(form.benefits.length + 1).padStart(2, "0"), title: "", description: "",
+    }]);
+  const removeBenefit = (i) => set("benefits", form.benefits.filter((_, idx) => idx !== i));
   const updateBenefit = (i, field, val) => {
-    const arr = [...form.benefits];
-    arr[i] = { ...arr[i], [field]: val };
-    set("benefits", arr);
+    const arr = [...form.benefits]; arr[i] = { ...arr[i], [field]: val }; set("benefits", arr);
   };
 
-  const addFaq = () => set("faqs", [...form.faqs, { question: "", answer: "" }]);
-  const removeFaq = (i) =>
-    set("faqs", form.faqs.filter((_, idx) => idx !== i));
+  const addFaq    = () => set("faqs", [...form.faqs, { question: "", answer: "" }]);
+  const removeFaq = (i) => set("faqs", form.faqs.filter((_, idx) => idx !== i));
   const updateFaq = (i, field, val) => {
-    const arr = [...form.faqs];
-    arr[i] = { ...arr[i], [field]: val };
-    set("faqs", arr);
+    const arr = [...form.faqs]; arr[i] = { ...arr[i], [field]: val }; set("faqs", arr);
   };
 
   // ─── Submit ───────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     if (!form.title.trim()) { setError("Title is required."); return; }
     if (!form.slug.trim())  { setError("Slug is required."); return; }
-
     setLoading(true);
     try {
       const fd = new FormData();
-
-      // Scalar fields
-      fd.append("title",           form.title);
-      fd.append("slug",            form.slug);
-      fd.append("subtitle",        form.subtitle);
-      fd.append("description1",    form.description1);
-      fd.append("description2",    form.description2);
-      fd.append("whyChooseHeading",form.whyChooseHeading);
-      fd.append("whyChooseText",   form.whyChooseText);
-      fd.append("order",           form.order);
-      fd.append("isActive",        form.isActive);
-
-      // Array / object fields as JSON
+      fd.append("title",            form.title);
+      fd.append("slug",             form.slug);
+      fd.append("subtitle",         form.subtitle);
+      fd.append("description1",     form.description1);
+      fd.append("description2",     form.description2);
+      fd.append("whyChooseHeading", form.whyChooseHeading);
+      fd.append("whyChooseText",    form.whyChooseText);
+      fd.append("order",            form.order);
+      fd.append("isActive",         form.isActive);
       fd.append("keyFeatures", JSON.stringify(form.keyFeatures.filter(Boolean)));
       fd.append("benefits",    JSON.stringify(form.benefits));
       fd.append("faqs",        JSON.stringify(form.faqs));
-
-      // Images (only append if a new file was selected)
       if (images.heroImage)    fd.append("heroImage",    images.heroImage);
       if (images.detailImage1) fd.append("detailImage1", images.detailImage1);
       if (images.detailImage2) fd.append("detailImage2", images.detailImage2);
-
-      if (isEdit) {
-        await api.put("/services/" + id, fd);
-      } else {
-        await api.post("/services", fd);
-      }
-
+      if (isEdit) { await api.put("/services/" + id, fd); }
+      else        { await api.post("/services", fd); }
       navigate("/services");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to save service. Please try again.");
@@ -203,62 +173,64 @@ const ServiceForm = () => {
     }
   };
 
-  // ─── Loading state while fetching edit data ───────────────────────────────
+  // ─── Loading state ────────────────────────────────────────────────────────
   if (fetching) {
     return (
       <div className="sf-loading">
-        <div className="sf-spinner"></div>
+        <div className="sf-spinner-lg"></div>
         <p>Loading service data…</p>
       </div>
     );
   }
 
+  const imageFields = [
+    { field: "heroImage",    label: "Hero / Banner Image", ref: heroRef,    hint: "Top of page · Recommended 1170×500px" },
+    { field: "detailImage1", label: "Detail Image 1",      ref: detail1Ref, hint: "Left image in detail section · 570×400px" },
+    { field: "detailImage2", label: "Detail Image 2",      ref: detail2Ref, hint: "Right image in detail section · 570×400px" },
+  ];
+
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="sf-wrap">
-      {/* Header */}
+    <div className="sf-root">
+
+      {/* ── Header ── */}
       <div className="sf-header">
         <div className="sf-header-left">
-          <button className="sf-back-btn" onClick={() => navigate("/services")}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <button className="sf-back-btn" onClick={() => navigate("/services")} type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Back
           </button>
           <div>
-            <h1 className="sf-title">{isEdit ? "Edit Service" : "Add New Service"}</h1>
-            <p className="sf-subtitle">
+            {/* <div className="sf-eyebrow">
+              <span className="sf-eyebrow-dot"></span>
+              {isEdit ? "Edit Service" : "New Service"}
+            </div> */}
+            <h1 className="sf-page-title">{isEdit ? "Update Service" : "Add New Service"}</h1>
+            <p className="sf-page-sub">
               {isEdit ? "Update service details and content" : "Fill in the details for the new service"}
             </p>
           </div>
         </div>
         <div className="sf-header-actions">
-          <button type="button" className="btn btn-secondary" onClick={() => navigate("/services")}>
+          <button type="button" className="sf-btn sf-btn--ghost" onClick={() => navigate("/services")}>
             Cancel
           </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <><span className="spinner-sm"></span> Saving…</>
-            ) : isEdit ? (
-              "Update Service"
-            ) : (
-              "Create Service"
-            )}
+          <button type="button" className="sf-btn sf-btn--primary" onClick={handleSubmit} disabled={loading}>
+            {loading
+              ? <><span className="sf-spin"></span>Saving…</>
+              : isEdit ? "Update Service" : "Create Service"}
           </button>
         </div>
       </div>
 
-      {/* Error */}
+      {/* ── Error ── */}
       {error && (
         <div className="sf-alert">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-            <path d="M12 8v4m0 4h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+            <path d="M12 8v4m0 4h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
           </svg>
           {error}
         </div>
@@ -267,15 +239,21 @@ const ServiceForm = () => {
       <form onSubmit={handleSubmit} className="sf-form">
         <div className="sf-grid">
 
-          {/* ── LEFT COLUMN ─────────────────────────────────────────────── */}
+          {/* ════ LEFT COLUMN ════ */}
           <div className="sf-col-main">
 
             {/* Basic Info */}
             <div className="sf-card">
-              <h2 className="sf-card-title">Basic Information</h2>
+              <div className="sf-card-label">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M8 12h8M8 8h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Basic Information
+              </div>
 
               <div className="sf-field">
-                <label className="sf-label">Title <span className="sf-required">*</span></label>
+                <label className="sf-label">Title <span className="sf-req">*</span></label>
                 <input
                   className="sf-input"
                   value={form.title}
@@ -286,13 +264,13 @@ const ServiceForm = () => {
 
               <div className="sf-field">
                 <label className="sf-label">
-                  Slug <span className="sf-required">*</span>
-                  <span className="sf-label-hint">Used in URL: /services/your-slug</span>
+                  Slug <span className="sf-req">*</span>
+                  <span className="sf-hint-inline">— used in URL</span>
                 </label>
-                <div className="sf-slug-wrap">
+                <div className="sf-slug-row">
                   <span className="sf-slug-prefix">/services/</span>
                   <input
-                    className="sf-input sf-slug-input"
+                    className="sf-input sf-slug-inp"
                     value={form.slug}
                     onChange={(e) => handleSlugChange(e.target.value)}
                     placeholder="your-service-slug"
@@ -303,7 +281,7 @@ const ServiceForm = () => {
               <div className="sf-field">
                 <label className="sf-label">
                   Subtitle
-                  <span className="sf-label-hint">Shown as the main heading on the detail page</span>
+                  <span className="sf-hint-inline">— main heading on detail page</span>
                 </label>
                 <input
                   className="sf-input"
@@ -313,30 +291,26 @@ const ServiceForm = () => {
                 />
               </div>
 
-              <div className="sf-row-2">
+              <div className="sf-row2">
                 <div className="sf-field">
                   <label className="sf-label">Display Order</label>
                   <input
                     className="sf-input"
-                    type="number"
-                    min="0"
+                    type="number" min="0"
                     value={form.order}
                     onChange={(e) => set("order", parseInt(e.target.value) || 0)}
                   />
                 </div>
                 <div className="sf-field">
                   <label className="sf-label">Status</label>
-                  <div className="sf-toggle-wrap">
+                  <div className="sf-toggle-row">
                     <label className="sf-toggle">
-                      <input
-                        type="checkbox"
-                        checked={form.isActive}
-                        onChange={(e) => set("isActive", e.target.checked)}
-                      />
+                      <input type="checkbox" checked={form.isActive}
+                        onChange={(e) => set("isActive", e.target.checked)} />
                       <span className="sf-toggle-track"></span>
                     </label>
-                    <span className="sf-toggle-label">
-                      {form.isActive ? "Active (visible on site)" : "Inactive (hidden)"}
+                    <span className={"sf-toggle-txt " + (form.isActive ? "sf-toggle-txt--on" : "sf-toggle-txt--off")}>
+                      {form.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
                 </div>
@@ -345,55 +319,55 @@ const ServiceForm = () => {
 
             {/* Description */}
             <div className="sf-card">
-              <h2 className="sf-card-title">Description</h2>
+              <div className="sf-card-label">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Description
+              </div>
               <div className="sf-field">
                 <label className="sf-label">Paragraph 1</label>
-                <textarea
-                  className="sf-textarea"
-                  rows={4}
-                  value={form.description1}
+                <textarea className="sf-textarea" rows={4} value={form.description1}
                   onChange={(e) => set("description1", e.target.value)}
-                  placeholder="Main introductory paragraph about this service…"
-                />
+                  placeholder="Main introductory paragraph about this service…"/>
               </div>
               <div className="sf-field">
                 <label className="sf-label">Paragraph 2</label>
-                <textarea
-                  className="sf-textarea"
-                  rows={4}
-                  value={form.description2}
+                <textarea className="sf-textarea" rows={4} value={form.description2}
                   onChange={(e) => set("description2", e.target.value)}
-                  placeholder="Second paragraph with additional details…"
-                />
+                  placeholder="Second paragraph with additional details…"/>
               </div>
             </div>
 
             {/* Key Features */}
             <div className="sf-card">
               <div className="sf-card-header">
-                <h2 className="sf-card-title">Key Features</h2>
+                <div className="sf-card-label" style={{marginBottom:0}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Key Features
+                </div>
                 <button type="button" className="sf-add-btn" onClick={addFeature}>
-                  + Add Feature
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
+                  Add Feature
                 </button>
               </div>
-              <div className="sf-list">
+              <div className="sf-feature-list">
                 {form.keyFeatures.map((feat, i) => (
-                  <div key={i} className="sf-list-row">
-                    <div className="sf-list-num">{i + 1}</div>
-                    <input
-                      className="sf-input"
-                      value={feat}
+                  <div key={i} className="sf-feature-row">
+                    <span className="sf-list-num">{i + 1}</span>
+                    <input className="sf-input" value={feat}
                       onChange={(e) => updateFeature(i, e.target.value)}
-                      placeholder={"e.g. Personalized One-on-One Sessions"}
-                    />
-                    <button
-                      type="button"
-                      className="sf-remove-btn"
-                      onClick={() => removeFeature(i)}
-                      disabled={form.keyFeatures.length === 1}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                      placeholder="e.g. Personalized One-on-One Sessions"/>
+                    <button type="button" className="sf-rm-btn" onClick={() => removeFeature(i)}
+                      disabled={form.keyFeatures.length === 1}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
                       </svg>
                     </button>
                   </div>
@@ -403,84 +377,75 @@ const ServiceForm = () => {
 
             {/* Why Choose */}
             <div className="sf-card">
-              <h2 className="sf-card-title">Why Choose Section</h2>
+              <div className="sf-card-label">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Why Choose Section
+              </div>
               <div className="sf-field">
                 <label className="sf-label">Section Heading</label>
-                <input
-                  className="sf-input"
-                  value={form.whyChooseHeading}
+                <input className="sf-input" value={form.whyChooseHeading}
                   onChange={(e) => set("whyChooseHeading", e.target.value)}
-                  placeholder="e.g. Why Choose Our Continuous Mentorship Program?"
-                />
+                  placeholder="e.g. Why Choose Our Continuous Mentorship Program?"/>
               </div>
               <div className="sf-field">
                 <label className="sf-label">Section Text</label>
-                <textarea
-                  className="sf-textarea"
-                  rows={4}
-                  value={form.whyChooseText}
+                <textarea className="sf-textarea" rows={4} value={form.whyChooseText}
                   onChange={(e) => set("whyChooseText", e.target.value)}
-                  placeholder="Compelling paragraph explaining why students should choose this service…"
-                />
+                  placeholder="Compelling paragraph explaining why students should choose this service…"/>
               </div>
             </div>
 
             {/* Benefits */}
             <div className="sf-card">
               <div className="sf-card-header">
-                <h2 className="sf-card-title">Benefits (01, 02, 03…)</h2>
+                <div className="sf-card-label" style={{marginBottom:0}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M8 12l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Benefits
+                </div>
                 <button type="button" className="sf-add-btn" onClick={addBenefit}>
-                  + Add Benefit
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
+                  Add Benefit
                 </button>
               </div>
               <div className="sf-benefit-list">
                 {form.benefits.map((b, i) => (
-                  <div key={i} className="sf-benefit-item">
-                    <div className="sf-benefit-header">
-                      <div className="sf-benefit-num">{b.number}</div>
-                      <button
-                        type="button"
-                        className="sf-remove-btn"
-                        onClick={() => removeBenefit(i)}
-                        disabled={form.benefits.length === 1}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  <div key={i} className="sf-benefit-card">
+                    <div className="sf-benefit-top">
+                      <div className="sf-benefit-badge">{b.number}</div>
+                      <button type="button" className="sf-rm-btn" onClick={() => removeBenefit(i)}
+                        disabled={form.benefits.length === 1}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
                         </svg>
                       </button>
                     </div>
-                    <div className="sf-row-2">
+                    <div className="sf-row2">
                       <div className="sf-field">
                         <label className="sf-label">Number Label</label>
-                        <input
-                          className="sf-input"
-                          value={b.number}
-                          onChange={(e) => updateBenefit(i, "number", e.target.value)}
-                          placeholder="01"
-                        />
+                        <input className="sf-input" value={b.number}
+                          onChange={(e) => updateBenefit(i, "number", e.target.value)} placeholder="01"/>
                       </div>
                       <div className="sf-field">
                         <label className="sf-label">
-                          Title
-                          <span className="sf-label-hint">Use &lt;br/&gt; for line break</span>
+                          Title <span className="sf-hint-inline">use &lt;br/&gt; for break</span>
                         </label>
-                        <input
-                          className="sf-input"
-                          value={b.title}
+                        <input className="sf-input" value={b.title}
                           onChange={(e) => updateBenefit(i, "title", e.target.value)}
-                          placeholder="e.g. End-to-End&lt;br/&gt;Support"
-                        />
+                          placeholder="End-to-End Support"/>
                       </div>
                     </div>
                     <div className="sf-field">
                       <label className="sf-label">Description</label>
-                      <textarea
-                        className="sf-textarea"
-                        rows={3}
-                        value={b.description}
+                      <textarea className="sf-textarea" rows={3} value={b.description}
                         onChange={(e) => updateBenefit(i, "description", e.target.value)}
-                        placeholder="Describe this benefit in 1-2 sentences…"
-                      />
+                        placeholder="Describe this benefit in 1–2 sentences…"/>
                     </div>
                   </div>
                 ))}
@@ -490,44 +455,41 @@ const ServiceForm = () => {
             {/* FAQs */}
             <div className="sf-card">
               <div className="sf-card-header">
-                <h2 className="sf-card-title">Frequently Asked Questions</h2>
+                <div className="sf-card-label" style={{marginBottom:0}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 9a3 3 0 116 0c0 2-3 3-3 3M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  FAQs
+                </div>
                 <button type="button" className="sf-add-btn" onClick={addFaq}>
-                  + Add FAQ
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
+                  Add FAQ
                 </button>
               </div>
               <div className="sf-faq-list">
                 {form.faqs.map((faq, i) => (
-                  <div key={i} className="sf-faq-item">
-                    <div className="sf-faq-num">Q{i + 1}</div>
+                  <div key={i} className="sf-faq-card">
+                    <div className="sf-faq-index">Q{i + 1}</div>
                     <div className="sf-faq-body">
                       <div className="sf-field">
                         <label className="sf-label">Question</label>
-                        <input
-                          className="sf-input"
-                          value={faq.question}
+                        <input className="sf-input" value={faq.question}
                           onChange={(e) => updateFaq(i, "question", e.target.value)}
-                          placeholder="e.g. What does this service include?"
-                        />
+                          placeholder="e.g. What does this service include?"/>
                       </div>
                       <div className="sf-field">
                         <label className="sf-label">Answer</label>
-                        <textarea
-                          className="sf-textarea"
-                          rows={3}
-                          value={faq.answer}
+                        <textarea className="sf-textarea" rows={3} value={faq.answer}
                           onChange={(e) => updateFaq(i, "answer", e.target.value)}
-                          placeholder="Provide a clear, helpful answer…"
-                        />
+                          placeholder="Provide a clear, helpful answer…"/>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      className="sf-remove-btn sf-remove-faq"
-                      onClick={() => removeFaq(i)}
-                      disabled={form.faqs.length === 1}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                    <button type="button" className="sf-rm-btn sf-rm-abs" onClick={() => removeFaq(i)}
+                      disabled={form.faqs.length === 1}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
                       </svg>
                     </button>
                   </div>
@@ -537,271 +499,335 @@ const ServiceForm = () => {
 
           </div>
 
-          {/* ── RIGHT COLUMN ─────────────────────────────────────────────── */}
+          {/* ════ RIGHT COLUMN ════ */}
           <div className="sf-col-side">
 
             {/* Images */}
             <div className="sf-card">
-              <h2 className="sf-card-title">Images</h2>
+              <div className="sf-card-label">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M3 15l5-5 4 4 3-3 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                </svg>
+                Images
+              </div>
 
-              {[
-                { field: "heroImage",    label: "Hero / Banner Image", ref: heroRef,    hint: "Displayed at top of page. Recommended: 1170×500px" },
-                { field: "detailImage1", label: "Detail Image 1",      ref: detail1Ref, hint: "Left image in the detail section. 570×400px" },
-                { field: "detailImage2", label: "Detail Image 2",      ref: detail2Ref, hint: "Right image in the detail section. 570×400px" },
-              ].map(({ field, label, ref, hint }) => (
-                <div key={field} className="sf-image-block">
+              {imageFields.map(({ field, label, ref, hint }) => (
+                <div key={field} className="sf-img-block">
                   <label className="sf-label">{label}</label>
-                  <p className="sf-image-hint">{hint}</p>
-
+                  <p className="sf-img-hint">{hint}</p>
                   {previews[field] ? (
                     <div className="sf-preview-wrap">
-                      <img src={previews[field]} alt={label} className="sf-preview-img" />
-                      <div className="sf-preview-actions">
-                        <button
-                          type="button"
-                          className="sf-preview-change"
-                          onClick={() => ref.current?.click()}
-                        >
+                      <img src={previews[field]} alt={label} className="sf-preview-img"/>
+                      <div className="sf-preview-overlay">
+                        <button type="button" className="sf-prev-btn sf-prev-btn--change"
+                          onClick={() => ref.current?.click()}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
                           Change
                         </button>
-                        <button
-                          type="button"
-                          className="sf-preview-remove"
-                          onClick={() => clearImage(field, ref)}
-                        >
+                        <button type="button" className="sf-prev-btn sf-prev-btn--remove"
+                          onClick={() => clearImage(field, ref)}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
                           Remove
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div
-                      className="sf-dropzone"
-                      onClick={() => ref.current?.click()}
-                    >
-                      <div className="sf-dropzone-icon">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                          <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
-                          <path d="M3 15l5-5 4 4 3-3 5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                          <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                    <div className="sf-drop" onClick={() => ref.current?.click()}>
+                      <div className="sf-drop-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                          <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/>
+                          <path d="M3 15l5-5 4 4 3-3 5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
                         </svg>
                       </div>
-                      <p className="sf-dropzone-text">Click to upload</p>
-                      <p className="sf-dropzone-sub">JPG, PNG, WebP · Max 10MB</p>
+                      <p className="sf-drop-text">Click to upload</p>
+                      <p className="sf-drop-sub">JPG, PNG, WebP · Max 10MB</p>
                     </div>
                   )}
-
-                  <input
-                    ref={ref}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
+                  <input ref={ref} type="file" accept="image/jpeg,image/png,image/webp,image/gif"
                     style={{ display: "none" }}
-                    onChange={(e) => handleImage(field, e.target.files[0])}
-                  />
+                    onChange={(e) => handleImage(field, e.target.files[0])}/>
                 </div>
               ))}
             </div>
 
-            {/* Quick preview */}
-            <div className="sf-card sf-preview-card">
-              <h2 className="sf-card-title">URL Preview</h2>
-              <div className="sf-url-preview">
+            {/* Summary Card */}
+            <div className="sf-card sf-summary-card">
+              <div className="sf-card-label">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M12 8v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Summary
+              </div>
+
+              <div className="sf-url-box">
                 <span className="sf-url-base">yoursite.com/services/</span>
                 <span className="sf-url-slug">{form.slug || "your-slug"}</span>
               </div>
-              <div className="sf-meta-preview">
-                <div className="sf-meta-row">
-                  <span className="sf-meta-key">Title</span>
-                  <span className="sf-meta-val">{form.title || "—"}</span>
-                </div>
-                <div className="sf-meta-row">
-                  <span className="sf-meta-key">Features</span>
-                  <span className="sf-meta-val">{form.keyFeatures.filter(Boolean).length}</span>
-                </div>
-                <div className="sf-meta-row">
-                  <span className="sf-meta-key">Benefits</span>
-                  <span className="sf-meta-val">{form.benefits.length}</span>
-                </div>
-                <div className="sf-meta-row">
-                  <span className="sf-meta-key">FAQs</span>
-                  <span className="sf-meta-val">{form.faqs.length}</span>
-                </div>
+
+              <div className="sf-meta-list">
+                {[
+                  { label: "Title",     value: form.title || "—" },
+                  { label: "Features",  value: form.keyFeatures.filter(Boolean).length },
+                  { label: "Benefits",  value: form.benefits.length },
+                  { label: "FAQs",      value: form.faqs.length },
+                ].map(({ label, value }) => (
+                  <div key={label} className="sf-meta-row">
+                    <span className="sf-meta-key">{label}</span>
+                    <span className="sf-meta-val">{value}</span>
+                  </div>
+                ))}
                 <div className="sf-meta-row">
                   <span className="sf-meta-key">Status</span>
-                  <span className={"sf-meta-status " + (form.isActive ? "active" : "inactive")}>
+                  <span className={"sf-status-pill " + (form.isActive ? "sf-status-pill--on" : "sf-status-pill--off")}>
+                    <span className="sf-status-dot"></span>
                     {form.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
               </div>
+
+              <button type="submit" className="sf-btn sf-btn--primary sf-btn--full" disabled={loading}>
+                {loading
+                  ? <><span className="sf-spin"></span>Saving…</>
+                  : isEdit ? "Update Service" : "Create Service"}
+              </button>
             </div>
 
           </div>
         </div>
 
-        {/* Bottom Save */}
+        {/* ── Bottom bar ── */}
         <div className="sf-footer">
-          <button type="button" className="btn btn-secondary" onClick={() => navigate("/services")}>
+          <button type="button" className="sf-btn sf-btn--ghost" onClick={() => navigate("/services")}>
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? (
-              <><span className="spinner-sm"></span> Saving…</>
-            ) : isEdit ? (
-              "Update Service"
-            ) : (
-              "Create Service"
-            )}
+          <button type="submit" className="sf-btn sf-btn--primary" disabled={loading}>
+            {loading
+              ? <><span className="sf-spin"></span>Saving…</>
+              : isEdit ? "Update Service" : "Create Service"}
           </button>
         </div>
       </form>
 
-      {/* ── Styles ──────────────────────────────────────────────────────── */}
+      {/* ══════════════════════ STYLES ══════════════════════ */}
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        /* ─ Root ─ */
+        .sf-root {
+          padding: 32px 28px;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          background: #f5f6fa;
+          min-height: 100vh;
+          color: #0c1e21;
+        }
+
+        /* ─ Loading ─ */
         .sf-loading {
           display: flex; flex-direction: column; align-items: center;
           justify-content: center; min-height: 320px; gap: 16px;
-          color: #6b7280; font-size: 14px;
+          color: #67787a; font-size: 14px;
         }
-        .sf-spinner {
-          width: 36px; height: 36px;
-          border: 3px solid #e5e7eb;
-          border-top-color: #1d4ed8;
+        .sf-spinner-lg {
+          width: 38px; height: 38px;
+          border: 3px solid #e8ecf0;
+          border-top-color: #1a598a;
           border-radius: 50%;
-          animation: spin .7s linear infinite;
+          animation: sfSpin .7s linear infinite;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Header */
+        /* ─ Header ─ */
         .sf-header {
           display: flex; justify-content: space-between;
           align-items: flex-start; flex-wrap: wrap; gap: 16px;
           margin-bottom: 24px;
         }
         .sf-header-left  { display: flex; align-items: flex-start; gap: 14px; }
-        .sf-header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .sf-header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
         .sf-back-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          padding: 8px 14px; border-radius: 7px;
-          border: 1px solid #e5e7eb; background: #fff;
-          color: #6b7280; font-size: 13px; font-weight: 600;
+          padding: 8px 14px; border-radius: 9px;
+          border: 1.5px solid #e8ecf0; background: #fff;
+          color: #67787a; font-size: 13px; font-weight: 600;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
           cursor: pointer; transition: all .15s; white-space: nowrap;
-          margin-top: 2px;
+          margin-top: 4px;
         }
-        .sf-back-btn:hover { background: #f3f4f6; color: #374151; }
-        .sf-title    { font-size: 22px; font-weight: 800; color: #111827; margin: 0; }
-        .sf-subtitle { font-size: 13px; color: #9ca3af; margin: 4px 0 0; }
+        .sf-back-btn:hover { background: #f5f6fa; color: #1a425c; border-color: #c8d0d0; }
 
-        /* Alert */
+        .sf-eyebrow {
+          display: flex; align-items: center; gap: 7px;
+          font-size: 11px; font-weight: 700; letter-spacing: .1em;
+          text-transform: uppercase; color: #1a598a; margin-bottom: 4px;
+        }
+        .sf-eyebrow-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #1a598a; box-shadow: 0 0 0 3px rgba(26,89,138,.18);
+        }
+        .sf-page-title {
+          font-size: 26px; font-weight: 800; color: #0c1e21;
+          margin: 0 0 4px; letter-spacing: -.03em; line-height: 1.1;
+        }
+        .sf-page-sub {
+          font-size: 13.5px; color: #67787a; margin: 0;
+        }
+
+        /* ─ Alert ─ */
         .sf-alert {
           display: flex; align-items: center; gap: 10px;
-          padding: 13px 16px; border-radius: 8px; font-size: 14px;
+          padding: 13px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 500;
           margin-bottom: 20px;
-          background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+          background: #fff1f2; color: #be123c;
+          border: 1px solid #fecdd3;
         }
 
-        /* Buttons */
-        .btn {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 10px 18px; border-radius: 8px;
-          font-size: 14px; font-weight: 600; border: none;
-          cursor: pointer; transition: all .18s; white-space: nowrap;
+        /* ─ Buttons ─ */
+        .sf-btn {
+          display: inline-flex; align-items: center; gap: 7px;
+          padding: 10px 20px; border-radius: 10px;
+          font-size: 13.5px; font-weight: 700;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          border: none; cursor: pointer;
+          transition: all .18s cubic-bezier(.4,0,.2,1);
+          white-space: nowrap; letter-spacing: -.01em;
         }
-        .btn:disabled { opacity: .6; cursor: not-allowed; }
-        .btn-primary   { background: #1d4ed8; color: #fff; }
-        .btn-primary:hover:not(:disabled)   { background: #1e40af; }
-        .btn-secondary { background: #f3f4f6; color: #374151; }
-        .btn-secondary:hover:not(:disabled) { background: #e5e7eb; }
-        .spinner-sm {
-          width: 14px; height: 14px;
-          border: 2px solid rgba(255,255,255,.4);
+        .sf-btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+        .sf-btn--primary {
+          background: linear-gradient(135deg, #1a598a, #015599);
+          color: #fff; box-shadow: 0 2px 12px rgba(26,89,138,.32);
+        }
+        .sf-btn--primary:hover:not(:disabled) {
+          transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,89,138,.38);
+        }
+        .sf-btn--ghost {
+          background: #f0f2f5; color: #1a425c; border: 1.5px solid #e2e8f0;
+        }
+        .sf-btn--ghost:hover:not(:disabled) { background: #e8ecf0; transform: translateY(-1px); }
+        .sf-btn--full { width: 100%; justify-content: center; margin-top: 16px; }
+
+        .sf-spin {
+          width: 13px; height: 13px;
+          border: 2px solid rgba(255,255,255,.3);
           border-top-color: #fff; border-radius: 50%;
-          animation: spin .7s linear infinite; display: inline-block;
+          animation: sfSpin .65s linear infinite; display: inline-block;
         }
+        @keyframes sfSpin { to { transform: rotate(360deg); } }
 
-        /* Grid layout */
-        .sf-form  { display: flex; flex-direction: column; gap: 0; }
-        .sf-grid  { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
-        .sf-col-main { display: flex; flex-direction: column; gap: 20px; }
-        .sf-col-side { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 20px; }
-        @media (max-width: 900px) {
+        /* ─ Form / Grid ─ */
+        .sf-form { display: flex; flex-direction: column; }
+        .sf-grid {
+          display: grid;
+          grid-template-columns: 1fr 320px;
+          gap: 20px;
+          align-items: start;
+        }
+        .sf-col-main { display: flex; flex-direction: column; gap: 18px; }
+        .sf-col-side {
+          display: flex; flex-direction: column; gap: 18px;
+          position: sticky; top: 20px;
+        }
+        @media (max-width: 960px) {
           .sf-grid { grid-template-columns: 1fr; }
           .sf-col-side { position: static; }
         }
 
-        /* Card */
+        /* ─ Cards ─ */
         .sf-card {
-          background: #fff; border-radius: 12px;
-          border: 1px solid #e5e7eb; padding: 22px;
+          background: #fff;
+          border: 1px solid #e8ecf0;
+          border-radius: 16px;
+          padding: 22px 24px;
+          box-shadow: 0 1px 4px rgba(0,0,0,.04);
         }
+        .sf-card-label {
+          display: flex; align-items: center; gap: 7px;
+          font-size: 10.5px; font-weight: 800; letter-spacing: .09em;
+          text-transform: uppercase; color: #a9b8b8;
+          margin-bottom: 18px;
+        }
+        .sf-card-label svg { color: #1a598a; flex-shrink: 0; }
         .sf-card-header {
           display: flex; justify-content: space-between;
-          align-items: center; margin-bottom: 18px;
+          align-items: center; margin-bottom: 16px;
         }
-        .sf-card-title {
-          font-size: 15px; font-weight: 700; color: #111827;
-          margin: 0 0 18px;
-        }
-        .sf-card-header .sf-card-title { margin: 0; }
 
-        /* Fields */
-        .sf-field   { margin-bottom: 16px; }
+        /* ─ Fields ─ */
+        .sf-field { margin-bottom: 14px; }
         .sf-field:last-child { margin-bottom: 0; }
         .sf-label {
           display: block; margin-bottom: 6px;
-          font-size: 13px; font-weight: 600; color: #374151;
+          font-size: 12.5px; font-weight: 700; color: #1a425c;
+          letter-spacing: -.01em;
         }
-        .sf-required { color: #ef4444; margin-left: 2px; }
-        .sf-label-hint {
-          font-size: 11px; color: #9ca3af; font-weight: 400;
-          margin-left: 8px;
+        .sf-req { color: #e11d48; margin-left: 2px; }
+        .sf-hint-inline {
+          font-size: 11px; color: #a9b8b8; font-weight: 400; margin-left: 6px;
         }
+
         .sf-input, .sf-textarea {
-          width: 100%; padding: 10px 12px;
-          border: 1px solid #e2e8f0; border-radius: 7px;
-          font-size: 14px; color: #111827;
+          width: 100%; padding: 10px 13px;
+          border: 1.5px solid #e8ecf0; border-radius: 10px;
+          font-size: 13.5px; color: #0c1e21;
           background: #fff; outline: none;
           transition: border .15s, box-shadow .15s;
           box-sizing: border-box;
-          font-family: inherit;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          font-weight: 500;
         }
+        .sf-input::placeholder, .sf-textarea::placeholder { color: #c8d0d0; }
         .sf-input:focus, .sf-textarea:focus {
-          border-color: #93c5fd;
-          box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+          border-color: #1a598a;
+          box-shadow: 0 0 0 3px rgba(26,89,138,.1);
         }
-        .sf-textarea { resize: vertical; line-height: 1.6; }
-        .sf-row-2 {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: 14px;
-        }
+        .sf-textarea { resize: vertical; line-height: 1.65; }
+        .sf-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
-        /* Slug */
-        .sf-slug-wrap {
+        /* ─ Slug ─ */
+        .sf-slug-row {
           display: flex; align-items: center;
-          border: 1px solid #e2e8f0; border-radius: 7px;
+          border: 1.5px solid #e8ecf0; border-radius: 10px;
           overflow: hidden;
           transition: border .15s, box-shadow .15s;
+          background: #fff;
         }
-        .sf-slug-wrap:focus-within {
-          border-color: #93c5fd;
-          box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+        .sf-slug-row:focus-within {
+          border-color: #1a598a;
+          box-shadow: 0 0 0 3px rgba(26,89,138,.1);
         }
         .sf-slug-prefix {
-          padding: 10px 10px 10px 12px;
-          background: #f3f4f6; color: #9ca3af;
-          font-size: 13px; white-space: nowrap;
-          border-right: 1px solid #e2e8f0;
+          padding: 10px 10px 10px 13px;
+          background: #f5f6fa; color: #a9b8b8;
+          font-size: 12.5px; white-space: nowrap;
+          border-right: 1.5px solid #e8ecf0;
+          font-family: 'JetBrains Mono', monospace;
+          font-weight: 500;
         }
-        .sf-slug-input {
-          flex: 1; border: none !important;
-          border-radius: 0 !important; box-shadow: none !important;
+        .sf-slug-inp {
+          border: none !important; border-radius: 0 !important;
+          box-shadow: none !important; background: transparent;
+          font-family: 'JetBrains Mono', monospace !important;
+          font-weight: 500 !important;
         }
 
-        /* Toggle */
-        .sf-toggle-wrap { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
-        .sf-toggle { position: relative; display: inline-block; width: 42px; height: 24px; cursor: pointer; }
+        /* ─ Toggle ─ */
+        .sf-toggle-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+        .sf-toggle {
+          position: relative; display: inline-block;
+          width: 42px; height: 24px; cursor: pointer; flex-shrink: 0;
+        }
         .sf-toggle input { opacity: 0; width: 0; height: 0; }
         .sf-toggle-track {
           position: absolute; inset: 0;
-          background: #d1d5db; border-radius: 12px;
+          background: #e8ecf0; border-radius: 12px;
           transition: background .2s;
         }
         .sf-toggle-track::after {
@@ -810,139 +836,180 @@ const ServiceForm = () => {
           width: 18px; height: 18px;
           background: #fff; border-radius: 50%;
           transition: transform .2s;
-          box-shadow: 0 1px 3px rgba(0,0,0,.2);
+          box-shadow: 0 1px 4px rgba(0,0,0,.18);
         }
-        .sf-toggle input:checked + .sf-toggle-track { background: #1d4ed8; }
+        .sf-toggle input:checked + .sf-toggle-track { background: #1a598a; }
         .sf-toggle input:checked + .sf-toggle-track::after { transform: translateX(18px); }
-        .sf-toggle-label { font-size: 13px; color: #374151; }
+        .sf-toggle-txt { font-size: 13px; font-weight: 600; }
+        .sf-toggle-txt--on  { color: #1a598a; }
+        .sf-toggle-txt--off { color: #a9b8b8; }
 
-        /* Add / Remove buttons */
+        /* ─ Add / Remove buttons ─ */
         .sf-add-btn {
-          padding: 6px 14px; border-radius: 6px;
-          background: #eff6ff; color: #1d4ed8;
-          border: 1px solid #bfdbfe;
-          font-size: 13px; font-weight: 600; cursor: pointer;
-          transition: all .15s; white-space: nowrap;
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 6px 13px; border-radius: 8px;
+          background: #eff6ff; color: #1a598a;
+          border: 1.5px solid #bfdbfe;
+          font-size: 12.5px; font-weight: 700;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          cursor: pointer; transition: all .15s; white-space: nowrap;
         }
-        .sf-add-btn:hover { background: #dbeafe; }
-        .sf-remove-btn {
+        .sf-add-btn:hover { background: #dbeafe; border-color: #93c5fd; }
+
+        .sf-rm-btn {
           width: 30px; height: 30px; flex-shrink: 0;
           display: inline-flex; align-items: center; justify-content: center;
-          border-radius: 6px; border: 1px solid #fecaca;
-          background: #fff; color: #ef4444; cursor: pointer;
+          border-radius: 8px; border: 1.5px solid #fecdd3;
+          background: #fff; color: #e11d48; cursor: pointer;
           transition: all .15s;
         }
-        .sf-remove-btn:hover:not(:disabled) { background: #fee2e2; }
-        .sf-remove-btn:disabled { opacity: .3; cursor: not-allowed; }
+        .sf-rm-btn:hover:not(:disabled) { background: #fff1f2; }
+        .sf-rm-btn:disabled { opacity: .3; cursor: not-allowed; }
+        .sf-rm-abs { position: absolute; top: 14px; right: 14px; }
 
-        /* Key features list */
-        .sf-list { display: flex; flex-direction: column; gap: 10px; }
-        .sf-list-row {
-          display: flex; align-items: center; gap: 10px;
-        }
+        /* ─ Key Features ─ */
+        .sf-feature-list { display: flex; flex-direction: column; gap: 10px; }
+        .sf-feature-row { display: flex; align-items: center; gap: 10px; }
         .sf-list-num {
           width: 26px; height: 26px; flex-shrink: 0;
-          background: #eff6ff; color: #1d4ed8;
+          background: #eff6ff; color: #1a598a;
+          border: 1px solid #dbeafe;
           border-radius: 50%; display: flex;
           align-items: center; justify-content: center;
-          font-size: 12px; font-weight: 700;
+          font-size: 11.5px; font-weight: 800;
         }
 
-        /* Benefits */
-        .sf-benefit-list { display: flex; flex-direction: column; gap: 16px; }
-        .sf-benefit-item {
-          border: 1px solid #e5e7eb; border-radius: 10px;
-          padding: 16px; background: #fafafa;
+        /* ─ Benefits ─ */
+        .sf-benefit-list { display: flex; flex-direction: column; gap: 14px; }
+        .sf-benefit-card {
+          border: 1.5px solid #e8ecf0; border-radius: 12px;
+          padding: 16px 18px; background: #fafbfc;
+          transition: border .15s;
         }
-        .sf-benefit-header {
+        .sf-benefit-card:focus-within { border-color: #bfdbfe; }
+        .sf-benefit-top {
           display: flex; justify-content: space-between;
           align-items: center; margin-bottom: 14px;
         }
-        .sf-benefit-num {
-          width: 36px; height: 36px;
-          background: #1d4ed8; color: #fff;
+        .sf-benefit-badge {
+          width: 38px; height: 38px;
+          background: linear-gradient(135deg, #1a598a, #015599);
+          color: #fff; border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 14px; font-weight: 800;
+          font-family: 'JetBrains Mono', monospace;
+          box-shadow: 0 2px 8px rgba(26,89,138,.3);
+        }
+
+        /* ─ FAQs ─ */
+        .sf-faq-list { display: flex; flex-direction: column; gap: 14px; }
+        .sf-faq-card {
+          display: flex; gap: 12px;
+          border: 1.5px solid #e8ecf0; border-radius: 12px;
+          padding: 16px 18px; background: #fafbfc;
+          position: relative;
+          transition: border .15s;
+        }
+        .sf-faq-card:focus-within { border-color: #bfdbfe; }
+        .sf-faq-index {
+          width: 32px; height: 32px; flex-shrink: 0;
+          background: #f5f6fa; color: #67787a;
+          border: 1px solid #e8ecf0;
           border-radius: 8px; display: flex;
           align-items: center; justify-content: center;
-          font-size: 14px; font-weight: 800;
+          font-size: 11.5px; font-weight: 800; margin-top: 1px;
         }
+        .sf-faq-body { flex: 1; padding-right: 36px; }
 
-        /* FAQs */
-        .sf-faq-list { display: flex; flex-direction: column; gap: 16px; }
-        .sf-faq-item {
-          display: flex; gap: 12px;
-          border: 1px solid #e5e7eb; border-radius: 10px;
-          padding: 16px; background: #fafafa;
-          position: relative;
+        /* ─ Images ─ */
+        .sf-img-block {
+          padding-bottom: 18px; margin-bottom: 18px;
+          border-bottom: 1px solid #f0f2f5;
         }
-        .sf-faq-num {
-          width: 32px; height: 32px; flex-shrink: 0;
-          background: #f3f4f6; color: #6b7280;
-          border-radius: 7px; display: flex;
-          align-items: center; justify-content: center;
-          font-size: 12px; font-weight: 700; margin-top: 2px;
-        }
-        .sf-faq-body { flex: 1; }
-        .sf-remove-faq {
-          position: absolute; top: 12px; right: 12px;
-        }
+        .sf-img-block:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
+        .sf-img-hint { font-size: 11px; color: #a9b8b8; margin: 3px 0 10px; font-weight: 500; }
 
-        /* Images */
-        .sf-image-block { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f3f4f6; }
-        .sf-image-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-        .sf-image-hint { font-size: 11px; color: #9ca3af; margin: 3px 0 10px; }
-        .sf-dropzone {
-          border: 2px dashed #e2e8f0; border-radius: 9px;
-          padding: 24px 16px; text-align: center;
-          cursor: pointer; transition: all .15s;
-          background: #fafafa;
+        .sf-drop {
+          border: 2px dashed #e8ecf0; border-radius: 12px;
+          padding: 22px 16px; text-align: center;
+          cursor: pointer; transition: all .18s;
+          background: #fafbfc;
         }
-        .sf-dropzone:hover { border-color: #93c5fd; background: #eff6ff; }
-        .sf-dropzone-icon { color: #d1d5db; margin-bottom: 8px; }
-        .sf-dropzone:hover .sf-dropzone-icon { color: #60a5fa; }
-        .sf-dropzone-text { font-size: 13px; font-weight: 600; color: #374151; margin: 0 0 4px; }
-        .sf-dropzone-sub  { font-size: 11px; color: #9ca3af; margin: 0; }
-        .sf-preview-wrap { position: relative; border-radius: 9px; overflow: hidden; }
-        .sf-preview-img  { width: 100%; height: 120px; object-fit: cover; display: block; }
-        .sf-preview-actions {
-          display: flex; gap: 8px; margin-top: 8px;
-        }
-        .sf-preview-change, .sf-preview-remove {
-          flex: 1; padding: 7px; border-radius: 6px;
-          font-size: 12px; font-weight: 600; cursor: pointer;
-          border: 1px solid #e5e7eb; transition: all .15s;
-        }
-        .sf-preview-change { background: #fff; color: #374151; }
-        .sf-preview-change:hover { background: #f3f4f6; }
-        .sf-preview-remove { background: #fff; color: #ef4444; border-color: #fecaca; }
-        .sf-preview-remove:hover { background: #fee2e2; }
+        .sf-drop:hover { border-color: #1a598a; background: #f0f7ff; }
+        .sf-drop-icon { color: #c8d0d0; margin-bottom: 8px; transition: color .18s; }
+        .sf-drop:hover .sf-drop-icon { color: #1a598a; }
+        .sf-drop-text { font-size: 13px; font-weight: 700; color: #1a425c; margin: 0 0 4px; }
+        .sf-drop-sub  { font-size: 11px; color: #a9b8b8; margin: 0; }
 
-        /* URL preview card */
-        .sf-url-preview {
-          background: #f3f4f6; border-radius: 7px;
-          padding: 10px 13px; font-size: 13px;
-          margin-bottom: 16px; word-break: break-all;
+        .sf-preview-wrap {
+          border-radius: 10px; overflow: hidden;
+          border: 1.5px solid #e8ecf0; position: relative;
         }
-        .sf-url-base { color: #9ca3af; }
-        .sf-url-slug { color: #1d4ed8; font-weight: 700; }
-        .sf-meta-preview { display: flex; flex-direction: column; gap: 10px; }
+        .sf-preview-img { width: 100%; height: 110px; object-fit: cover; display: block; }
+        .sf-preview-overlay {
+          display: flex; gap: 8px; padding: 8px;
+          background: #fafbfc; border-top: 1px solid #e8ecf0;
+        }
+        .sf-prev-btn {
+          flex: 1; padding: 7px 10px; border-radius: 8px;
+          font-size: 12px; font-weight: 700; cursor: pointer;
+          border: 1.5px solid; display: flex; align-items: center;
+          justify-content: center; gap: 5px;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          transition: all .15s;
+        }
+        .sf-prev-btn--change { background: #fff; color: #1a425c; border-color: #e8ecf0; }
+        .sf-prev-btn--change:hover { background: #f5f6fa; }
+        .sf-prev-btn--remove { background: #fff; color: #e11d48; border-color: #fecdd3; }
+        .sf-prev-btn--remove:hover { background: #fff1f2; }
+
+        /* ─ Summary card ─ */
+        .sf-url-box {
+          background: #f5f6fa; border: 1px solid #e8ecf0;
+          border-radius: 9px; padding: 10px 13px;
+          font-size: 12.5px; margin-bottom: 16px;
+          word-break: break-all;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .sf-url-base { color: #a9b8b8; }
+        .sf-url-slug { color: #1a598a; font-weight: 700; }
+
+        .sf-meta-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
         .sf-meta-row {
           display: flex; justify-content: space-between;
           align-items: center; font-size: 13px;
+          padding-bottom: 10px; border-bottom: 1px solid #f0f2f5;
         }
-        .sf-meta-key { color: #9ca3af; }
-        .sf-meta-val { font-weight: 600; color: #374151; }
-        .sf-meta-status {
-          padding: 3px 10px; border-radius: 20px;
-          font-size: 12px; font-weight: 600;
-        }
-        .sf-meta-status.active   { background: #dcfce7; color: #166534; }
-        .sf-meta-status.inactive { background: #fee2e2; color: #991b1b; }
+        .sf-meta-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .sf-meta-key { color: #a9b8b8; font-weight: 600; }
+        .sf-meta-val { font-weight: 700; color: #1a425c; }
 
-        /* Footer */
+        .sf-status-pill {
+          display: inline-flex; align-items: center; gap: 5px;
+          padding: 3px 10px; border-radius: 20px;
+          font-size: 12px; font-weight: 700;
+        }
+        .sf-status-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .sf-status-pill--on  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .sf-status-pill--on  .sf-status-dot { background: #16a34a; }
+        .sf-status-pill--off { background: #fff1f2; color: #b91c1c; border: 1px solid #fecdd3; }
+        .sf-status-pill--off .sf-status-dot { background: #dc2626; }
+
+        /* ─ Footer ─ */
         .sf-footer {
           display: flex; justify-content: flex-end; gap: 12px;
           margin-top: 28px; padding-top: 24px;
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid #e8ecf0;
+        }
+
+        /* ─ Responsive ─ */
+        @media (max-width: 640px) {
+          .sf-root { padding: 20px 16px; }
+          .sf-page-title { font-size: 22px; }
+          .sf-row2 { grid-template-columns: 1fr; }
+          .sf-header { flex-direction: column; }
+          .sf-header-actions { width: 100%; }
+          .sf-btn--full { margin-top: 12px; }
         }
       `}</style>
     </div>

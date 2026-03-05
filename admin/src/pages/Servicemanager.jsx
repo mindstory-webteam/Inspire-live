@@ -90,7 +90,7 @@ const ServiceManager = () => {
         <div className="sm-modal-backdrop" onClick={() => !deleteLoading && setDeleteId(null)}>
           <div className="sm-modal" onClick={e => e.stopPropagation()}>
             <div className="sm-modal__icon-wrap">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -116,11 +116,15 @@ const ServiceManager = () => {
       {/* ── Page Header ── */}
       <div className="sm-header">
         <div className="sm-header__left">
-          <div className="sm-header__eyebrow">Management</div>
+          {/* <div className="sm-header__eyebrow">
+            <span className="sm-eyebrow-dot"></span>
+            Management
+          </div> */}
           <h1 className="sm-header__title">Services</h1>
+          <p className="sm-header__sub">Manage and monitor all your service offerings</p>
         </div>
         <button className="sm-btn sm-btn--primary" onClick={() => navigate("/services/new")}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
           Add New Service
@@ -129,26 +133,59 @@ const ServiceManager = () => {
 
       {/* ── Stat Cards ── */}
       <div className="sm-stats">
-        <div className="sm-stat">
-          <div className="sm-stat__value">{services.length}</div>
-          <div className="sm-stat__label">Total Services</div>
+        <div className="sm-stat sm-stat--total">
+          <div className="sm-stat__icon-wrap sm-stat__icon-wrap--gray">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2"/>
+              <path d="M8 12h8M8 8h8M8 16h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <div className="sm-stat__body">
+            <div className="sm-stat__value">{services.length}</div>
+            <div className="sm-stat__label">Total Services</div>
+          </div>
           <div className="sm-stat__bar sm-stat__bar--total"></div>
         </div>
-        <div className="sm-stat">
-          <div className="sm-stat__value sm-stat__value--green">{activeCount}</div>
-          <div className="sm-stat__label">Active</div>
+
+        <div className="sm-stat sm-stat--active">
+          <div className="sm-stat__icon-wrap sm-stat__icon-wrap--green">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div className="sm-stat__body">
+            <div className="sm-stat__value sm-stat__value--green">{activeCount}</div>
+            <div className="sm-stat__label">Active</div>
+          </div>
           <div className="sm-stat__bar sm-stat__bar--active"></div>
         </div>
-        <div className="sm-stat">
-          <div className="sm-stat__value sm-stat__value--red">{inactiveCount}</div>
-          <div className="sm-stat__label">Inactive</div>
+
+        <div className="sm-stat sm-stat--inactive">
+          <div className="sm-stat__icon-wrap sm-stat__icon-wrap--red">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+              <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <div className="sm-stat__body">
+            <div className="sm-stat__value sm-stat__value--red">{inactiveCount}</div>
+            <div className="sm-stat__label">Inactive</div>
+          </div>
           <div className="sm-stat__bar sm-stat__bar--inactive"></div>
         </div>
-        <div className="sm-stat">
-          <div className="sm-stat__value sm-stat__value--blue">
-            {services.reduce((a, s) => a + (s.faqs?.length || 0), 0)}
+
+        <div className="sm-stat sm-stat--faqs">
+          <div className="sm-stat__icon-wrap sm-stat__icon-wrap--blue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 9a3 3 0 116 0c0 2-3 3-3 3M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </div>
-          <div className="sm-stat__label">Total FAQs</div>
+          <div className="sm-stat__body">
+            <div className="sm-stat__value sm-stat__value--blue">
+              {services.reduce((a, s) => a + (s.faqs?.length || 0), 0)}
+            </div>
+            <div className="sm-stat__label">Total FAQs</div>
+          </div>
           <div className="sm-stat__bar sm-stat__bar--blue"></div>
         </div>
       </div>
@@ -156,18 +193,22 @@ const ServiceManager = () => {
       {/* ── Toolbar ── */}
       <div className="sm-toolbar">
         <div className="sm-search">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
             <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <input
             className="sm-search__input"
-            placeholder="Search services…"
+            placeholder="Search by name or slug…"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
           {search && (
-            <button className="sm-search__clear" onClick={() => setSearch("")}>✕</button>
+            <button className="sm-search__clear" onClick={() => setSearch("")}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </button>
           )}
         </div>
         <span className="sm-toolbar__count">
@@ -178,7 +219,7 @@ const ServiceManager = () => {
       {/* ── Error ── */}
       {error && (
         <div className="sm-error">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
             <path d="M12 8v4m0 4h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
@@ -190,7 +231,7 @@ const ServiceManager = () => {
       <div className="sm-card">
         {loading ? (
           <div className="sm-skeleton-list">
-            {[1,2,3,4].map(i => (
+            {[1,2,3,4,5].map(i => (
               <div key={i} className="sm-skeleton-row">
                 <div className="sm-skel sm-skel--thumb"></div>
                 <div className="sm-skel-group">
@@ -209,13 +250,13 @@ const ServiceManager = () => {
           <div className="sm-empty">
             <div className="sm-empty__icon">
               {search ? (
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
                   <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.5" />
                   <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <path d="M8 11h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               ) : (
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
                   <path d="M8 12h8M8 8h8M8 16h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
@@ -250,7 +291,7 @@ const ServiceManager = () => {
               </thead>
               <tbody>
                 {filtered.map((service, idx) => (
-                  <tr key={service._id} className="sm-tr" style={{ animationDelay: idx * 40 + "ms" }}>
+                  <tr key={service._id} className="sm-tr" style={{ animationDelay: idx * 35 + "ms" }}>
 
                     {/* Service */}
                     <td className="sm-td">
@@ -267,7 +308,7 @@ const ServiceManager = () => {
                                 }}
                               />
                               <div className="sm-thumb__fallback" style={{ display: "none" }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                   <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
                                   <path d="M3 9l4-4 4 4 4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                                 </svg>
@@ -275,7 +316,7 @@ const ServiceManager = () => {
                             </>
                           ) : (
                             <div className="sm-thumb__fallback" style={{ display: "flex" }}>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                 <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
                                 <path d="M3 9l4-4 4 4 4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                               </svg>
@@ -286,7 +327,7 @@ const ServiceManager = () => {
                           <span className="sm-service-name">{service.title}</span>
                           {service.subtitle && (
                             <span className="sm-service-sub">
-                              {service.subtitle.length > 55 ? service.subtitle.slice(0, 55) + "…" : service.subtitle}
+                              {service.subtitle.length > 52 ? service.subtitle.slice(0, 52) + "…" : service.subtitle}
                             </span>
                           )}
                         </div>
@@ -300,12 +341,12 @@ const ServiceManager = () => {
 
                     {/* FAQs */}
                     <td className="sm-td sm-td--center">
-                      <span className="sm-count">{service.faqs?.length || 0}</span>
+                      <span className="sm-badge sm-badge--blue">{service.faqs?.length || 0}</span>
                     </td>
 
                     {/* Benefits */}
                     <td className="sm-td sm-td--center">
-                      <span className="sm-count">{service.benefits?.length || 0}</span>
+                      <span className="sm-badge sm-badge--purple">{service.benefits?.length || 0}</span>
                     </td>
 
                     {/* Order */}
@@ -335,7 +376,7 @@ const ServiceManager = () => {
                           className="sm-icon-btn sm-icon-btn--view"
                           title="View live"
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                             <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                             <path d="M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
@@ -345,7 +386,7 @@ const ServiceManager = () => {
                           title="Edit"
                           onClick={() => navigate("/services/edit/" + service._id)}
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                             <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                             <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                           </svg>
@@ -355,7 +396,7 @@ const ServiceManager = () => {
                           title="Delete"
                           onClick={() => setDeleteId(service._id)}
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                             <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </button>
@@ -371,81 +412,130 @@ const ServiceManager = () => {
 
       {/* ── Styles ── */}
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
         /* ─ Root ─ */
         .sm-root {
-          padding: 0;
+          padding: 32px 28px;
           position: relative;
-          font-family: 'Segoe UI', system-ui, sans-serif;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          background: #f5f6fa;
+          min-height: 100vh;
+          color: #0c1e21;
         }
 
         /* ─ Toast ─ */
         .sm-toast {
-          position: fixed; bottom: 24px; right: 24px;
+          position: fixed; bottom: 28px; right: 28px;
           display: flex; align-items: center; gap: 10px;
-          padding: 12px 18px; border-radius: 10px;
+          padding: 13px 20px; border-radius: 12px;
           font-size: 13.5px; font-weight: 600;
-          z-index: 9999; box-shadow: 0 8px 32px rgba(0,0,0,.18);
-          animation: smSlideUp .22s ease;
+          z-index: 9999;
+          box-shadow: 0 12px 40px rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.08);
+          animation: smSlideUp .22s cubic-bezier(.34,1.56,.64,1);
+          backdrop-filter: blur(10px);
         }
-        .sm-toast--success { background: #052e16; color: #86efac; border: 1px solid #166534; }
-        .sm-toast--error   { background: #450a0a; color: #fca5a5; border: 1px solid #991b1b; }
-        .sm-toast__icon    { font-size: 15px; }
+        .sm-toast--success {
+          background: rgba(5,46,22,.92); color: #86efac;
+          border: 1px solid rgba(22,163,74,.4);
+        }
+        .sm-toast--error {
+          background: rgba(69,10,10,.92); color: #fca5a5;
+          border: 1px solid rgba(153,27,27,.4);
+        }
+        .sm-toast__icon { font-size: 15px; }
         @keyframes smSlideUp {
-          from { transform: translateY(10px); opacity: 0; }
-          to   { transform: translateY(0);    opacity: 1; }
+          from { transform: translateY(14px) scale(.96); opacity: 0; }
+          to   { transform: translateY(0) scale(1); opacity: 1; }
         }
 
         /* ─ Modal ─ */
         .sm-modal-backdrop {
           position: fixed; inset: 0;
-          background: rgba(0,0,0,.6);
+          background: rgba(12,30,33,.55);
           display: flex; align-items: center; justify-content: center;
-          z-index: 9998; backdrop-filter: blur(4px);
+          z-index: 9998;
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
         }
         .sm-modal {
-          background: #fff; border-radius: 16px;
-          padding: 40px 32px; max-width: 400px; width: 90%;
+          background: #fff;
+          border-radius: 20px;
+          padding: 40px 36px;
+          max-width: 400px; width: 90%;
           text-align: center;
-          box-shadow: 0 24px 64px rgba(0,0,0,.22);
-          animation: smPop .2s ease;
+          box-shadow: 0 32px 80px rgba(0,0,0,.2), 0 4px 16px rgba(0,0,0,.08);
+          animation: smPop .22s cubic-bezier(.34,1.56,.64,1);
+          border: 1px solid rgba(255,255,255,.8);
         }
         @keyframes smPop {
-          from { transform: scale(.96); opacity: 0; }
-          to   { transform: scale(1);   opacity: 1; }
+          from { transform: scale(.93) translateY(10px); opacity: 0; }
+          to   { transform: scale(1) translateY(0); opacity: 1; }
         }
         .sm-modal__icon-wrap {
-          width: 56px; height: 56px; border-radius: 14px;
-          background: #fee2e2; color: #ef4444;
+          width: 56px; height: 56px; border-radius: 16px;
+          background: #fff1f2; color: #e11d48;
           display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 18px;
+          margin: 0 auto 20px;
+          border: 1px solid #fecdd3;
         }
-        .sm-modal__title { font-size: 18px; font-weight: 800; color: #111827; margin: 0 0 8px; }
-        .sm-modal__body  { font-size: 14px; color: #6b7280; line-height: 1.65; margin: 0 0 24px; }
-        .sm-modal__actions { display: flex; gap: 10px; justify-content: center; }
+        .sm-modal__title {
+          font-size: 18px; font-weight: 800; color: #0c1e21;
+          margin: 0 0 8px; letter-spacing: -.02em;
+        }
+        .sm-modal__body {
+          font-size: 13.5px; color: #67787a; line-height: 1.7; margin: 0 0 28px;
+        }
+        .sm-modal__actions {
+          display: flex; gap: 10px; justify-content: center;
+        }
 
         /* ─ Buttons ─ */
         .sm-btn {
           display: inline-flex; align-items: center; gap: 7px;
-          padding: 9px 18px; border-radius: 9px;
+          padding: 10px 20px; border-radius: 10px;
           font-size: 13.5px; font-weight: 700;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
           border: none; cursor: pointer;
-          transition: all .16s; white-space: nowrap; flex-shrink: 0;
-          letter-spacing: .01em;
+          transition: all .18s cubic-bezier(.4,0,.2,1);
+          white-space: nowrap; flex-shrink: 0;
+          letter-spacing: -.01em;
         }
-        .sm-btn:disabled { opacity: .55; cursor: not-allowed; }
+        .sm-btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
         .sm-btn--primary {
-          background: #1d4ed8; color: #fff;
-          box-shadow: 0 2px 8px rgba(29,78,216,.3);
+          background: linear-gradient(135deg, #1a598a 0%, #015599 100%);
+          color: #fff;
+          box-shadow: 0 2px 12px rgba(26,89,138,.35);
         }
-        .sm-btn--primary:hover:not(:disabled) { background: #1e40af; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(29,78,216,.35); }
-        .sm-btn--ghost   { background: #f3f4f6; color: #374151; }
-        .sm-btn--ghost:hover:not(:disabled)   { background: #e5e7eb; }
-        .sm-btn--danger  { background: #ef4444; color: #fff; }
-        .sm-btn--danger:hover:not(:disabled)  { background: #dc2626; }
+        .sm-btn--primary:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(26,89,138,.4);
+        }
+        .sm-btn--primary:active:not(:disabled) {
+          transform: translateY(0);
+        }
+        .sm-btn--ghost {
+          background: #f0f2f5; color: #1a425c;
+          border: 1px solid #e2e8f0;
+        }
+        .sm-btn--ghost:hover:not(:disabled) {
+          background: #e5eaf0;
+          transform: translateY(-1px);
+        }
+        .sm-btn--danger {
+          background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+          color: #fff;
+          box-shadow: 0 2px 10px rgba(225,29,72,.3);
+        }
+        .sm-btn--danger:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px rgba(225,29,72,.35);
+        }
 
         .sm-spinner {
           width: 13px; height: 13px;
-          border: 2px solid rgba(255,255,255,.35);
+          border: 2px solid rgba(255,255,255,.3);
           border-top-color: #fff; border-radius: 50%;
           animation: smSpin .65s linear infinite; display: inline-block;
         }
@@ -454,52 +544,81 @@ const ServiceManager = () => {
         /* ─ Page Header ─ */
         .sm-header {
           display: flex; justify-content: space-between;
-          align-items: center; margin-bottom: 22px;
-          flex-wrap: wrap; gap: 12px;
+          align-items: flex-start; margin-bottom: 24px;
+          flex-wrap: wrap; gap: 16px;
         }
         .sm-header__eyebrow {
+          display: flex; align-items: center; gap: 7px;
           font-size: 11px; font-weight: 700; letter-spacing: .1em;
-          text-transform: uppercase; color: #1d4ed8; margin-bottom: 2px;
+          text-transform: uppercase; color: #1a598a; margin-bottom: 5px;
+        }
+        .sm-eyebrow-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #1a598a;
+          box-shadow: 0 0 0 3px rgba(26,89,138,.18);
         }
         .sm-header__title {
-          font-size: 24px; font-weight: 800; color: #0f172a; margin: 0;
-          letter-spacing: -.02em;
+          font-size: 26px; font-weight: 800; color: #0c1e21;
+          margin: 0 0 4px; letter-spacing: -.03em; line-height: 1.1;
+        }
+        .sm-header__sub {
+          font-size: 13.5px; color: #67787a; margin: 0;
         }
 
         /* ─ Stat Cards ─ */
         .sm-stats {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-          margin-bottom: 20px;
+          gap: 14px;
+          margin-bottom: 22px;
         }
-        @media (max-width: 768px) {
-          .sm-stats { grid-template-columns: repeat(2, 1fr); }
-        }
+        @media (max-width: 900px) { .sm-stats { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .sm-stats { grid-template-columns: 1fr; } }
+
         .sm-stat {
           background: #fff;
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          padding: 16px 18px 14px;
+          border: 1px solid #e8ecf0;
+          border-radius: 14px;
+          padding: 18px 20px 16px;
           position: relative;
           overflow: hidden;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          transition: box-shadow .18s, transform .18s;
         }
+        .sm-stat:hover {
+          box-shadow: 0 6px 24px rgba(0,0,0,.07);
+          transform: translateY(-1px);
+        }
+
+        .sm-stat__icon-wrap {
+          width: 40px; height: 40px; border-radius: 11px;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .sm-stat__icon-wrap--gray   { background: #f0f2f5; color: #67787a; }
+        .sm-stat__icon-wrap--green  { background: #dcfce7; color: #16a34a; }
+        .sm-stat__icon-wrap--red    { background: #fee2e2; color: #dc2626; }
+        .sm-stat__icon-wrap--blue   { background: #dbeafe; color: #1d4ed8; }
+
+        .sm-stat__body { flex: 1; min-width: 0; }
         .sm-stat__value {
-          font-size: 28px; font-weight: 800; color: #0f172a;
-          letter-spacing: -.03em; line-height: 1;
+          font-size: 26px; font-weight: 800; color: #0c1e21;
+          letter-spacing: -.04em; line-height: 1;
         }
         .sm-stat__value--green { color: #16a34a; }
         .sm-stat__value--red   { color: #dc2626; }
         .sm-stat__value--blue  { color: #1d4ed8; }
         .sm-stat__label {
-          font-size: 12px; font-weight: 600; color: #9ca3af;
-          margin-top: 4px; text-transform: uppercase; letter-spacing: .06em;
+          font-size: 11.5px; font-weight: 600; color: #a9b8b8;
+          margin-top: 3px; text-transform: uppercase; letter-spacing: .06em;
         }
         .sm-stat__bar {
-          position: absolute; bottom: 0; left: 0; right: 0;
-          height: 3px;
+          position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+          border-radius: 0 0 14px 14px;
         }
-        .sm-stat__bar--total    { background: linear-gradient(90deg, #64748b, #94a3b8); }
+        .sm-stat__bar--total    { background: linear-gradient(90deg, #94a3b8, #cbd5e1); }
         .sm-stat__bar--active   { background: linear-gradient(90deg, #16a34a, #4ade80); }
         .sm-stat__bar--inactive { background: linear-gradient(90deg, #dc2626, #f87171); }
         .sm-stat__bar--blue     { background: linear-gradient(90deg, #1d4ed8, #60a5fa); }
@@ -510,118 +629,132 @@ const ServiceManager = () => {
           gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
         }
         .sm-search {
-          display: flex; align-items: center; gap: 8px;
-          background: #fff; border: 1px solid #e5e7eb;
-          border-radius: 9px; padding: 0 12px;
-          flex: 1; max-width: 340px;
+          display: flex; align-items: center; gap: 9px;
+          background: #fff; border: 1.5px solid #e8ecf0;
+          border-radius: 10px; padding: 0 14px;
+          flex: 1; max-width: 360px;
           transition: border .15s, box-shadow .15s;
         }
         .sm-search:focus-within {
-          border-color: #93c5fd;
-          box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+          border-color: #1a598a;
+          box-shadow: 0 0 0 3px rgba(26,89,138,.1);
         }
-        .sm-search svg { color: #9ca3af; flex-shrink: 0; }
+        .sm-search svg { color: #a9b8b8; flex-shrink: 0; }
         .sm-search__input {
           flex: 1; border: none; outline: none;
-          font-size: 13.5px; color: #111827;
-          padding: 9px 0; background: transparent;
+          font-size: 13.5px; color: #0c1e21;
+          padding: 10px 0; background: transparent;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          font-weight: 500;
         }
+        .sm-search__input::placeholder { color: #a9b8b8; }
         .sm-search__clear {
-          border: none; background: none; cursor: pointer;
-          color: #9ca3af; font-size: 12px; padding: 2px 4px;
+          border: none; background: #f0f2f5; cursor: pointer;
+          color: #67787a; width: 20px; height: 20px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          transition: background .14s;
         }
-        .sm-search__clear:hover { color: #374151; }
+        .sm-search__clear:hover { background: #e2e8f0; color: #0c1e21; }
         .sm-toolbar__count {
-          font-size: 12.5px; color: #9ca3af; font-weight: 500; white-space: nowrap;
+          font-size: 12px; color: #a9b8b8; font-weight: 600;
+          white-space: nowrap; letter-spacing: .01em;
         }
 
         /* ─ Error ─ */
         .sm-error {
           display: flex; align-items: center; gap: 9px;
-          padding: 12px 16px; border-radius: 9px; font-size: 14px;
-          margin-bottom: 16px;
-          background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+          padding: 12px 16px; border-radius: 10px; font-size: 13.5px;
+          margin-bottom: 16px; font-weight: 500;
+          background: #fff1f2; color: #be123c;
+          border: 1px solid #fecdd3;
         }
 
         /* ─ Card ─ */
         .sm-card {
           background: #fff;
-          border-radius: 14px;
-          border: 1px solid #e5e7eb;
+          border-radius: 16px;
+          border: 1px solid #e8ecf0;
           overflow: hidden;
-          box-shadow: 0 1px 4px rgba(0,0,0,.04);
+          box-shadow: 0 1px 6px rgba(0,0,0,.04);
         }
 
         /* ─ Skeleton ─ */
         .sm-skeleton-list { padding: 0 20px; }
         .sm-skeleton-row {
           display: flex; align-items: center; gap: 14px;
-          padding: 16px 0; border-bottom: 1px solid #f3f4f6;
+          padding: 16px 0; border-bottom: 1px solid #f5f6fa;
         }
         .sm-skeleton-row:last-child { border-bottom: none; }
         .sm-skel {
-          background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+          background: linear-gradient(90deg, #f5f6fa 25%, #eaecf0 50%, #f5f6fa 75%);
           background-size: 200% 100%;
-          border-radius: 6px;
-          animation: smShimmer 1.5s ease-in-out infinite;
+          border-radius: 7px;
+          animation: smShimmer 1.6s ease-in-out infinite;
         }
-        @keyframes smShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-        .sm-skel--thumb   { width: 46px; height: 34px; border-radius: 7px; flex-shrink: 0; }
-        .sm-skel-group    { flex: 1; display: flex; flex-direction: column; gap: 7px; }
-        .sm-skel--title   { height: 13px; width: 50%; }
-        .sm-skel--sub     { height: 11px; width: 30%; }
-        .sm-skel--badge   { height: 20px; width: 60px; border-radius: 20px; }
-        .sm-skel--status  { height: 24px; width: 72px; border-radius: 20px; }
-        .sm-skel--actions { height: 28px; width: 88px; border-radius: 8px; }
+        @keyframes smShimmer {
+          0%  { background-position: 200% 0; }
+          100%{ background-position: -200% 0; }
+        }
+        .sm-skel--thumb   { width: 48px; height: 36px; border-radius: 9px; flex-shrink: 0; }
+        .sm-skel-group    { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .sm-skel--title   { height: 12px; width: 45%; }
+        .sm-skel--sub     { height: 10px; width: 28%; }
+        .sm-skel--badge   { height: 22px; width: 52px; border-radius: 20px; }
+        .sm-skel--status  { height: 26px; width: 78px; border-radius: 20px; }
+        .sm-skel--actions { height: 30px; width: 96px; border-radius: 9px; }
 
         /* ─ Empty ─ */
         .sm-empty {
-          padding: 64px 32px; text-align: center;
+          padding: 72px 32px; text-align: center;
         }
         .sm-empty__icon {
-          width: 72px; height: 72px; border-radius: 18px;
-          background: #f8fafc; border: 1px solid #e5e7eb;
-          color: #cbd5e1;
+          width: 72px; height: 72px; border-radius: 20px;
+          background: #f5f6fa; border: 1.5px solid #e8ecf0;
+          color: #c8d0d0;
           display: flex; align-items: center; justify-content: center;
           margin: 0 auto 18px;
         }
-        .sm-empty__title { font-size: 16px; font-weight: 700; color: #374151; margin: 0 0 6px; }
-        .sm-empty__sub   { font-size: 13.5px; color: #9ca3af; margin: 0 0 22px; }
+        .sm-empty__title {
+          font-size: 16px; font-weight: 700; color: #1a425c; margin: 0 0 6px;
+        }
+        .sm-empty__sub {
+          font-size: 13.5px; color: #a9b8b8; margin: 0 0 24px;
+        }
 
         /* ─ Table ─ */
         .sm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .sm-table {
           width: 100%; border-collapse: collapse;
-          font-size: 13.5px; table-layout: auto;
+          font-size: 13.5px;
         }
         .sm-th {
-          padding: 11px 16px;
+          padding: 12px 18px;
           text-align: left;
-          font-size: 11px; font-weight: 700;
-          color: #9ca3af; text-transform: uppercase; letter-spacing: .07em;
-          background: #f8fafc;
-          border-bottom: 1px solid #e5e7eb;
+          font-size: 10.5px; font-weight: 700;
+          color: #a9b8b8; text-transform: uppercase; letter-spacing: .09em;
+          background: #fafbfc;
+          border-bottom: 1px solid #e8ecf0;
           white-space: nowrap;
         }
-        .sm-th--service { min-width: 220px; }
+        .sm-th--service { min-width: 230px; }
         .sm-th--center  { text-align: center !important; }
-        .sm-th--right   { text-align: right !important; min-width: 110px; }
+        .sm-th--right   { text-align: right !important; min-width: 116px; }
 
         .sm-tr {
           animation: smFadeIn .3s ease both;
-          transition: background .12s;
+          transition: background .1s;
         }
-        .sm-tr:hover .sm-td { background: #f8fafc; }
+        .sm-tr:hover .sm-td { background: #fafbfd; }
         @keyframes smFadeIn {
-          from { opacity: 0; transform: translateY(4px); }
+          from { opacity: 0; transform: translateY(5px); }
           to   { opacity: 1; transform: translateY(0); }
         }
 
         .sm-td {
-          padding: 13px 16px;
-          border-bottom: 1px solid #f1f5f9;
+          padding: 14px 18px;
+          border-bottom: 1px solid #f0f2f5;
           vertical-align: middle;
-          transition: background .12s;
+          transition: background .1s;
         }
         .sm-table tbody tr:last-child .sm-td { border-bottom: none; }
         .sm-td--center { text-align: center !important; }
@@ -629,14 +762,14 @@ const ServiceManager = () => {
 
         /* ─ Service cell ─ */
         .sm-service-cell {
-          display: flex; align-items: center; gap: 11px; min-width: 0;
+          display: flex; align-items: center; gap: 12px; min-width: 0;
         }
         .sm-thumb {
-          width: 46px; height: 34px; border-radius: 7px;
+          width: 48px; height: 36px; border-radius: 9px;
           overflow: hidden; flex-shrink: 0;
-          background: #f1f5f9;
+          background: #f0f2f5;
           display: flex; align-items: center; justify-content: center;
-          border: 1px solid #e5e7eb;
+          border: 1px solid #e8ecf0;
         }
         .sm-thumb img {
           width: 100%; height: 100%; object-fit: cover; display: block;
@@ -644,78 +777,105 @@ const ServiceManager = () => {
         .sm-thumb__fallback {
           width: 100%; height: 100%;
           align-items: center; justify-content: center;
-          color: #cbd5e1;
+          color: #c8d0d0;
         }
         .sm-service-info {
           display: flex; flex-direction: column; gap: 2px; min-width: 0;
         }
         .sm-service-name {
-          font-weight: 700; color: #0f172a; font-size: 13.5px;
+          font-weight: 700; color: #0c1e21; font-size: 13.5px;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          letter-spacing: -.01em;
         }
         .sm-service-sub {
-          font-size: 12px; color: #94a3b8;
+          font-size: 12px; color: #a9b8b8;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
         /* ─ Slug ─ */
         .sm-slug {
-          background: #f1f5f9; color: #475569;
-          padding: 3px 8px; border-radius: 5px;
-          font-size: 12px; font-family: 'Courier New', monospace;
-          white-space: nowrap; border: 1px solid #e2e8f0;
+          background: #f5f6fa; color: #1a425c;
+          padding: 4px 9px; border-radius: 6px;
+          font-size: 12px;
+          font-family: 'JetBrains Mono', 'Courier New', monospace;
+          font-weight: 500;
+          white-space: nowrap; border: 1px solid #e8ecf0;
+          letter-spacing: -.02em;
         }
 
-        /* ─ Count / Order ─ */
-        .sm-count {
+        /* ─ Badges ─ */
+        .sm-badge {
           display: inline-flex; align-items: center; justify-content: center;
-          min-width: 26px; height: 22px;
-          background: #eff6ff; color: #1d4ed8;
-          padding: 0 8px; border-radius: 20px;
+          min-width: 28px; height: 24px;
+          padding: 0 9px; border-radius: 20px;
           font-size: 12px; font-weight: 700;
         }
+        .sm-badge--blue   { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
+        .sm-badge--purple { background: #f5f3ff; color: #7c3aed; border: 1px solid #ede9fe; }
+
+        /* ─ Order ─ */
         .sm-order {
           display: inline-flex; align-items: center; justify-content: center;
-          min-width: 26px; height: 22px;
-          background: #f1f5f9; color: #64748b;
-          padding: 0 8px; border-radius: 6px;
+          min-width: 28px; height: 24px;
+          background: #f5f6fa; color: #67787a;
+          padding: 0 9px; border-radius: 7px;
           font-size: 12px; font-weight: 700;
+          border: 1px solid #e8ecf0;
         }
 
         /* ─ Status ─ */
         .sm-status {
-          display: inline-flex; align-items: center; gap: 5px;
-          border: none; cursor: pointer;
-          padding: 4px 11px; border-radius: 20px;
+          display: inline-flex; align-items: center; gap: 6px;
+          border: 1.5px solid transparent; cursor: pointer;
+          padding: 5px 12px; border-radius: 20px;
           font-size: 12px; font-weight: 700;
-          transition: all .15s; white-space: nowrap;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+          transition: all .16s; white-space: nowrap;
+          letter-spacing: -.01em;
         }
-        .sm-status:hover { opacity: .8; transform: scale(.97); }
+        .sm-status:hover { transform: scale(.96); }
         .sm-status__dot {
           width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
         }
-        .sm-status--on  { background: #dcfce7; color: #15803d; }
-        .sm-status--on  .sm-status__dot { background: #16a34a; box-shadow: 0 0 0 2px rgba(22,163,74,.2); }
-        .sm-status--off { background: #fee2e2; color: #b91c1c; }
+        .sm-status--on {
+          background: #f0fdf4; color: #15803d;
+          border-color: #bbf7d0;
+        }
+        .sm-status--on .sm-status__dot {
+          background: #16a34a;
+          box-shadow: 0 0 0 2px rgba(22,163,74,.2);
+        }
+        .sm-status--off {
+          background: #fff1f2; color: #b91c1c;
+          border-color: #fecdd3;
+        }
         .sm-status--off .sm-status__dot { background: #dc2626; }
 
         /* ─ Action buttons ─ */
         .sm-actions {
           display: flex; align-items: center;
-          gap: 4px; justify-content: flex-end; flex-wrap: nowrap;
+          gap: 5px; justify-content: flex-end; flex-wrap: nowrap;
         }
         .sm-icon-btn {
-          width: 30px; height: 30px;
+          width: 32px; height: 32px;
           display: inline-flex; align-items: center; justify-content: center;
-          border-radius: 7px; border: 1px solid #e5e7eb;
+          border-radius: 8px; border: 1px solid #e8ecf0;
           background: #fff; cursor: pointer;
-          transition: all .14s; text-decoration: none;
-          color: #94a3b8; flex-shrink: 0;
+          transition: all .15s cubic-bezier(.4,0,.2,1);
+          text-decoration: none;
+          color: #a9b8b8; flex-shrink: 0;
         }
-        .sm-icon-btn:hover { transform: translateY(-1px); }
+        .sm-icon-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,.08); }
         .sm-icon-btn--view:hover   { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
-        .sm-icon-btn--edit:hover   { background: #fefce8; color: #a16207; border-color: #fde68a; }
-        .sm-icon-btn--delete:hover { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
+        .sm-icon-btn--edit:hover   { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+        .sm-icon-btn--delete:hover { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+
+        /* ─ Responsive ─ */
+        @media (max-width: 640px) {
+          .sm-root { padding: 20px 16px; }
+          .sm-header__title { font-size: 22px; }
+          .sm-search { max-width: 100%; }
+        }
       `}</style>
     </div>
   );
