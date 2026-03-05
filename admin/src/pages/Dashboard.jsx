@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { blogService, eventService, careerService, contactService, teamService } from '../services/api';
+import { blogService, eventService, careerService, contactService, teamService, newsletterService } from '../services/api';
 import { Link } from 'react-router-dom';
 import {
-  FileText, ArrowUpRight, Calendar, Briefcase, Mail, Layers, Tag, Users,
+  FileText, ArrowUpRight, Calendar, Briefcase, Mail, Layers, Tag, Users, Bell,
 } from 'lucide-react';
 
 const StatCard = ({ label, value, icon: Icon, color, bg, to }) => {
@@ -33,20 +33,19 @@ const pick = (obj, ...keys) => {
 const safe = (promise, fallback = null) => promise.then(r => r).catch(() => fallback);
 
 export default function Dashboard() {
-  const [bannerSlides, setBannerSlides] = useState(null);
-  const [eventCount,   setEventCount]   = useState(null);
-  const [careerStats,  setCareerStats]  = useState(null);
-  const [contactStats, setContactStats] = useState(null);
-  const [teamCount,    setTeamCount]    = useState(null);
-  const [applications, setApplications] = useState([]);
-  const [blogs,        setBlogs]        = useState([]);
-  const [loading,      setLoading]      = useState(true);
+  const [bannerSlides,     setBannerSlides]     = useState(null);
+  const [eventCount,       setEventCount]       = useState(null);
+  const [careerStats,      setCareerStats]      = useState(null);
+  const [contactStats,     setContactStats]     = useState(null);
+  const [teamCount,        setTeamCount]        = useState(null);
+  const [newsletterStats,  setNewsletterStats]  = useState(null);
+  const [applications,     setApplications]     = useState([]);
+  const [blogs,            setBlogs]            = useState([]);
+  const [loading,          setLoading]          = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
     const BASE  = import.meta.env.VITE_API_URL || '/api';
-
-    // ── Each fetch is fully isolated — one failure never blocks others ──
 
     const fetchBanner = () =>
       safe(
@@ -81,6 +80,12 @@ export default function Dashboard() {
         null
       );
 
+    const fetchNewsletterStats = () =>
+      safe(
+        newsletterService.getStats().then(r => r.data?.data ?? null),
+        null
+      );
+
     const fetchRecentBlogs = () =>
       safe(
         blogService.getAll({ limit: 5, sort: '-createdAt' })
@@ -112,21 +117,22 @@ export default function Dashboard() {
       }
     };
 
-    // Run all in parallel — Promise.all can never reject because every item is wrapped in safe()
     Promise.all([
       fetchBanner(),
       fetchEvents(),
       fetchCareerStats(),
       fetchContactStats(),
       fetchTeamCount(),
+      fetchNewsletterStats(),
       fetchRecentBlogs(),
       fetchApplications(),
-    ]).then(([slides, evtCount, careers, contacts, tCount, recentBlogs, apps]) => {
+    ]).then(([slides, evtCount, careers, contacts, tCount, newsletter, recentBlogs, apps]) => {
       setBannerSlides(slides);
       setEventCount(evtCount);
       setCareerStats(careers);
       setContactStats(contacts);
       setTeamCount(tCount);
+      setNewsletterStats(newsletter);
       setBlogs(recentBlogs);
       setApplications(apps);
     }).finally(() => setLoading(false));
@@ -152,13 +158,14 @@ export default function Dashboard() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Banner Slides"      value={bannerSlides}                   icon={Layers}    color="#015599" bg="#01559912" to="/banner"   />
-        <StatCard label="Total Events"       value={eventCount}                     icon={Calendar}  color="#059669" bg="#05966912" to="/events"   />
-        <StatCard label="Active Jobs"        value={careerStats?.active}            icon={Briefcase} color="#b45309" bg="#b4530912" to="/careers"  />
-        <StatCard label="Total Applications" value={careerStats?.totalApplications} icon={FileText}  color="#0369a1" bg="#0369a112" to="/careers"  />
-        <StatCard label="New Messages"       value={contactStats?.new}              icon={Mail}      color="#dc2626" bg="#dc262612" to="/contacts" />
-        <StatCard label="Total Messages"     value={contactStats?.total}            icon={Mail}      color="#7c3aed" bg="#7c3aed12" to="/contacts" />
-        <StatCard label="Team Members"       value={teamCount}                      icon={Users}     color="#0f766e" bg="#0f766e12" to="/team"     />
+        <StatCard label="Banner Slides"        value={bannerSlides}                   icon={Layers}    color="#015599" bg="#01559912" to="/banner"     />
+        <StatCard label="Total Events"         value={eventCount}                     icon={Calendar}  color="#059669" bg="#05966912" to="/events"     />
+        <StatCard label="Active Jobs"          value={careerStats?.active}            icon={Briefcase} color="#b45309" bg="#b4530912" to="/careers"    />
+        <StatCard label="Total Applications"   value={careerStats?.totalApplications} icon={FileText}  color="#0369a1" bg="#0369a112" to="/careers"    />
+        <StatCard label="New Messages"         value={contactStats?.new}              icon={Mail}      color="#dc2626" bg="#dc262612" to="/contacts"   />
+        <StatCard label="Total Messages"       value={contactStats?.total}            icon={Mail}      color="#7c3aed" bg="#7c3aed12" to="/contacts"   />
+        <StatCard label="Team Members"         value={teamCount}                      icon={Users}     color="#0f766e" bg="#0f766e12" to="/team"       />
+        <StatCard label="Newsletter Subscribers" value={newsletterStats?.active}      icon={Bell}      color="#0ea5e9" bg="#0ea5e912" to="/newsletter" />
       </div>
 
       {/* Recent Blog Cards */}

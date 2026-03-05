@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { subscribeNewsletter } from "../../../utils/newsletterApi";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 const Footer = () => {
-  const [services, setServices] = useState([]);
+  const [services,    setServices]    = useState([]);
+  const [email,       setEmail]       = useState("");
+  const [agreed,      setAgreed]      = useState(false);
+  const [submitting,  setSubmitting]  = useState(false);
+  const [formMessage, setFormMessage] = useState(null);
 
   useEffect(() => {
     fetch(API_BASE + "/services")
@@ -23,6 +28,36 @@ const Footer = () => {
       })
       .catch(() => {});
   }, []);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    setFormMessage(null);
+
+    if (!email.trim()) {
+      setFormMessage({ type: "error", text: "Please enter your email address." });
+      return;
+    }
+    if (!agreed) {
+      setFormMessage({ type: "error", text: "Please agree to the Terms & Conditions." });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const data = await subscribeNewsletter({ email: email.trim(), agreedToTerms: agreed });
+      if (data.success) {
+        setFormMessage({ type: "success", text: data.message || "Subscribed successfully!" });
+        setEmail("");
+        setAgreed(false);
+      } else {
+        setFormMessage({ type: "error", text: data.message || "Something went wrong." });
+      }
+    } catch {
+      setFormMessage({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <footer className="tj-footer-section footer-1 section-gap-x">
@@ -64,7 +99,6 @@ const Footer = () => {
                 <h5 className="title">Services</h5>
                 <ul>
                   {services.length === 0 ? (
-                    /* Fallback static links while loading or if API fails */
                     <>
                       <li><Link href="/services/phd-india">PhD India</Link></li>
                       <li><Link href="/services/study-abroad">Study Abroad</Link></li>
@@ -113,17 +147,44 @@ const Footer = () => {
               >
                 <h3 className="title">Subscribe to Our Newsletter.</h3>
                 <div className="subscribe-form">
-                  <form action="#">
-                    <input type="email" name="email" placeholder="Enter email" />
-                    <button type="submit">
-                      <i className="tji-plane"></i>
+                  <form onSubmit={handleSubscribe}>
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Enter email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={submitting}
+                    />
+                    <button type="submit" disabled={submitting}>
+                      {submitting ? (
+                        <span style={{ fontSize: "11px" }}>...</span>
+                      ) : (
+                        <i className="tji-plane"></i>
+                      )}
                     </button>
                     <label htmlFor="agree">
-                      <input id="agree" type="checkbox" />
+                      <input
+                        id="agree"
+                        type="checkbox"
+                        checked={agreed}
+                        onChange={(e) => setAgreed(e.target.checked)}
+                        disabled={submitting}
+                      />
                       Agree to our{" "}
                       <Link href="/terms-and-conditions">Terms &amp; Condition?</Link>
                     </label>
                   </form>
+                  {formMessage && (
+                    <p style={{
+                      marginTop:  "8px",
+                      fontSize:   "13px",
+                      fontWeight: "500",
+                      color: formMessage.type === "success" ? "#4ade80" : "#f87171",
+                    }}>
+                      {formMessage.text}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

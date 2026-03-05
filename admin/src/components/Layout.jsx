@@ -14,18 +14,19 @@ import {
   Mail,
   Users,
   Star,
+  Bell,
 } from 'lucide-react';
 import { useState } from 'react';
 
 const NAV = [
   { to: '/dashboard',    icon: LayoutDashboard, label: 'Dashboard'    },
   { to: '/blogs',        icon: FileText,        label: 'Blogs'        },
- 
   { to: '/banner',       icon: Layers,          label: 'Banner'       },
   { to: '/services',     icon: Layers,          label: 'Services'     },
   { to: '/events',       icon: Calendar,        label: 'Events'       },
   { to: '/careers',      icon: Briefcase,       label: 'Careers'      },
   { to: '/contacts',     icon: Mail,            label: 'Contacts'     },
+  { to: '/newsletter',   icon: Bell,            label: 'Newsletter'   },
   { to: '/team',         icon: Users,           label: 'Team'         },
   { to: '/testimonials', icon: Star,            label: 'Testimonials' },
   { to: '/settings',     icon: Settings,        label: 'Settings'     },

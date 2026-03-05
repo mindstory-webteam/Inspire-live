@@ -143,3 +143,37 @@ export const testimonialService = {
 };
 
 export default api;
+
+
+export const newsletterService = {
+  // Stats card for dashboard
+  getStats: () =>
+    api.get('/admin/newsletter/stats'),
+
+  // Paginated list  — params: { page, limit, status, search, sort }
+  getAll: (params) =>
+    api.get('/admin/newsletter', { params }),
+
+  // Single subscriber detail
+  getById: (id) =>
+    api.get(`/admin/newsletter/${id}`),
+
+  // Toggle active ↔ unsubscribed
+  toggle: (id) =>
+    api.patch(`/admin/newsletter/${id}/toggle`),
+
+  // Delete single subscriber
+  delete: (id) =>
+    api.delete(`/admin/newsletter/${id}`),
+
+  // Bulk delete  —  ids: string[]
+  bulkDelete: (ids) =>
+    api.delete('/admin/newsletter/bulk', { data: { ids } }),
+
+  // Download CSV   — params: { status: 'active' | 'unsubscribed' }
+  exportCSV: (params) =>
+    api.get('/admin/newsletter/export', {
+      params,
+      responseType: 'blob',   // triggers file download
+    }),
+};

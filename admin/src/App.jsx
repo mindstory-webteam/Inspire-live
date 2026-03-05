@@ -16,6 +16,7 @@ import CareersAdmin from './pages/Careersadmin';
 import ContactAdmin from './pages/Contactadmin';
 import AdminTeamPage from './pages/Adminteampage';
 import TestimonialsAdmin from './pages/Testimonialsadmin';
+import NewsletterPage from './pages/Newsletterpage';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -55,6 +56,7 @@ export default function App() {
             <Route path="contacts"          element={<ContactAdmin />} />
             <Route path="team"              element={<AdminTeamPage />} />
             <Route path="testimonials"      element={<TestimonialsAdmin />} />
+            <Route path="newsletter" element={<NewsletterPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
