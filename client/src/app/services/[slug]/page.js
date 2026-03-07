@@ -1,72 +1,58 @@
+// app/services/[slug]/page.js
+//
+// BUG FIXED:
+//   generateStaticParams() was pre-rendering pages at BUILD TIME.
+//   After you edit a service in the admin the static HTML file on disk
+//   never changed, so the user always saw the old content.
+//
+//   FIX: Export `dynamic = "force-dynamic"` so Next.js renders this page
+//   on every request (SSR), meaning it always fetches fresh data from the
+//   backend. generateStaticParams is removed for the same reason.
+//
+//   If you want static pages + instant revalidation in future, replace
+//   `dynamic = "force-dynamic"` with `revalidate = 0` or use On-Demand
+//   Revalidation (calling `revalidatePath("/services/[slug]")` from the
+//   admin save API route).
+
+export const dynamic = "force-dynamic"; // ← THE MAIN FIX
+
 import Footer from "@/components/layout/footer/Footer";
 import Header from "@/components/layout/header/Header";
 import Cta from "@/components/sections/cta/Cta";
+import HeroInner from "@/components/sections/hero/HeroInner";
+import ServicesDetailsPrimary from "@/components/sections/services/ServicesDetailsPrimary";
 import BackToTop from "@/components/shared/others/BackToTop";
 import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
-import HeroInner from "@/components/sections/hero/HeroInner";
-import ServicesDetailsPrimary from "@/components/sections/services/ServicesDetailsPrimary";
 import { notFound } from "next/navigation";
-
-// Always fallback so SSR never fetches "undefined/api/..."
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-async function getServiceBySlug(slug) {
-  try {
-    const res = await fetch(`${API_BASE}/services/slug/${slug}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data || null;
-  } catch (err) {
-    console.error("getServiceBySlug error:", err.message);
-    return null;
-  }
-}
-
-async function getAllServices() {
-  try {
-    const res = await fetch(`${API_BASE}/services`, { cache: "no-store" });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.data || [];
-  } catch (err) {
-    console.error("getAllServices error:", err.message);
-    return [];
-  }
-}
+import { getAllServices, getServiceBySlug } from "@/libs/services";
 
 export async function generateMetadata({ params }) {
-  const slug = (await params).slug;
+  const { slug } = await params;
   const service = await getServiceBySlug(slug);
   if (!service) return { title: "Service Not Found" };
   return {
-    title: service.title + " - InspirePhD",
+    title: `${service.title} - InspirePhD`,
     description: service.description1
       ? service.description1.slice(0, 160)
       : service.title,
   };
 }
 
-export async function generateStaticParams() {
-  const services = await getAllServices();
-  return services.map((s) => ({ slug: s.slug }));
-}
+// generateStaticParams intentionally removed — static pages don't update
+// after edits. With dynamic = "force-dynamic" every request is server-rendered.
 
 export default async function ServicePage({ params }) {
-  const slug = (await params).slug;
+  const { slug } = await params;
 
   const [service, allServices] = await Promise.all([
     getServiceBySlug(slug),
     getAllServices(),
   ]);
 
-  if (!service) {
-    notFound();
-  }
+  if (!service) notFound();
 
-  const currentIndex = allServices.findIndex((s) => s.slug === slug);
+  const currentIndex = allServices.findIndex(s => s.slug === slug);
   const isPrevItem   = currentIndex > 0;
   const isNextItem   = currentIndex < allServices.length - 1;
   const prevId       = isPrevItem ? allServices[currentIndex - 1].slug : null;
