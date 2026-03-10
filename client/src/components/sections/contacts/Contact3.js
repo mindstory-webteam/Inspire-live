@@ -1,37 +1,78 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import ReactNiceSelect from "@/components/shared/Inputs/ReactNiceSelect";
 import contactApi from "@/utils/contactApi";
+import { getAllServices } from "@/utils/serviceApi";
 
-const SERVICE_OPTIONS = [
-  { value: "",                         optionName: "Choose a Service" },
-  { value: "Business Strategy",        optionName: "Business Strategy" },
-  { value: "Customer Experience",      optionName: "Customer Experience" },
-  { value: "Sustainability and ESG",   optionName: "Sustainability and ESG" },
-  { value: "Training and Development", optionName: "Training and Development" },
-  { value: "IT Support & Maintenance", optionName: "IT Support & Maintenance" },
-  { value: "Marketing Strategy",       optionName: "Marketing Strategy" },
-];
+var EMPTY_FORM = { fullName: "", email: "", phone: "", service: "", message: "" };
 
-const EMPTY_FORM = { fullName: "", email: "", phone: "", service: "", message: "" };
+var Contact3 = function () {
+  var formState           = useState(EMPTY_FORM);
+  var form                = formState[0];
+  var setForm             = formState[1];
 
-const Contact3 = () => {
-  const [form,   setForm]   = useState(EMPTY_FORM);
-  const [status, setStatus] = useState("idle"); // idle | loading | success | error
-  const [errMsg, setErrMsg] = useState("");
-  const submitting = useRef(false); // ← prevents double-submit
+  var statusState         = useState("idle");
+  var status              = statusState[0];
+  var setStatus           = statusState[1];
 
-  const handleChange = (e) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  var errMsgState         = useState("");
+  var errMsg              = errMsgState[0];
+  var setErrMsg           = errMsgState[1];
 
-  const handleServiceChange = (val) =>
-    setForm((prev) => ({ ...prev, service: val }));
+  var serviceOptionsState = useState([{ value: "", optionName: "Choose a Service" }]);
+  var serviceOptions      = serviceOptionsState[0];
+  var setServiceOptions   = serviceOptionsState[1];
 
-  const handleSubmit = async (e) => {
+  var submitting = useRef(false);
+
+  useEffect(function () {
+    getAllServices()
+      .then(function (services) {
+        // Guard: must be a real array of service objects
+        if (!Array.isArray(services)) return;
+
+        var opts = [{ value: "", optionName: "Choose a Service" }].concat(
+          services
+            .filter(function (s) {
+              return (
+                s &&
+                typeof s === "object" &&
+                typeof s.title === "string" &&
+                s.title.trim() !== "" &&
+                s.isActive
+              );
+            })
+            .map(function (s) {
+              return { value: s.title, optionName: s.title };
+            })
+        );
+        setServiceOptions(opts);
+      })
+      .catch(function () {
+        // keep default placeholder on error
+      });
+  }, []);
+
+  function handleChange(e) {
+    var name  = e.target.name;
+    var value = e.target.value;
+    setForm(function (prev) {
+      var next = Object.assign({}, prev);
+      next[name] = value;
+      return next;
+    });
+  }
+
+  function handleServiceChange(val) {
+    setForm(function (prev) {
+      return Object.assign({}, prev, { service: val });
+    });
+  }
+
+  function handleSubmit(e) {
     e.preventDefault();
 
-    // Block if already in-flight
     if (submitting.current) return;
 
     if (!form.fullName.trim() || !form.email.trim() || !form.message.trim()) {
@@ -44,32 +85,37 @@ const Contact3 = () => {
     setStatus("loading");
     setErrMsg("");
 
-    try {
-      const res = await contactApi.submit({
+    contactApi
+      .submit({
         fullName: form.fullName.trim(),
         email:    form.email.trim(),
         phone:    form.phone.trim(),
         service:  form.service,
         message:  form.message.trim(),
-      });
-
-      if (res.data?.success) {
-        setStatus("success");
-        setForm(EMPTY_FORM);
-      } else {
-        setErrMsg(res.data?.message || "Something went wrong. Please try again.");
+      })
+      .then(function (res) {
+        if (res.data && res.data.success) {
+          setStatus("success");
+          setForm(EMPTY_FORM);
+        } else {
+          setErrMsg(
+            (res.data && res.data.message) ||
+            "Something went wrong. Please try again."
+          );
+          setStatus("error");
+        }
+      })
+      .catch(function (err) {
+        setErrMsg(
+          (err.response && err.response.data && err.response.data.message) ||
+          "Network error. Please check your connection and try again."
+        );
         setStatus("error");
-      }
-    } catch (err) {
-      setErrMsg(
-        err.response?.data?.message ||
-        "Network error. Please check your connection and try again."
-      );
-      setStatus("error");
-    } finally {
-      submitting.current = false;
-    }
-  };
+      })
+      .finally(function () {
+        submitting.current = false;
+      });
+  }
 
   return (
     <section className="tj-contact-section-2 section-bottom-gap">
@@ -81,7 +127,6 @@ const Contact3 = () => {
                 Feel Free to Get in Touch or Visit our Location.
               </h3>
 
-              {/* ── Success Banner ── */}
               {status === "success" && (
                 <div style={{
                   background: "#f0fdf4", border: "1px solid #bbf7d0",
@@ -99,7 +144,6 @@ const Contact3 = () => {
                 </div>
               )}
 
-              {/* ── Error Banner ── */}
               {status === "error" && (
                 <div style={{
                   background: "#fef2f2", border: "1px solid #fecaca",
@@ -122,32 +166,48 @@ const Contact3 = () => {
 
                   <div className="col-sm-6">
                     <div className="form-input">
-                      <input type="text" name="fullName" value={form.fullName}
-                        onChange={handleChange} placeholder="Full Name*" />
+                      <input
+                        type="text"
+                        name="fullName"
+                        value={form.fullName}
+                        onChange={handleChange}
+                        placeholder="Full Name*"
+                      />
                     </div>
                   </div>
 
                   <div className="col-sm-6">
                     <div className="form-input">
-                      <input type="email" name="email" value={form.email}
-                        onChange={handleChange} placeholder="Email Address*" />
+                      <input
+                        type="email"
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        placeholder="Email Address*"
+                      />
                     </div>
                   </div>
 
                   <div className="col-sm-6">
                     <div className="form-input">
-                      <input type="tel" name="phone" value={form.phone}
-                        onChange={handleChange} placeholder="Phone number" />
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={form.phone}
+                        onChange={handleChange}
+                        placeholder="Phone number"
+                      />
                     </div>
                   </div>
 
                   <div className="col-sm-6">
                     <div className="form-input">
-                      <div className="tj-nice-select-box">
+                      <div className="tj-nice-select-box tj-select-constrained">
                         <div className="tj-select">
                           <ReactNiceSelect
+                            key={serviceOptions.length}
                             selectedIndex={0}
-                            options={SERVICE_OPTIONS}
+                            options={serviceOptions}
                             onChange={handleServiceChange}
                           />
                         </div>
@@ -157,8 +217,13 @@ const Contact3 = () => {
 
                   <div className="col-sm-12">
                     <div className="form-input message-input">
-                      <textarea name="message" id="message" value={form.message}
-                        onChange={handleChange} placeholder="Type message*" />
+                      <textarea
+                        name="message"
+                        id="message"
+                        value={form.message}
+                        onChange={handleChange}
+                        placeholder="Type message*"
+                      />
                     </div>
                   </div>
 
@@ -185,6 +250,35 @@ const Contact3 = () => {
           </div>
         </div>
       </div>
+
+      {/* Fix dropdown width overflow */}
+      <style>{`
+        .tj-select-constrained,
+        .tj-select-constrained .tj-select {
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+        .tj-select-constrained .nice-select {
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        .tj-select-constrained .nice-select .list {
+          width: 100% !important;
+          max-width: 100% !important;
+          left: 0 !important;
+          right: 0 !important;
+          box-sizing: border-box !important;
+        }
+        .tj-select-constrained .nice-select .list .option {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+      `}</style>
     </section>
   );
 };

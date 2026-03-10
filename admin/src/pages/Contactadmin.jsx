@@ -1,13 +1,15 @@
 /**
  * ContactAdmin.jsx
  * Full admin panel for contact form submissions
+ * — service field now fetches + displays matched service from backend
  */
 import { useState, useEffect, useCallback } from 'react';
-import { contactService } from '../services/api';
+import { contactService, serviceService } from '../services/api';
 import {
   Mail, Search, Trash2, Eye, X, CheckCircle, XCircle,
   ChevronLeft, ChevronRight, Phone, AtSign, MessageSquare,
-  Archive, RefreshCw, Users, Clock, MailOpen, Send,
+  Archive, RefreshCw, Users, Clock, MailOpen, Send, Briefcase,
+  ExternalLink,
 } from 'lucide-react';
 
 /* ─── base styles ─────────────────────────────────────────────────────────── */
@@ -56,12 +58,11 @@ function formatDate(d) {
 function timeAgo(d) {
   const diff = Date.now() - new Date(d).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1)   return 'just now';
-  if (mins < 60)  return `${mins}m ago`;
+  if (mins < 1)  return 'just now';
+  if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24)   return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+  if (hrs < 24)  return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
 }
 
 /* ─── Toast ──────────────────────────────────────────────────────────────── */
@@ -130,6 +131,107 @@ function StatusBadge({ status }) {
   );
 }
 
+/* ─── ServiceCard — shown inside detail modal ────────────────────────────── */
+function ServiceCard({ serviceName }) {
+  const [svc,     setSvc]     = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!serviceName) return;
+    setLoading(true);
+    setNotFound(false);
+
+    // getAllAdmin returns every service; find the one whose title matches
+    serviceService.getAllAdmin()
+      .then(res => {
+        const list = res.data?.data || [];
+        const match = list.find(
+          s => s.title?.toLowerCase().trim() === serviceName.toLowerCase().trim()
+        );
+        if (match) setSvc(match);
+        else setNotFound(true);
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [serviceName]);
+
+  if (!serviceName) return null;
+
+  return (
+    <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', gridColumn: '1 / -1' }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <Briefcase size={11} /> Service Interested In
+      </div>
+
+      {loading && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #e5e7eb', borderTopColor: '#1a598a', animation: 'spin .7s linear infinite' }} />
+          <span style={{ fontSize: 13, color: '#9ca3af' }}>Loading service details…</span>
+        </div>
+      )}
+
+      {/* Matched service — show enriched card */}
+      {!loading && svc && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Thumbnail */}
+          {(svc.heroImage || svc.icon) ? (
+            <img
+              src={svc.heroImage || svc.icon}
+              alt={svc.title}
+              style={{ width: 44, height: 44, borderRadius: 9, objectFit: 'cover', border: '1px solid #e5e7eb', flexShrink: 0 }}
+              onError={e => { e.target.style.display = 'none'; }}
+            />
+          ) : (
+            <div style={{ width: 44, height: 44, borderRadius: 9, background: 'linear-gradient(135deg,#1a598a18,#01559918)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #bfdbfe' }}>
+              <Briefcase size={18} color="#1a598a" />
+            </div>
+          )}
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{svc.title}</span>
+              {/* active/inactive badge */}
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
+                background: svc.isActive ? '#f0fdf4' : '#fef2f2',
+                color: svc.isActive ? '#15803d' : '#dc2626',
+                border: `1px solid ${svc.isActive ? '#bbf7d0' : '#fecaca'}`,
+                textTransform: 'uppercase',
+              }}>
+                {svc.isActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+            {svc.subtitle && (
+              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {svc.subtitle}
+              </div>
+            )}
+          </div>
+
+          {/* View service link */}
+          {svc.slug && (
+            <a
+              href={`/services/${svc.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              title="View service page"
+              style={{ ...B('blue', true), textDecoration: 'none', flexShrink: 0 }}
+            >
+              <ExternalLink size={12} /> View
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* No match — just show the raw string */}
+      {!loading && notFound && (
+        <span style={{ fontSize: 13, color: '#111827', fontWeight: 600 }}>{serviceName}</span>
+      )}
+    </div>
+  );
+}
+
 /* ─── Detail Modal ───────────────────────────────────────────────────────── */
 function ContactDetail({ contact, onStatusChange, onClose }) {
   const sc = SC[contact.status] || SC.new;
@@ -168,6 +270,7 @@ function ContactDetail({ contact, onStatusChange, onClose }) {
           </div>
           <a href={`mailto:${contact.email}`} style={{ fontSize: 14, color: '#1a598a', fontWeight: 600, textDecoration: 'none', wordBreak: 'break-all' }}>{contact.email}</a>
         </div>
+
         <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
             <Phone size={11} /> Phone
@@ -176,11 +279,10 @@ function ContactDetail({ contact, onStatusChange, onClose }) {
             ? <a href={`tel:${contact.phone}`} style={{ fontSize: 14, color: '#374151', fontWeight: 600, textDecoration: 'none' }}>{contact.phone}</a>
             : <span style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>Not provided</span>}
         </div>
+
+        {/* Service card — fetches full service details from backend */}
         {contact.service && (
-          <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', gridColumn: '1 / -1' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Service Interested In</div>
-            <span style={{ fontSize: 13, color: '#111827', fontWeight: 600 }}>{contact.service}</span>
-          </div>
+          <ServiceCard serviceName={contact.service} />
         )}
       </div>
 
@@ -208,18 +310,18 @@ function ContactDetail({ contact, onStatusChange, onClose }) {
    MAIN
 ═══════════════════════════════════════════════════════════════════════════ */
 export default function ContactAdmin() {
-  const [contacts,    setContacts]    = useState([]);
-  const [stats,       setStats]       = useState(null);
-  const [page,        setPage]        = useState(1);
-  const [totalPages,  setTotalPages]  = useState(1);
-  const [total,       setTotal]       = useState(0);
-  const [loading,     setLoading]     = useState(false);
-  const [search,      setSearch]      = useState('');
-  const [filter,      setFilter]      = useState('all');
-  const [selected,    setSelected]    = useState(null);
-  const [confirm,     setConfirm]     = useState(null);
-  const [toast,       setToast]       = useState(null);
-  const [bulkIds,     setBulkIds]     = useState([]);
+  const [contacts,   setContacts]   = useState([]);
+  const [stats,      setStats]      = useState(null);
+  const [page,       setPage]       = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total,      setTotal]      = useState(0);
+  const [loading,    setLoading]    = useState(false);
+  const [search,     setSearch]     = useState('');
+  const [filter,     setFilter]     = useState('all');
+  const [selected,   setSelected]   = useState(null);
+  const [confirm,    setConfirm]    = useState(null);
+  const [toast,      setToast]      = useState(null);
+  const [bulkIds,    setBulkIds]    = useState([]);
 
   const showToast = useCallback((msg, type = 'success') => setToast({ msg, type }), []);
 
@@ -251,7 +353,6 @@ export default function ContactAdmin() {
       const r = await contactService.getById(contact._id);
       if (r.data?.success) {
         setSelected(r.data.data);
-        // update local list if status changed to 'read'
         setContacts(prev => prev.map(c => c._id === contact._id && c.status === 'new' ? { ...c, status: 'read' } : c));
         loadStats();
       }
@@ -294,8 +395,8 @@ export default function ContactAdmin() {
     setConfirm(null);
   };
 
-  const toggleBulk = (id) => setBulkIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  const toggleAllBulk = () => setBulkIds(bulkIds.length === contacts.length ? [] : contacts.map(c => c._id));
+  const toggleBulk    = (id) => setBulkIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const toggleAllBulk = ()   => setBulkIds(bulkIds.length === contacts.length ? [] : contacts.map(c => c._id));
 
   return (
     <div style={{ padding: '24px 32px', minHeight: '100vh', background: '#f8fafc' }}>
@@ -314,11 +415,11 @@ export default function ContactAdmin() {
       {/* Stats */}
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(155px,1fr))', gap: 12, marginBottom: 22 }}>
-          <StatCard label="Total"      value={stats.total}      color="#2563eb" icon={<Users size={19} color="#2563eb" />} />
-          <StatCard label="New"        value={stats.new}        color="#f59e0b" icon={<Clock size={19} color="#f59e0b" />} />
-          <StatCard label="Read"       value={stats.read}       color="#3b82f6" icon={<MailOpen size={19} color="#3b82f6" />} />
-          <StatCard label="Replied"    value={stats.replied}    color="#22c55e" icon={<Send size={19} color="#22c55e" />} />
-          <StatCard label="Last 30d"   value={stats.last30Days} color="#7c3aed" icon={<Mail size={19} color="#7c3aed" />} />
+          <StatCard label="Total"    value={stats.total}      color="#2563eb" icon={<Users   size={19} color="#2563eb" />} />
+          <StatCard label="New"      value={stats.new}        color="#f59e0b" icon={<Clock   size={19} color="#f59e0b" />} />
+          <StatCard label="Read"     value={stats.read}       color="#3b82f6" icon={<MailOpen size={19} color="#3b82f6" />} />
+          <StatCard label="Replied"  value={stats.replied}    color="#22c55e" icon={<Send    size={19} color="#22c55e" />} />
+          <StatCard label="Last 30d" value={stats.last30Days} color="#7c3aed" icon={<Mail    size={19} color="#7c3aed" />} />
         </div>
       )}
 
@@ -345,8 +446,7 @@ export default function ContactAdmin() {
           ))}
         </div>
 
-        {/* Bulk actions */}
-        {bulkIds.length > 0 && (
+        {bulkIds.length > 0 ? (
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 600 }}>{bulkIds.length} selected</span>
             <button onClick={() => setConfirm({ type: 'bulk' })} style={B('danger', true)}>
@@ -354,8 +454,7 @@ export default function ContactAdmin() {
             </button>
             <button onClick={() => setBulkIds([])} style={B('ghost', true)}>Clear</button>
           </div>
-        )}
-        {bulkIds.length === 0 && (
+        ) : (
           <span style={{ marginLeft: 'auto', fontSize: 13, color: '#9ca3af' }}>{total} message{total !== 1 ? 's' : ''}</span>
         )}
       </div>

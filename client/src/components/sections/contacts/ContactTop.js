@@ -26,7 +26,7 @@ const ContactTop = () => {
 								<i className="tji-location-3"></i>
 							</div>
 							<h3 className="contact-title">Our Location</h3>
-							<p>993 Renner Burg, West Rond, MT 94251-030</p>
+							<p>INSPIRE EDUCATION SERVICE, floor aazra arcade, near central excise office, mettupalayam, Palakkad - 678001</p>
 						</div>
 					</div>
 					<div className="col-xl-3 col-lg-6 col-sm-6">
@@ -40,11 +40,11 @@ const ContactTop = () => {
 							<h3 className="contact-title">Email us</h3>
 							<ul className="contact-list">
 								<li>
-									<Link href="mailto:support@bexon.com">support@bexon.com</Link>
+									<Link href="mailto:inspireeduservice001@gmail.com">inspireeduservice001@gmail.com</Link>
 								</li>
-								<li>
+								{/* <li>
 									<Link href="mailto:info@bexon.com">info@bexon.com</Link>
-								</li>
+								</li> */}
 							</ul>
 						</div>
 					</div>
@@ -59,10 +59,10 @@ const ContactTop = () => {
 							<h3 className="contact-title">Call us</h3>
 							<ul className="contact-list">
 								<li>
-									<Link href="tel:10095447818">+1 (009) 544-7818</Link>
+									<Link href="tel:0091 7593 091 945">0091 7593 091 945</Link>
 								</li>
 								<li>
-									<Link href="tel:10098801810">+1 (009) 880-1810</Link>
+									<Link href="tel:+919947945945">+91 9947 945 945</Link>
 								</li>
 							</ul>
 						</div>
@@ -79,7 +79,7 @@ const ContactTop = () => {
 							<ul className="contact-list">
 								<li>
 									<Link href="mailto:livechat@bexon.com">
-										livechat@bexon.com
+										inspireeduservice001@gmail.com
 									</Link>
 								</li>
 								<li className="active">

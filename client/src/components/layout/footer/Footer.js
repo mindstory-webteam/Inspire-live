@@ -207,15 +207,15 @@ const Footer = () => {
                 <div className="footer-contact">
                   <ul>
                     <li>
-                      <Link href="tel:10095447818">
+                      <Link href="tel:+919947945945">
                         <span className="icon"><i className="tji-phone-2"></i></span>
-                        <span className="text">+1 (009) 544-7818</span>
+                        <span className="text">+91 9947 945 945</span>
                       </Link>
                     </li>
                     <li>
-                      <Link href="mailto:info@bexon.com">
+                      <Link href="mailto:inspireeduservice001@gmail.com">
                         <span className="icon"><i className="tji-envelop-2"></i></span>
-                        <span className="text">info@bexon.com</span>
+                        <span className="text">inspireeduservice001@gmail.com</span>
                       </Link>
                     </li>
                   </ul>
@@ -223,18 +223,18 @@ const Footer = () => {
                 <div className="social-links">
                   <ul>
                     <li>
-                      <Link href="https://www.facebook.com/" target="_blank">
+                      <Link href="https://www.facebook.com/inspireeducationservice/#" target="_blank">
                         <i className="fa-brands fa-facebook-f"></i>
                       </Link>
                     </li>
                     <li>
-                      <Link href="https://www.instagram.com/" target="_blank">
+                      <Link href="https://www.instagram.com/inspireeducationservice" target="_blank">
                         <i className="fa-brands fa-instagram"></i>
                       </Link>
                     </li>
                     <li>
-                      <Link href="https://x.com/" target="_blank">
-                        <i className="fa-brands fa-x-twitter"></i>
+                      <Link href="https://www.youtube.com/channel/UCxdf2JpHcvAuGhVweQiy6GA?app=desktop" target="_blank">
+                        <i className="fa-brands fa-youtube"></i>
                       </Link>
                     </li>
                     <li>
