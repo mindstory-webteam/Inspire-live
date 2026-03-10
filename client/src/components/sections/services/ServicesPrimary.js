@@ -3,7 +3,6 @@ import ServiceCard4 from "@/components/shared/cards/ServiceCard4";
 import Paginations from "@/components/shared/others/Paginations";
 import usePagination from "@/hooks/usePagination";
 import makeWowDelay from "@/libs/makeWowDelay";
-import { getAllServices } from "@/utils/serviceApi";
 import { useEffect, useState, useCallback } from "react";
 
 const LIMIT = 6;
@@ -17,8 +16,11 @@ const ServicesPrimary = function () {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllServices();
-      setItems(data);
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const res = await fetch(API_BASE + "/services", { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed: " + res.status);
+      const data = await res.json();
+      setItems(data.data || []);
     } catch (err) {
       console.error("ServicesPrimary:", err);
       setError("Failed to load services.");
@@ -82,13 +84,13 @@ const ServicesPrimary = function () {
         )}
 
         {!loading && error && (
-          <p style={{ textAlign:"center", color:"#e53e3e", padding:"60px 0" }}>
+          <p style={{ textAlign: "center", color: "#e53e3e", padding: "60px 0" }}>
             {error}
           </p>
         )}
 
         {!loading && !error && items.length === 0 && (
-          <p style={{ textAlign:"center", color:"#888", padding:"60px 0" }}>
+          <p style={{ textAlign: "center", color: "#888", padding: "60px 0" }}>
             No services found.
           </p>
         )}
