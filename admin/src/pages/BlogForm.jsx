@@ -203,7 +203,7 @@ export default function BlogForm() {
                 <ImageField field="img1"       label="Inline Grid Left" />
                 <ImageField field="img2"       label="Inline Grid Right" />
                 <ImageField field="smallImg"   label="Sidebar Thumbnail" />
-                <ImageField field="videoImg"   label="Video Poster" />
+                
               </div>
             </div>
 

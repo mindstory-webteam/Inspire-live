@@ -68,7 +68,7 @@ const blogSchema = new mongoose.Schema({
   // ── Video ───────────────────────────────────────────────────
   videoUrl:     { type: String, default: null },
   popupVideo:   { type: String, default: null },  // alias
-  videoImg:     { type: String, default: null },
+  
 
   // ── Flags ───────────────────────────────────────────────────
   isPublished:  { type: Boolean, default: true },

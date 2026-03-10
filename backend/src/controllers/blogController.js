@@ -285,7 +285,7 @@ exports.deleteBlog = async (req, res, next) => {
     if (!blog) return res.status(404).json({ success: false, message: 'Blog not found' });
 
     // Collect all image URLs from the blog
-    const imageFields = ['img', 'detailsImg', 'img1', 'img2', 'img3', 'img4', 'img5', 'img6', 'smallImg', 'videoImg'];
+    const imageFields = ['img', 'detailsImg', 'img1', 'img2', 'img3', 'img4', 'img5', 'img6', 'smallImg',];
     const imagesToDelete = [];
 
     imageFields.forEach(field => {

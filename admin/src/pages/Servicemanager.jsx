@@ -13,29 +13,8 @@ const ServiceManager = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [toast, setToast]                 = useState({ show: false, message: "", type: "" });
   const [search, setSearch]               = useState("");
-  // "all" | "visible" | "hidden"
-  const [visibilityFilter, setVisibilityFilter] = useState("all");
-  // Set of service IDs hidden locally (persisted in localStorage)
-  const [hiddenIds, setHiddenIds] = useState(() => {
-    try {
-      return new Set(JSON.parse(localStorage.getItem("sm_hidden_services") || "[]"));
-    } catch { return new Set(); }
-  });
-
-  // ─── Persist hidden IDs ───────────────────────────────────────────────────
-  const saveHidden = (set) => {
-    localStorage.setItem("sm_hidden_services", JSON.stringify([...set]));
-  };
-
-  const toggleHidden = (id) => {
-    setHiddenIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) { next.delete(id); showToast("Service is now visible in the list.", "success"); }
-      else              { next.add(id);    showToast("Service hidden from the list.", "info"); }
-      saveHidden(next);
-      return next;
-    });
-  };
+  // "all" | "active" | "inactive"
+  const [statusFilter, setStatusFilter]   = useState("all");
 
   // ─── Fetch ────────────────────────────────────────────────────────────────
   const fetchServices = useCallback(async () => {
@@ -67,13 +46,6 @@ const ServiceManager = () => {
       await api.delete("/services/" + deleteId);
       showToast("Service deleted successfully.", "success");
       setDeleteId(null);
-      // Also remove from hidden set if present
-      setHiddenIds((prev) => {
-        const next = new Set(prev);
-        next.delete(deleteId);
-        saveHidden(next);
-        return next;
-      });
       fetchServices();
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to delete service.", "error");
@@ -96,20 +68,22 @@ const ServiceManager = () => {
   };
 
   // ─── Filtered list ────────────────────────────────────────────────────────
-  const searchFiltered = services.filter(s =>
-    s.title?.toLowerCase().includes(search.toLowerCase()) ||
-    s.slug?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = services.filter(s => {
+    const matchesSearch =
+      s.title?.toLowerCase().includes(search.toLowerCase()) ||
+      s.slug?.toLowerCase().includes(search.toLowerCase());
 
-  const filtered = searchFiltered.filter(s => {
-    if (visibilityFilter === "hidden")  return hiddenIds.has(s._id);
-    if (visibilityFilter === "visible") return !hiddenIds.has(s._id);
-    return true;
+    const matchesStatus =
+      statusFilter === "all"      ? true :
+      statusFilter === "active"   ? s.isActive :
+      statusFilter === "inactive" ? !s.isActive :
+      true;
+
+    return matchesSearch && matchesStatus;
   });
 
   const activeCount   = services.filter(s => s.isActive).length;
   const inactiveCount = services.filter(s => !s.isActive).length;
-  const hiddenCount   = services.filter(s => hiddenIds.has(s._id)).length;
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
@@ -183,7 +157,11 @@ const ServiceManager = () => {
           <div className="sm-stat__bar sm-stat__bar--total"></div>
         </div>
 
-        <div className="sm-stat sm-stat--active">
+        <div
+          className={"sm-stat sm-stat--active" + (statusFilter === "active" ? " sm-stat--selected" : "")}
+          style={{ cursor: "pointer" }}
+          onClick={() => setStatusFilter(f => f === "active" ? "all" : "active")}
+        >
           <div className="sm-stat__icon-wrap sm-stat__icon-wrap--green">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -196,7 +174,11 @@ const ServiceManager = () => {
           <div className="sm-stat__bar sm-stat__bar--active"></div>
         </div>
 
-        <div className="sm-stat sm-stat--inactive">
+        <div
+          className={"sm-stat sm-stat--inactive" + (statusFilter === "inactive" ? " sm-stat--selected" : "")}
+          style={{ cursor: "pointer" }}
+          onClick={() => setStatusFilter(f => f === "inactive" ? "all" : "inactive")}
+        >
           <div className="sm-stat__icon-wrap sm-stat__icon-wrap--red">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
@@ -208,20 +190,6 @@ const ServiceManager = () => {
             <div className="sm-stat__label">Inactive</div>
           </div>
           <div className="sm-stat__bar sm-stat__bar--inactive"></div>
-        </div>
-
-        <div className="sm-stat sm-stat--hidden" style={{cursor:"pointer"}} onClick={() => setVisibilityFilter(v => v === "hidden" ? "all" : "hidden")}>
-          <div className="sm-stat__icon-wrap sm-stat__icon-wrap--amber">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <div className="sm-stat__body">
-            <div className="sm-stat__value sm-stat__value--amber">{hiddenCount}</div>
-            <div className="sm-stat__label">Hidden</div>
-          </div>
-          <div className="sm-stat__bar sm-stat__bar--amber"></div>
         </div>
       </div>
 
@@ -247,22 +215,19 @@ const ServiceManager = () => {
           )}
         </div>
 
-        {/* Visibility filter tabs */}
+        {/* Status filter tabs */}
         <div className="sm-vis-tabs">
           {[
-            { key: "all",     label: "All" },
-            { key: "visible", label: "Visible" },
-            { key: "hidden",  label: "Hidden" },
+            { key: "all",      label: "All" },
+            { key: "active",   label: "Active" },
+            { key: "inactive", label: "Inactive" },
           ].map(({ key, label }) => (
             <button
               key={key}
-              className={"sm-vis-tab " + (visibilityFilter === key ? "sm-vis-tab--active" : "")}
-              onClick={() => setVisibilityFilter(key)}
+              className={"sm-vis-tab " + (statusFilter === key ? "sm-vis-tab--active" : "")}
+              onClick={() => setStatusFilter(key)}
             >
               {label}
-              {key === "hidden" && hiddenCount > 0 && (
-                <span className="sm-vis-tab__badge">{hiddenCount}</span>
-              )}
             </button>
           ))}
         </div>
@@ -305,7 +270,7 @@ const ServiceManager = () => {
         ) : filtered.length === 0 ? (
           <div className="sm-empty">
             <div className="sm-empty__icon">
-              {search || visibilityFilter !== "all" ? (
+              {search || statusFilter !== "all" ? (
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
                   <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.5" />
                   <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -321,18 +286,20 @@ const ServiceManager = () => {
             <h3 className="sm-empty__title">
               {search
                 ? `No results for "${search}"`
-                : visibilityFilter === "hidden"
-                  ? "No hidden services"
-                  : "No services yet"}
+                : statusFilter === "active"
+                  ? "No active services"
+                  : statusFilter === "inactive"
+                    ? "No inactive services"
+                    : "No services yet"}
             </h3>
             <p className="sm-empty__sub">
               {search
                 ? "Try a different search term."
-                : visibilityFilter === "hidden"
-                  ? "Hide services using the eye icon in the actions column."
+                : statusFilter !== "all"
+                  ? "Try switching to a different filter."
                   : "Add your first service to get started."}
             </p>
-            {!search && visibilityFilter === "all" && (
+            {!search && statusFilter === "all" && (
               <button className="sm-btn sm-btn--primary" onClick={() => navigate("/services/new")}>
                 Add First Service
               </button>
@@ -354,152 +321,125 @@ const ServiceManager = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((service, idx) => {
-                  const isHidden = hiddenIds.has(service._id);
-                  return (
-                    <tr
-                      key={service._id}
-                      className={"sm-tr " + (isHidden ? "sm-tr--hidden" : "")}
-                      style={{ animationDelay: idx * 35 + "ms" }}
-                    >
+                {filtered.map((service, idx) => (
+                  <tr
+                    key={service._id}
+                    className="sm-tr"
+                    style={{ animationDelay: idx * 35 + "ms" }}
+                  >
 
-                      {/* Service */}
-                      <td className="sm-td">
-                        <div className="sm-service-cell">
-                          <div className="sm-thumb">
-                            {service.heroImage ? (
-                              <>
-                                <img
-                                  src={service.heroImage}
-                                  alt={service.title}
-                                  onError={e => {
-                                    e.target.style.display = "none";
-                                    e.target.nextSibling.style.display = "flex";
-                                  }}
-                                />
-                                <div className="sm-thumb__fallback" style={{ display: "none" }}>
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                                    <path d="M3 9l4-4 4 4 4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                  </svg>
-                                </div>
-                              </>
-                            ) : (
-                              <div className="sm-thumb__fallback" style={{ display: "flex" }}>
+                    {/* Service */}
+                    <td className="sm-td">
+                      <div className="sm-service-cell">
+                        <div className="sm-thumb">
+                          {service.heroImage ? (
+                            <>
+                              <img
+                                src={service.heroImage}
+                                alt={service.title}
+                                onError={e => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
+                              />
+                              <div className="sm-thumb__fallback" style={{ display: "none" }}>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                   <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
                                   <path d="M3 9l4-4 4 4 4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                                 </svg>
                               </div>
-                            )}
-                          </div>
-                          <div className="sm-service-info">
-                            <span className="sm-service-name">
-                              {service.title}
-                              {isHidden && (
-                                <span className="sm-hidden-badge">Hidden</span>
-                              )}
+                            </>
+                          ) : (
+                            <div className="sm-thumb__fallback" style={{ display: "flex" }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                                <path d="M3 9l4-4 4 4 4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="sm-service-info">
+                          <span className="sm-service-name">{service.title}</span>
+                          {service.subtitle && (
+                            <span className="sm-service-sub">
+                              {service.subtitle.length > 52 ? service.subtitle.slice(0, 52) + "…" : service.subtitle}
                             </span>
-                            {service.subtitle && (
-                              <span className="sm-service-sub">
-                                {service.subtitle.length > 52 ? service.subtitle.slice(0, 52) + "…" : service.subtitle}
-                              </span>
-                            )}
-                          </div>
+                          )}
                         </div>
-                      </td>
+                      </div>
+                    </td>
 
-                      {/* Slug */}
-                      <td className="sm-td">
-                        <code className="sm-slug">{service.slug}</code>
-                      </td>
+                    {/* Slug */}
+                    <td className="sm-td">
+                      <code className="sm-slug">{service.slug}</code>
+                    </td>
 
-                      {/* FAQs */}
-                      <td className="sm-td sm-td--center">
-                        <span className="sm-badge sm-badge--blue">{service.faqs?.length || 0}</span>
-                      </td>
+                    {/* FAQs */}
+                    <td className="sm-td sm-td--center">
+                      <span className="sm-badge sm-badge--blue">{service.faqs?.length || 0}</span>
+                    </td>
 
-                      {/* Benefits */}
-                      <td className="sm-td sm-td--center">
-                        <span className="sm-badge sm-badge--purple">{service.benefits?.length || 0}</span>
-                      </td>
+                    {/* Benefits */}
+                    <td className="sm-td sm-td--center">
+                      <span className="sm-badge sm-badge--purple">{service.benefits?.length || 0}</span>
+                    </td>
 
-                      {/* Order */}
-                      <td className="sm-td sm-td--center">
-                        <span className="sm-order">{service.order}</span>
-                      </td>
+                    {/* Order */}
+                    <td className="sm-td sm-td--center">
+                      <span className="sm-order">{service.order}</span>
+                    </td>
 
-                      {/* Status */}
-                      <td className="sm-td sm-td--center">
-                        <button
-                          className={"sm-status " + (service.isActive ? "sm-status--on" : "sm-status--off")}
-                          onClick={() => handleToggleActive(service)}
-                          title="Click to toggle"
+                    {/* Status */}
+                    <td className="sm-td sm-td--center">
+                      <button
+                        className={"sm-status " + (service.isActive ? "sm-status--on" : "sm-status--off")}
+                        onClick={() => handleToggleActive(service)}
+                        title="Click to toggle"
+                      >
+                        <span className="sm-status__dot"></span>
+                        {service.isActive ? "Active" : "Inactive"}
+                      </button>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="sm-td sm-td--right">
+                      <div className="sm-actions">
+                        <a
+                          href={"http://localhost:3000/services/" + service.slug}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="sm-icon-btn sm-icon-btn--view"
+                          title="View live"
                         >
-                          <span className="sm-status__dot"></span>
-                          {service.isActive ? "Active" : "Inactive"}
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            <path d="M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </a>
+
+                        <button
+                          className="sm-icon-btn sm-icon-btn--edit"
+                          title="Edit"
+                          onClick={() => navigate("/services/edit/" + service._id)}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          </svg>
                         </button>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="sm-td sm-td--right">
-                        <div className="sm-actions">
-                          <a
-                            href={"http://localhost:3000/services/" + service.slug}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="sm-icon-btn sm-icon-btn--view"
-                            title="View live"
-                          >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                              <path d="M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </a>
-
-                          {/* Hide / Show toggle */}
-                          {/* <button
-                            className={"sm-icon-btn " + (isHidden ? "sm-icon-btn--show" : "sm-icon-btn--hide")}
-                            title={isHidden ? "Show in list" : "Hide from list"}
-                            onClick={() => toggleHidden(service._id)}
-                          >
-                            {isHidden ? (
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2"/>
-                                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
-                              </svg>
-                            ) : (
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                              </svg>
-                            )}
-                          </button> */}
-
-                          <button
-                            className="sm-icon-btn sm-icon-btn--edit"
-                            title="Edit"
-                            onClick={() => navigate("/services/edit/" + service._id)}
-                          >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                          </button>
-                          <button
-                            className="sm-icon-btn sm-icon-btn--delete"
-                            title="Delete"
-                            onClick={() => setDeleteId(service._id)}
-                          >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        <button
+                          className="sm-icon-btn sm-icon-btn--delete"
+                          title="Delete"
+                          onClick={() => setDeleteId(service._id)}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -610,7 +550,7 @@ const ServiceManager = () => {
 
         /* ─ Stat Cards ─ */
         .sm-stats {
-          display: grid; grid-template-columns: repeat(4, 1fr);
+          display: grid; grid-template-columns: repeat(3, 1fr);
           gap: 14px; margin-bottom: 22px;
         }
         @media (max-width: 900px) { .sm-stats { grid-template-columns: repeat(2, 1fr); } }
@@ -623,6 +563,12 @@ const ServiceManager = () => {
           transition: box-shadow .18s, transform .18s;
         }
         .sm-stat:hover { box-shadow: 0 6px 24px rgba(0,0,0,.07); transform: translateY(-1px); }
+        .sm-stat--selected {
+          border-color: #1a598a;
+          box-shadow: 0 0 0 3px rgba(26,89,138,.12), 0 6px 24px rgba(0,0,0,.07) !important;
+        }
+        .sm-stat--active.sm-stat--selected  { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.12), 0 6px 24px rgba(0,0,0,.07) !important; }
+        .sm-stat--inactive.sm-stat--selected { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,.12), 0 6px 24px rgba(0,0,0,.07) !important; }
 
         .sm-stat__icon-wrap {
           width: 40px; height: 40px; border-radius: 11px;
@@ -631,7 +577,6 @@ const ServiceManager = () => {
         .sm-stat__icon-wrap--gray  { background: #f0f2f5; color: #67787a; }
         .sm-stat__icon-wrap--green { background: #dcfce7; color: #16a34a; }
         .sm-stat__icon-wrap--red   { background: #fee2e2; color: #dc2626; }
-        .sm-stat__icon-wrap--amber { background: #fef3c7; color: #d97706; }
 
         .sm-stat__body { flex: 1; min-width: 0; }
         .sm-stat__value {
@@ -640,16 +585,14 @@ const ServiceManager = () => {
         }
         .sm-stat__value--green { color: #16a34a; }
         .sm-stat__value--red   { color: #dc2626; }
-        .sm-stat__value--amber { color: #d97706; }
         .sm-stat__label {
           font-size: 11.5px; font-weight: 600; color: #a9b8b8;
           margin-top: 3px; text-transform: uppercase; letter-spacing: .06em;
         }
         .sm-stat__bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 14px 14px; }
-        .sm-stat__bar--total   { background: linear-gradient(90deg, #94a3b8, #cbd5e1); }
-        .sm-stat__bar--active  { background: linear-gradient(90deg, #16a34a, #4ade80); }
-        .sm-stat__bar--inactive{ background: linear-gradient(90deg, #dc2626, #f87171); }
-        .sm-stat__bar--amber   { background: linear-gradient(90deg, #d97706, #fcd34d); }
+        .sm-stat__bar--total    { background: linear-gradient(90deg, #94a3b8, #cbd5e1); }
+        .sm-stat__bar--active   { background: linear-gradient(90deg, #16a34a, #4ade80); }
+        .sm-stat__bar--inactive { background: linear-gradient(90deg, #dc2626, #f87171); }
 
         /* ─ Toolbar ─ */
         .sm-toolbar {
@@ -679,7 +622,7 @@ const ServiceManager = () => {
         }
         .sm-search__clear:hover { background: #e2e8f0; }
 
-        /* ─ Visibility tabs ─ */
+        /* ─ Status filter tabs ─ */
         .sm-vis-tabs {
           display: flex; gap: 4px;
           background: #f0f2f5; border-radius: 10px; padding: 4px;
@@ -694,10 +637,6 @@ const ServiceManager = () => {
         }
         .sm-vis-tab:hover { color: #1a425c; background: rgba(255,255,255,.6); }
         .sm-vis-tab--active { background: #fff; color: #1a598a; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-        .sm-vis-tab__badge {
-          background: #fef3c7; color: #d97706; border: 1px solid #fde68a;
-          padding: 1px 6px; border-radius: 20px; font-size: 10.5px; font-weight: 800;
-        }
 
         .sm-toolbar__count { font-size: 12px; color: #a9b8b8; font-weight: 600; white-space: nowrap; }
 
@@ -759,17 +698,14 @@ const ServiceManager = () => {
         }
         .sm-th--service { min-width: 230px; }
         .sm-th--center  { text-align: center !important; }
-        .sm-th--right   { text-align: right !important; min-width: 136px; }
+        .sm-th--right   { text-align: right !important; min-width: 120px; }
 
         .sm-tr { animation: smFadeIn .3s ease both; transition: background .1s; }
-        .sm-tr--hidden { opacity: .5; }
-        .sm-tr--hidden:hover { opacity: .75; }
         .sm-tr:hover .sm-td { background: #fafbfd; }
         @keyframes smFadeIn {
           from { opacity: 0; transform: translateY(5px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .sm-tr--hidden { animation: none; }
 
         .sm-td {
           padding: 14px 18px; border-bottom: 1px solid #f0f2f5;
@@ -801,17 +737,6 @@ const ServiceManager = () => {
         .sm-service-sub {
           font-size: 12px; color: #a9b8b8;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-
-        /* ─ Hidden badge ─ */
-        .sm-hidden-badge {
-          display: inline-flex; align-items: center;
-          padding: 2px 7px; border-radius: 6px;
-          font-size: 10px; font-weight: 700;
-          background: #fef3c7; color: #d97706;
-          border: 1px solid #fde68a;
-          letter-spacing: .04em; text-transform: uppercase;
-          flex-shrink: 0;
         }
 
         /* ─ Slug ─ */
@@ -870,9 +795,6 @@ const ServiceManager = () => {
         }
         .sm-icon-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,.08); }
         .sm-icon-btn--view:hover   { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
-        .sm-icon-btn--hide:hover   { background: #fef3c7; color: #d97706; border-color: #fde68a; }
-        .sm-icon-btn--show         { background: #fef3c7; color: #d97706; border-color: #fde68a; }
-        .sm-icon-btn--show:hover   { background: #fde68a; }
         .sm-icon-btn--edit:hover   { background: #fffbeb; color: #b45309; border-color: #fde68a; }
         .sm-icon-btn--delete:hover { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
 

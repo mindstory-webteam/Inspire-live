@@ -37,7 +37,7 @@ adminRouter.post(
     { name: 'img5',       maxCount: 1 },
     { name: 'img6',       maxCount: 1 },
     { name: 'smallImg',   maxCount: 1 },
-    { name: 'videoImg',   maxCount: 1 },
+  
   ]),
   blogController.createBlog
 );
