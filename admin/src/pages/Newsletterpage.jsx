@@ -168,14 +168,14 @@ export default function NewsletterPage() {
       {/* ── Header ── */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-          <div style={{
+          {/* <div style={{
             width: "46px", height: "46px", borderRadius: "13px",
             background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 4px 12px #3b82f640",
           }}>
             <IconMail />
-          </div>
+          </div> */}
           <div>
             <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#0f172a", letterSpacing: "-0.02em" }}>
               Newsletter Subscribers
