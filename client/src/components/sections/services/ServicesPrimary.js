@@ -3,7 +3,7 @@ import ServiceCard4 from "@/components/shared/cards/ServiceCard4";
 import Paginations from "@/components/shared/others/Paginations";
 import usePagination from "@/hooks/usePagination";
 import makeWowDelay from "@/libs/makeWowDelay";
-import { getAllServices } from "../../../utils/serviceApi";
+import { getAllServices } from "@/utils/serviceApi";
 import { useEffect, useState, useCallback } from "react";
 
 const LIMIT = 6;
