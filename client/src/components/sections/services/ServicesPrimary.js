@@ -13,12 +13,11 @@ const ServicesPrimary = function () {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
-  // ── Fetch — wrapped in useCallback so we can call it again on demand ─────
   const fetchServices = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllServices(); // cache: "no-store" inside
+      const data = await getAllServices();
       setItems(data);
     } catch (err) {
       console.error("ServicesPrimary:", err);
@@ -32,7 +31,6 @@ const ServicesPrimary = function () {
     fetchServices();
   }, [fetchServices]);
 
-  // Re-fetch when the tab becomes visible again (user comes back from admin)
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState === "visible") fetchServices();
@@ -73,7 +71,6 @@ const ServicesPrimary = function () {
 
       <div className="container">
 
-        {/* Loading */}
         {loading && (
           <div className="row row-gap-4">
             {[1,2,3,4,5,6].map(i => (
@@ -84,21 +81,18 @@ const ServicesPrimary = function () {
           </div>
         )}
 
-        {/* Error */}
         {!loading && error && (
           <p style={{ textAlign:"center", color:"#e53e3e", padding:"60px 0" }}>
             {error}
           </p>
         )}
 
-        {/* Empty */}
         {!loading && !error && items.length === 0 && (
           <p style={{ textAlign:"center", color:"#888", padding:"60px 0" }}>
             No services found.
           </p>
         )}
 
-        {/* Grid */}
         {!loading && !error && currentItems?.length > 0 && (
           <div className="row row-gap-4">
             {currentItems.map((item, idx) => (
