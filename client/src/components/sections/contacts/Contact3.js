@@ -1,58 +1,24 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
-import ReactNiceSelect from "@/components/shared/Inputs/ReactNiceSelect";
 import contactApi from "@/utils/contactApi";
-import { getAllServices } from "@/utils/serviceApi";
 
-var EMPTY_FORM = { fullName: "", email: "", phone: "", service: "", message: "" };
+var EMPTY_FORM = { fullName: "", email: "", phone: "", message: "" };
 
 var Contact3 = function () {
-  var formState           = useState(EMPTY_FORM);
-  var form                = formState[0];
-  var setForm             = formState[1];
+  var formState   = useState(EMPTY_FORM);
+  var form        = formState[0];
+  var setForm     = formState[1];
 
-  var statusState         = useState("idle");
-  var status              = statusState[0];
-  var setStatus           = statusState[1];
+  var statusState = useState("idle");
+  var status      = statusState[0];
+  var setStatus   = statusState[1];
 
-  var errMsgState         = useState("");
-  var errMsg              = errMsgState[0];
-  var setErrMsg           = errMsgState[1];
-
-  var serviceOptionsState = useState([{ value: "", optionName: "Choose a Service" }]);
-  var serviceOptions      = serviceOptionsState[0];
-  var setServiceOptions   = serviceOptionsState[1];
+  var errMsgState = useState("");
+  var errMsg      = errMsgState[0];
+  var setErrMsg   = errMsgState[1];
 
   var submitting = useRef(false);
-
-  useEffect(function () {
-    getAllServices()
-      .then(function (services) {
-        // Guard: must be a real array of service objects
-        if (!Array.isArray(services)) return;
-
-        var opts = [{ value: "", optionName: "Choose a Service" }].concat(
-          services
-            .filter(function (s) {
-              return (
-                s &&
-                typeof s === "object" &&
-                typeof s.title === "string" &&
-                s.title.trim() !== "" &&
-                s.isActive
-              );
-            })
-            .map(function (s) {
-              return { value: s.title, optionName: s.title };
-            })
-        );
-        setServiceOptions(opts);
-      })
-      .catch(function () {
-        // keep default placeholder on error
-      });
-  }, []);
 
   function handleChange(e) {
     var name  = e.target.name;
@@ -61,12 +27,6 @@ var Contact3 = function () {
       var next = Object.assign({}, prev);
       next[name] = value;
       return next;
-    });
-  }
-
-  function handleServiceChange(val) {
-    setForm(function (prev) {
-      return Object.assign({}, prev, { service: val });
     });
   }
 
@@ -90,7 +50,6 @@ var Contact3 = function () {
         fullName: form.fullName.trim(),
         email:    form.email.trim(),
         phone:    form.phone.trim(),
-        service:  form.service,
         message:  form.message.trim(),
       })
       .then(function (res) {
@@ -188,7 +147,7 @@ var Contact3 = function () {
                     </div>
                   </div>
 
-                  <div className="col-sm-6">
+                  <div className="col-sm-12">
                     <div className="form-input">
                       <input
                         type="tel"
@@ -197,21 +156,6 @@ var Contact3 = function () {
                         onChange={handleChange}
                         placeholder="Phone number"
                       />
-                    </div>
-                  </div>
-
-                  <div className="col-sm-6">
-                    <div className="form-input">
-                      <div className="tj-nice-select-box tj-select-constrained">
-                        <div className="tj-select">
-                          <ReactNiceSelect
-                            key={serviceOptions.length}
-                            selectedIndex={0}
-                            options={serviceOptions}
-                            onChange={handleServiceChange}
-                          />
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -250,35 +194,6 @@ var Contact3 = function () {
           </div>
         </div>
       </div>
-
-      {/* Fix dropdown width overflow */}
-      <style>{`
-        .tj-select-constrained,
-        .tj-select-constrained .tj-select {
-          width: 100%;
-          max-width: 100%;
-          box-sizing: border-box;
-        }
-        .tj-select-constrained .nice-select {
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-        }
-        .tj-select-constrained .nice-select .list {
-          width: 100% !important;
-          max-width: 100% !important;
-          left: 0 !important;
-          right: 0 !important;
-          box-sizing: border-box !important;
-        }
-        .tj-select-constrained .nice-select .list .option {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 100%;
-          box-sizing: border-box;
-        }
-      `}</style>
     </section>
   );
 };
