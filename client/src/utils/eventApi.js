@@ -1,189 +1,103 @@
-// utils/eventApi.js
-// Mirrors the pattern of blogApi.js / serviceapi.js in your utils folder
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-// Strip trailing slash + any trailing "/api" duplication at runtime.
-// Works whether your env var is:
-//   https://inspire-live.onrender.com        → appends /api/events  ✓
-//   https://inspire-live.onrender.com/api    → appends /events      ✓
-const _RAW = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
-const BASE_URL = _RAW.endsWith('/api') ? _RAW.slice(0, -4) : _RAW;
-
-// ─── Helper ──────────────────────────────────────────────────────────────────
-
-const handleResponse = async (res) => {
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `Request failed with status ${res.status}`);
-  }
-  return res.json();
-};
-
-// ─── Public API calls ─────────────────────────────────────────────────────────
+// ─── Public ───────────────────────────────────────────────────────────────────
 
 /**
  * GET /api/events
- * Fetch all active events (public).
- *
- * @param {{ type?: string, status?: string }} [filters={}]
- * @returns {Promise<Array>}  Array of event objects
- *
- * Usage:
- *   import { getEvents } from '@/utils/eventApi';
- *   const events = await getEvents({ type: 'conference' });
+ * Always returns a plain array regardless of backend response shape.
  */
-export const getEvents = async (filters = {}) => {
-  const params = new URLSearchParams();
-  if (filters.type && filters.type !== 'all') params.set('type', filters.type);
-  if (filters.status) params.set('status', filters.status);
+export const getEvents = async ({ category, type } = {}) => {
+  const url = new URL(`${API_BASE}/events`);
+  if (category && category !== "all") url.searchParams.set("category", category);
+  if (type && type !== "all") url.searchParams.set("type", type);
 
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const res = await fetch(`${BASE_URL}/api/events${query}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-    next: { revalidate: 60 }, // Next.js ISR — re-fetch every 60 s
-  });
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
 
-  const json = await handleResponse(res);
-  // Backend returns { success, count, data: [...] }
-  return Array.isArray(json) ? json : (json.data ?? json.events ?? []);
+  const json = await res.json();
+
+  // Normalise: backend may return array OR { success, data: [...] } OR { success, events: [...] }
+  if (Array.isArray(json)) return json;
+  if (json.data && Array.isArray(json.data)) return json.data;
+  if (json.events && Array.isArray(json.events)) return json.events;
+  return [];
 };
 
 /**
  * GET /api/events/:id
- * Fetch a single active event by its MongoDB _id (public).
- *
- * @param {string} id  MongoDB ObjectId string
- * @returns {Promise<Object>} Event object
  */
 export const getEventById = async (id) => {
-  const res = await fetch(`${BASE_URL}/api/events/${id}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
-
-  const json = await handleResponse(res);
+  const res = await fetch(`${API_BASE}/events/${id}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+  const json = await res.json();
   return json.data ?? json;
 };
 
-// ─── Admin API calls (require auth token) ────────────────────────────────────
+// ─── Admin ────────────────────────────────────────────────────────────────────
 
-const authHeaders = (token) => ({
-  'Content-Type': 'application/json',
-  Authorization: `Bearer ${token}`,
-});
-
-/**
- * GET /api/admin/events
- * Fetch all events including drafts (admin only).
- *
- * @param {string} token  JWT access token
- * @param {{ type?: string, status?: string, search?: string }} [filters={}]
- * @returns {Promise<Array>}
- */
-export const adminGetAllEvents = async (token, filters = {}) => {
-  const params = new URLSearchParams();
-  if (filters.type && filters.type !== 'all') params.set('type', filters.type);
-  if (filters.status && filters.status !== 'all') params.set('status', filters.status);
-  if (filters.search) params.set('search', filters.search);
-
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const res = await fetch(`${BASE_URL}/api/admin/events${query}`, {
-    method: 'GET',
-    headers: authHeaders(token),
-  });
-
-  const json = await handleResponse(res);
-  return Array.isArray(json) ? json : (json.data ?? []);
+const authHeaders = () => {
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("adminToken") || localStorage.getItem("token")
+      : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-/**
- * POST /api/admin/events
- * Create a new event (admin only). Accepts multipart/form-data for image upload.
- *
- * @param {string}    token    JWT access token
- * @param {FormData}  formData Fields + optional eventImage file
- * @returns {Promise<Object>} Created event
- */
-export const createEvent = async (token, formData) => {
-  const res = await fetch(`${BASE_URL}/api/admin/events`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` }, // NO Content-Type — let browser set multipart boundary
+export const adminGetEvents = async () => {
+  const res = await fetch(`${API_BASE}/admin/events`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+  const json = await res.json();
+  if (Array.isArray(json)) return json;
+  if (json.data && Array.isArray(json.data)) return json.data;
+  return [];
+};
+
+export const createEvent = async (formData) => {
+  const res = await fetch(`${API_BASE}/admin/events`, {
+    method: "POST",
+    headers: { ...authHeaders() },
     body: formData,
   });
-
-  const json = await handleResponse(res);
-  return json.data ?? json;
+  if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+  return res.json();
 };
 
-/**
- * PUT /api/admin/events/:id
- * Update an existing event (admin only). Accepts multipart/form-data.
- *
- * @param {string}    token    JWT access token
- * @param {string}    id       Event MongoDB _id
- * @param {FormData}  formData Changed fields + optional new eventImage
- * @returns {Promise<Object>} Updated event
- */
-export const updateEvent = async (token, id, formData) => {
-  const res = await fetch(`${BASE_URL}/api/admin/events/${id}`, {
-    method: 'PUT',
-    headers: { Authorization: `Bearer ${token}` },
+export const updateEvent = async (id, formData) => {
+  const res = await fetch(`${API_BASE}/admin/events/${id}`, {
+    method: "PUT",
+    headers: { ...authHeaders() },
     body: formData,
   });
-
-  const json = await handleResponse(res);
-  return json.data ?? json;
+  if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+  return res.json();
 };
 
-/**
- * PATCH /api/admin/events/:id/toggle
- * Toggle isActive for an event (admin only).
- *
- * @param {string} token  JWT access token
- * @param {string} id     Event MongoDB _id
- * @returns {Promise<Object>} Updated event
- */
-export const toggleEventStatus = async (token, id) => {
-  const res = await fetch(`${BASE_URL}/api/admin/events/${id}/toggle`, {
-    method: 'PATCH',
-    headers: authHeaders(token),
+export const toggleEventStatus = async (id) => {
+  const res = await fetch(`${API_BASE}/admin/events/${id}/toggle`, {
+    method: "PATCH",
+    headers: { ...authHeaders() },
   });
-
-  const json = await handleResponse(res);
-  return json.data ?? json;
+  if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+  return res.json();
 };
 
-/**
- * DELETE /api/admin/events/:id
- * Delete an event and its Cloudinary image (admin only).
- *
- * @param {string} token  JWT access token
- * @param {string} id     Event MongoDB _id
- * @returns {Promise<{ success: boolean, message: string }>}
- */
-export const deleteEvent = async (token, id) => {
-  const res = await fetch(`${BASE_URL}/api/admin/events/${id}`, {
-    method: 'DELETE',
-    headers: authHeaders(token),
+export const deleteEvent = async (id) => {
+  const res = await fetch(`${API_BASE}/admin/events/${id}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
   });
-
-  return handleResponse(res);
+  if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+  return res.json();
 };
 
-/**
- * PATCH /api/admin/events/reorder
- * Bulk-reorder events (admin only).
- *
- * @param {string} token   JWT access token
- * @param {Array<{ id: string, order: number }>} orders
- * @returns {Promise<{ success: boolean, message: string }>}
- */
-export const reorderEvents = async (token, orders) => {
-  const res = await fetch(`${BASE_URL}/api/admin/events/reorder`, {
-    method: 'PATCH',
-    headers: authHeaders(token),
-    body: JSON.stringify({ orders }),
+export const reorderEvents = async (order) => {
+  const res = await fetch(`${API_BASE}/admin/events/reorder`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ order }),
   });
-
-  return handleResponse(res);
+  if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+  return res.json();
 };

@@ -19,33 +19,6 @@ const About3 = ({ type }) => {
 									height={639}
 								/>
 							</div>
-							{/* <div className={`box-area ${type === 2 ? "style-2" : ""}`}>
-								<div className="progress-box wow fadeInUp" data-wow-delay=".3s">
-									<h4 className="title">Business Progress</h4>
-									<ul className="tj-progress-list">
-										<li>
-											<h6 className="tj-progress-title">Revenue</h6>
-											<div className="tj-progress">
-												<span className="tj-progress-percent">82%</span>
-												<div
-													className="tj-progress-bar"
-													data-percent="82"
-												></div>
-											</div>
-										</li>
-										<li>
-											<h6 className="tj-progress-title">Satisfaction</h6>
-											<div className="tj-progress">
-												<span className="tj-progress-percent">90%</span>
-												<div
-													className="tj-progress-bar"
-													data-percent="90"
-												></div>
-											</div>
-										</li>
-									</ul>
-								</div>
-							</div> */}
 						</div>
 					</div>
 					<div className="col-xl-6 col-lg-6 order-lg-2 order-1">
@@ -63,6 +36,15 @@ const About3 = ({ type }) => {
 										"Our Commitment to Students & Research Success"
 									)}
 								</h2>
+
+								{/* ── Two intro paragraphs above mission/vision ── */}
+								<p className="desc wow fadeInUp" data-wow-delay=".4s" style={{ marginTop: "16px" }}>
+									At Inspire Live, we are dedicated to transforming the academic journey of students and researchers worldwide. With years of expertise in education consultancy, we have helped hundreds of scholars navigate complex university admissions, secure research positions, and achieve their academic goals.
+								</p>
+								<p className="desc wow fadeInUp" data-wow-delay=".45s" style={{ marginTop: "12px", marginBottom: "0" }}>
+									Our team of experienced academic advisors brings together deep knowledge across disciplines, offering guidance that is both practical and personalized — ensuring every student receives the support they need to succeed at every stage of their academic career.
+								</p>
+
 							</div>
 						</div>
 						<div className="about-bottom-area">
@@ -72,7 +54,7 @@ const About3 = ({ type }) => {
 							>
 								<h4 className="title">Our Mission</h4>
 								<p className="desc">
-									Our mission is to empower students and researchers by providing transparent, reliable, and expert academic guidance for PhD programs and international education. We aim to simplify complex admission processes, deliver personalized mentorship, and support scholars at every stage of their academic journey with integrity and excellence.
+									Our mission is to empower students and researchers by providing transparent, reliable, and expert academic guidance for PhD programs and international education.
 								</p>
 								<ul className="list-items">
 									<li>
@@ -82,7 +64,7 @@ const About3 = ({ type }) => {
 										<i className="tji-list"></i>Personalized Student Guidance
 									</li>
 									<li>
-										<i className="tji-list"></i>Ethical & Transparent Consulting
+										{/* <i className="tji-list"></i>Ethical & Transparent Consulting */}
 									</li>
 								</ul>
 							</div>
@@ -92,34 +74,27 @@ const About3 = ({ type }) => {
 							>
 								<h4 className="title">Our Vision</h4>
 								<p className="desc">
-									Our vision is to become a globally recognized education consultancy, helping students achieve world-class academic opportunities and research success. We strive to build a trusted academic ecosystem that connects scholars with leading universities, research supervisors, and global education opportunities.
+									Our vision is to become a globally recognized education consultancy, helping students achieve world-class academic opportunities and research success.
 								</p>
 								<ul className="list-items">
 									<li>
 										<i className="tji-list"></i>Global Education Leadership
-
 									</li>
 									<li>
 										<i className="tji-list"></i>Research & Innovation Support
 									</li>
 									<li>
-										<i className="tji-list"></i>Sustainable Academic Success
+										{/* <i className="tji-list"></i>Sustainable Academic Success */}
 									</li>
 								</ul>
 							</div>
 						</div>
-						<div className="about-btn-area wow fadeInUp" data-wow-delay=".5s">
+						{/* <div className="about-btn-area wow fadeInUp" data-wow-delay=".5s">
 							<ButtonPrimary text={"Learn More About Us"} url={"/about"} />
-						</div>
+						</div> */}
 					</div>
 				</div>
 			</div>
-			{/* <div className="bg-shape-1">
-				<img src="/images/shape/pattern-2.svg" alt="" />
-			</div>
-			<div className="bg-shape-2">
-				<img src="/images/shape/pattern-3.svg" alt="" />
-			</div> */}
 		</section>
 	);
 };

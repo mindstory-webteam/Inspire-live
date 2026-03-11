@@ -47,7 +47,7 @@ const Hero2 = () => {
     return `${serverBase}${url}`;
   };
 
-  if (loading) return null; // or a skeleton
+  if (loading) return null;
   if (!heroSlides.length) return null;
 
   return (
@@ -60,7 +60,7 @@ const Hero2 = () => {
         effect="fade"
         speed={1400}
         modules={[Navigation, EffectFade, Thumbs]}
-        thumbs={{ swiper: controlledMainSwiper }}
+        thumbs={{ swiper: controlledMainSwiper && !controlledMainSwiper.destroyed ? controlledMainSwiper : null }}
         navigation={{ nextEl: ".slider-next", prevEl: ".slider-prev" }}
         className="hero-slider"
         style={{ height: "100vh" }}
@@ -170,23 +170,36 @@ const Hero2 = () => {
           className="hero-thumb wow fadeIn"
           data-wow-delay="2s"
         >
-          {heroSlides.map((slide, idx) => (
-            <SwiperSlide key={slide._id || idx} className="thumb-item">
-              {slide.type === "video" ? (
-                <video
-                  src={resolveUrl(slide.thumbUrl || slide.mediaUrl)}
-                  muted loop playsInline autoPlay
-                  style={{ width: "100%", height: "80px", objectFit: "cover" }}
-                />
-              ) : (
-                <img
-                  src={resolveUrl(slide.thumbUrl || slide.mediaUrl)}
-                  alt={slide.title}
-                  style={{ height: "80px", width: "100%", objectFit: "cover", display: "block" }}
-                />
-              )}
-            </SwiperSlide>
-          ))}
+          {heroSlides.map((slide, idx) => {
+            const thumbUrl = resolveUrl(slide.thumbUrl || slide.mediaUrl);
+            return (
+              <SwiperSlide key={slide._id || idx} className="thumb-item">
+                {slide.type === "video" ? (
+                  <video
+                    src={thumbUrl}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    style={{ width: "100%", height: "80px", objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  // Use background-image div instead of <img> — avoids Swiper CSS overriding img display/size
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "80px",
+                      backgroundImage: `url('${thumbUrl}')`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat",
+                      borderRadius: "4px",
+                    }}
+                  />
+                )}
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       )}
     </section>

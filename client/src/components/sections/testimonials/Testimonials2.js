@@ -6,6 +6,8 @@ import Ratings1 from "@/components/shared/ratings/Ratings1";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
 const Testimonials2 = ({ type }) => {
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -14,13 +16,14 @@ const Testimonials2 = ({ type }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ✅ BASE already contains /api — only append /testimonials
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/testimonials`
-        );
+        const res = await fetch(`${API_BASE}/testimonials`);
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
         const json = await res.json();
-        setTestimonials((json?.data ?? []).slice(0, 3));
+        // normalise: { success, data: [] } OR { success, testimonials: [] } OR plain array
+        const list = Array.isArray(json)
+          ? json
+          : (json?.data ?? json?.testimonials ?? []);
+        setTestimonials(list.slice(0, 3));
       } catch (err) {
         console.error("Testimonials fetch error:", err.message);
         setError(err.message);
