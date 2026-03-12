@@ -12,7 +12,7 @@ const FALLBACK = [
 		slug: "phd-india",
 		title: "PhD India",
 		desc: "Complete assistance for PhD admissions in India, from university selection to application submission and interview preparation.",
-		iconImage: "/new-imges/serives-image/icons/icon-4.jpg",  // ← correct Next.js public path
+		iconImage: "/new-imges/serives-image/icons/icon-4.png",  // ← correct Next.js public path
 		iconName: "",
 	},
 	{
@@ -20,7 +20,7 @@ const FALLBACK = [
 		slug: "phd-abroad",
 		title: "PhD Abroad",
 		desc: "Specialized guidance for PhD admissions abroad with support for research proposals, funding applications, and supervisor connections.",
-		iconImage: "/new-imges/serives-image/icons/icon-5.jpg",  // ← change to whichever image you want
+		iconImage: "/new-imges/serives-image/icons/icon-5.png",  // ← change to whichever image you want
 		iconName: "",
 	},
 ];
