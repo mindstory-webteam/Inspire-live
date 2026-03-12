@@ -747,10 +747,10 @@ export default function BlogDetailsPage() {
               <div className="bd-divider" />
 
               {/* Comments */}
-              <CommentList comments={blog.comments} />
+              {/* <CommentList comments={blog.comments} /> */}
 
               {/* Comment form */}
-              <CommentForm blogId={blog._id} onPosted={loadBlog} />
+              {/* <CommentForm blogId={blog._id} onPosted={loadBlog} /> */}
 
             </article>
 
