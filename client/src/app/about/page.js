@@ -11,6 +11,7 @@ import Testimonials2 from "@/components/sections/testimonials/Testimonials2";
 import BackToTop from "@/components/shared/others/BackToTop";
 import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
+import CeoSection from "@/components/sections/about/Ceosection";
 
 export default function About() {
 	return (
@@ -28,6 +29,7 @@ export default function About() {
        backgroundImage="/new-imges/heroinner-image/about-inner.png"
    />
 						<About3 type={2} />
+						<CeoSection />
 						<Features type={2} />
 						
 						<Brands1 type={2} />
