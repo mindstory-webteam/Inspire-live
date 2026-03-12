@@ -6,6 +6,7 @@ import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 import HeroInner from "@/components/sections/hero/HeroInner";
 import PhdIndiaDetails from "@/components/sections/services/PhdIndiaDetails";
+import ServicesCarousel from "@/components/sections/services/Servicescarousel";
 
 export const metadata = {
 	title: "PhD India - Expert Guidance for PhD Programs in India",
@@ -28,6 +29,7 @@ export default function PhdIndiaPage() {
 							breadcrums={[{ name: "Services", path: "/services" }]}
 						/>
 						<PhdIndiaDetails />
+						<ServicesCarousel/>
 						<Cta />
 					</main>
 					<Footer />

@@ -58,10 +58,10 @@ const About3 = ({ type }) => {
 								</p>
 								<ul className="list-items">
 									<li>
-										<i className="tji-list"></i>Academic Excellence & Research Support
+										{/* <i className="tji-list"></i>Academic Excellence & Research Support */}
 									</li>
 									<li>
-										<i className="tji-list"></i>Personalized Student Guidance
+										{/* <i className="tji-list"></i>Personalized Student Guidance */}
 									</li>
 									<li>
 										{/* <i className="tji-list"></i>Ethical & Transparent Consulting */}
@@ -78,10 +78,10 @@ const About3 = ({ type }) => {
 								</p>
 								<ul className="list-items">
 									<li>
-										<i className="tji-list"></i>Global Education Leadership
+										{/* <i className="tji-list"></i>Global Education Leadership */}
 									</li>
 									<li>
-										<i className="tji-list"></i>Research & Innovation Support
+										{/* <i className="tji-list"></i>Research & Innovation Support */}
 									</li>
 									<li>
 										{/* <i className="tji-list"></i>Sustainable Academic Success */}

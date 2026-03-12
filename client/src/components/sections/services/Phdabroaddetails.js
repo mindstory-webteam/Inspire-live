@@ -68,11 +68,11 @@ const PhdAbroadDetails = () => {
 							{/* Hero Image */}
 							<div className="blog-images wow fadeInUp" data-wow-delay=".1s">
 								<Image
-									src="/new-imges/serives-image/image-2.jpg"
+									src="/new-imges/serives-image/image-6.jpg"
 									alt="PhD Abroad"
 									width={1170}
 									height={500}
-									style={{ height: "1000px", width: "100%" }}
+									style={{ height: "auto", width: "100%" }}
 								/>
 							</div>
 
@@ -109,7 +109,7 @@ const PhdAbroadDetails = () => {
 												style={{ position: "relative", width: "100%", height: 320, borderRadius: 10, overflow: "hidden" }}
 											>
 												<Image
-													src="/new-imges/serives-image/image-3.jpg "
+													src="/new-imges/serives-image/image-2.jpg"
 													alt="PhD Abroad - Detail 1"
 													fill
 													sizes="(max-width: 576px) 100vw, 50vw"
@@ -124,7 +124,7 @@ const PhdAbroadDetails = () => {
 												style={{ position: "relative", width: "100%", height: 320, borderRadius: 10, overflow: "hidden" }}
 											>
 												<Image
-													src="/new-imges/serives-image/image-2.jpg "
+													src="/new-imges/serives-image/image-3.jpg "
 													alt="PhD Abroad - Detail 2"
 													fill
 													sizes="(max-width: 576px) 100vw, 50vw"

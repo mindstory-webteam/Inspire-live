@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { EffectFade, Navigation, Thumbs } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-// ─── API base URL — set NEXT_PUBLIC_API_URL in your .env ─────────────────────
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 const Hero2 = () => {
@@ -16,7 +15,6 @@ const Hero2 = () => {
   const swiperRef = useRef(null);
   const imageTimerRef = useRef(null);
 
-  // ── Fetch slides from backend ───────────────────────────────────────────────
   useEffect(() => {
     fetch(`${API_BASE}/banner`)
       .then((r) => r.json())
@@ -29,7 +27,6 @@ const Hero2 = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // ── Auto-play videos on mount ───────────────────────────────────────────────
   useEffect(() => {
     videoRefs.current.forEach((video) => {
       if (video) video.play().catch(() => {});
@@ -39,7 +36,6 @@ const Hero2 = () => {
     };
   }, [heroSlides]);
 
-  // ── Resolve media URL (handle relative /uploads paths) ─────────────────────
   const resolveUrl = (url) => {
     if (!url) return "";
     if (url.startsWith("http")) return url;
@@ -69,21 +65,14 @@ const Hero2 = () => {
             clearTimeout(imageTimerRef.current);
             imageTimerRef.current = null;
           }
-
           const realIndex = swiper.realIndex;
           const currentSlide = heroSlides[realIndex];
           if (!currentSlide) return;
-
           const activeSlide = swiper.slides[swiper.activeIndex];
-
           if (currentSlide.type === "video") {
             const video = activeSlide?.querySelector("video");
-            if (video) {
-              video.currentTime = 0;
-              video.play().catch(() => {});
-            }
+            if (video) { video.currentTime = 0; video.play().catch(() => {}); }
           } else {
-            // Image slides — auto-advance after 5 s
             imageTimerRef.current = setTimeout(() => {
               if (swiperRef.current) swiperRef.current.slideNext();
             }, 5000);
@@ -92,22 +81,11 @@ const Hero2 = () => {
       >
         {heroSlides.map((slide, idx) => (
           <SwiperSlide key={slide._id || idx} className="tj-slider-item" style={{ height: "auto" }}>
-            {/* Background media */}
             {slide.type === "video" ? (
               <video
                 ref={(el) => (videoRefs.current[idx] = el)}
-                autoPlay
-                muted
-                loop={false}
-                playsInline
-                preload="auto"
-                style={{
-                  position: "absolute",
-                  top: 0, left: 0,
-                  width: "100%", height: "100%",
-                  objectFit: "cover",
-                  zIndex: 1,
-                }}
+                autoPlay muted loop={false} playsInline preload="auto"
+                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 1 }}
                 onLoadedData={(e) => e.target.play().catch(() => {})}
                 onEnded={() => { if (swiperRef.current) swiperRef.current.slideNext(); }}
               >
@@ -121,12 +99,13 @@ const Hero2 = () => {
               />
             )}
 
-            {/* Content overlay */}
             <div className="container">
               <div className="slider-wrapper">
                 <div className="slider-content">
                   {slide.subtitle && (
-                    <p className="slider-subtitle">{slide.subtitle}</p>
+                    <p className="slider-subtitle" style={{ color: "#ffffff" }}>
+                      {slide.subtitle}
+                    </p>
                   )}
                   <h1 className="slider-title">{slide.title}</h1>
                   {slide.description && (
@@ -157,7 +136,6 @@ const Hero2 = () => {
         </div>
       </Swiper>
 
-      {/* Thumbnails swiper */}
       {heroSlides.length > 1 && (
         <Swiper
           onSwiper={setControlledMainSwiper}
@@ -176,26 +154,16 @@ const Hero2 = () => {
               <SwiperSlide key={slide._id || idx} className="thumb-item">
                 {slide.type === "video" ? (
                   <video
-                    src={thumbUrl}
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
+                    src={thumbUrl} muted loop playsInline autoPlay
                     style={{ width: "100%", height: "80px", objectFit: "cover", display: "block" }}
                   />
                 ) : (
-                  // Use background-image div instead of <img> — avoids Swiper CSS overriding img display/size
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "80px",
-                      backgroundImage: `url('${thumbUrl}')`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      backgroundRepeat: "no-repeat",
-                      borderRadius: "4px",
-                    }}
-                  />
+                  <div style={{
+                    width: "100%", height: "80px",
+                    backgroundImage: `url('${thumbUrl}')`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat", borderRadius: "4px",
+                  }} />
                 )}
               </SwiperSlide>
             );

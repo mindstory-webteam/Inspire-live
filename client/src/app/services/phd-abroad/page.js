@@ -6,6 +6,7 @@ import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 import HeroInner from "@/components/sections/hero/HeroInner";
 import PhdAbroadDetails from "@/components/sections/services/Phdabroaddetails";
+import ServicesCarousel from "@/components/sections/services/Servicescarousel";
 
 export const metadata = {
 	title: "PhD Abroad - Pursue Your Doctoral Dreams Internationally",
@@ -28,6 +29,7 @@ export default function PhdAbroadPage() {
 							breadcrums={[{ name: "Services", path: "/services" }]}
 						/>
 						<PhdAbroadDetails />
+						<ServicesCarousel/>
 						<Cta />
 					</main>
 					<Footer />
