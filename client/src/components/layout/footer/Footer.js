@@ -85,19 +85,19 @@ const Footer = () => {
                   </Link>
                 </div>
                 <div className="footer-text">
-                  <p>
+                  {/* <p>
                     Developing personalze our customer journeys to increase
                     satisfaction &amp; loyalty of our expansion.
-                  </p>
+                  </p> */}
                 </div>
-                <div className="award-logo-area">
+                {/* <div className="award-logo-area">
                   <div className="award-logo">
                     <img src="/images/footer/award-logo-1.webp" alt="" />
                   </div>
                   <div className="award-logo">
                     <img src="/images/footer/award-logo-2.webp" alt="" />
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
 

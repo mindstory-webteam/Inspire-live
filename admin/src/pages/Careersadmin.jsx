@@ -4,6 +4,7 @@
  * - Slug shown in edit modal (read-only)
  * - Fixed PDF viewer: uses Google Docs for preview, clean URL for download
  * - Fixed filter buttons: All / Active / Inactive now work correctly
+ * - FIX: image removal now sends imageUrl='' to backend so it actually clears
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { careerService } from '../services/api';
@@ -135,44 +136,33 @@ function StatCard({ label, value, icon, color }) {
 
 /* ─── PDF Viewer ─────────────────────────────────────────────────────────── */
 function PdfViewer({ url, filename, onClose }) {
-  const [mode, setMode] = useState('direct'); // 'direct' | 'gdocs' | 'failed'
+  const [mode, setMode] = useState('direct');
   const [iframeKey, setIframeKey] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const viewUrl = cleanPdfUrl(url);
-  const dlUrl   = downloadUrl(url);
-  const gdocsUrl = `https://docs.google.com/viewer?url= ${encodeURIComponent(viewUrl)}&embedded=true`;
-
+  const viewUrl  = cleanPdfUrl(url);
+  const dlUrl    = downloadUrl(url);
+  const gdocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(viewUrl)}&embedded=true`;
   const currentSrc = mode === 'gdocs' ? gdocsUrl : viewUrl;
 
   const handleError = () => {
     setLoading(false);
-    if (mode === 'direct') {
-      setMode('gdocs');
-      setLoading(true);
-      setIframeKey(k => k + 1);
-    } else {
-      setMode('failed');
-    }
+    if (mode === 'direct') { setMode('gdocs'); setLoading(true); setIframeKey(k => k + 1); }
+    else setMode('failed');
   };
-
-  const handleLoad = () => setLoading(false);
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,.9)', display: 'flex', flexDirection: 'column' }}>
-      {/* Top bar */}
       <div style={{ background: '#1e293b', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <FileText size={15} color="#94a3b8" style={{ flexShrink: 0 }} />
           <span style={{ color: '#f1f5f9', fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename}</span>
         </div>
         <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-          <a href={viewUrl} target="_blank" rel="noreferrer"
-            style={{ ...B('ghost', true), background: '#334155', color: '#94a3b8', textDecoration: 'none' }}>
+          <a href={viewUrl} target="_blank" rel="noreferrer" style={{ ...B('ghost', true), background: '#334155', color: '#94a3b8', textDecoration: 'none' }}>
             <ExternalLink size={13} /> Open
           </a>
-          <a href={dlUrl} download={filename} target="_blank" rel="noreferrer"
-            style={{ ...B('primary', true), textDecoration: 'none' }}>
+          <a href={dlUrl} download={filename} target="_blank" rel="noreferrer" style={{ ...B('primary', true), textDecoration: 'none' }}>
             <Download size={13} /> Download
           </a>
           <button onClick={onClose} style={{ ...B('ghost', true), background: '#334155', color: '#fff' }}>
@@ -180,44 +170,25 @@ function PdfViewer({ url, filename, onClose }) {
           </button>
         </div>
       </div>
-
-      {/* Loading indicator */}
       {loading && (
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#94a3b8', fontSize: 14, textAlign: 'center', zIndex: 1 }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #334155', borderTopColor: '#60a5fa', animation: 'spin .8s linear infinite', margin: '0 auto 12px' }} />
           {mode === 'gdocs' ? 'Trying Google Docs viewer…' : 'Loading preview…'}
         </div>
       )}
-
-      {/* Failed state */}
       {mode === 'failed' && (
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#94a3b8', fontSize: 14, textAlign: 'center', zIndex: 1 }}>
           <FileText size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
           <div style={{ marginBottom: 8, fontWeight: 600, color: '#f1f5f9' }}>Preview unavailable</div>
-          <div style={{ marginBottom: 20, fontSize: 13 }}>Open directly or download the file.</div>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-            <a href={viewUrl} target="_blank" rel="noreferrer"
-              style={{ ...B('ghost', true), textDecoration: 'none', background: '#334155', color: '#f1f5f9' }}>
-              <ExternalLink size={13} /> Open directly
-            </a>
-            <a href={dlUrl} download={filename} target="_blank" rel="noreferrer"
-              style={{ ...B('primary', true), textDecoration: 'none' }}>
-              <Download size={13} /> Download
-            </a>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 16 }}>
+            <a href={viewUrl} target="_blank" rel="noreferrer" style={{ ...B('ghost', true), textDecoration: 'none', background: '#334155', color: '#f1f5f9' }}><ExternalLink size={13} /> Open directly</a>
+            <a href={dlUrl} download={filename} target="_blank" rel="noreferrer" style={{ ...B('primary', true), textDecoration: 'none' }}><Download size={13} /> Download</a>
           </div>
         </div>
       )}
-
-      {/* iframe — hidden when failed */}
       {mode !== 'failed' && (
-        <iframe
-          key={iframeKey}
-          src={currentSrc}
-          style={{ flex: 1, border: 'none', background: '#fff', opacity: loading ? 0 : 1 }}
-          title={filename}
-          onLoad={handleLoad}
-          onError={handleError}
-        />
+        <iframe key={iframeKey} src={currentSrc} style={{ flex: 1, border: 'none', background: '#fff', opacity: loading ? 0 : 1 }}
+          title={filename} onLoad={() => setLoading(false)} onError={handleError} />
       )}
     </div>
   );
@@ -232,8 +203,8 @@ const SC = {
 };
 
 function AppCard({ app, onStatusChange, onViewPdf }) {
-  const sc    = SC[app.status] || { bg: '#f3f4f6', color: '#374151', border: '#e5e7eb' };
-  const fname = getFilename(app.resumeUrl);
+  const sc           = SC[app.status] || { bg: '#f3f4f6', color: '#374151', border: '#e5e7eb' };
+  const fname        = getFilename(app.resumeUrl);
   const viewableUrl  = cleanPdfUrl(app.resumeUrl);
   const forceDownUrl = downloadUrl(app.resumeUrl);
 
@@ -259,7 +230,6 @@ function AppCard({ app, onStatusChange, onViewPdf }) {
           </select>
         </div>
       </div>
-
       <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
           <a href={`mailto:${app.email}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#1a598a', textDecoration: 'none' }}>
@@ -271,7 +241,6 @@ function AppCard({ app, onStatusChange, onViewPdf }) {
             </a>
           )}
         </div>
-
         {app.coverLetter && (
           <div style={{ background: '#f9fafb', borderRadius: 8, padding: '12px 14px', border: '1px solid #e5e7eb' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
@@ -281,7 +250,6 @@ function AppCard({ app, onStatusChange, onViewPdf }) {
             <p style={{ margin: 0, fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{app.coverLetter}</p>
           </div>
         )}
-
         {app.resumeUrl ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fafafa', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', flexWrap: 'wrap', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -294,12 +262,8 @@ function AppCard({ app, onStatusChange, onViewPdf }) {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => onViewPdf(viewableUrl, fname)} style={B('blue', true)}>
-                <Eye size={13} /> View
-              </button>
-              <a href={forceDownUrl} download={fname} target="_blank" rel="noreferrer" style={{ ...B('primary', true), textDecoration: 'none' }}>
-                <Download size={13} /> Download
-              </a>
+              <button onClick={() => onViewPdf(viewableUrl, fname)} style={B('blue', true)}><Eye size={13} /> View</button>
+              <a href={forceDownUrl} download={fname} target="_blank" rel="noreferrer" style={{ ...B('primary', true), textDecoration: 'none' }}><Download size={13} /> Download</a>
             </div>
           </div>
         ) : (
@@ -311,7 +275,7 @@ function AppCard({ app, onStatusChange, onViewPdf }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   CAREER FORM
+   CAREER FORM  —  FIX: imgRemoved ref signals backend to clear the image
 ═══════════════════════════════════════════════════════════════════════════ */
 function CareerForm({ initial, onSubmit, onCancel, saving }) {
   const [errors,     setErrors]     = useState({});
@@ -323,11 +287,19 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
     initial?.responsibilitiesList?.length ? [...initial.responsibilitiesList] : ['']
   );
   const fileInputRef = useRef(null);
+  // ── FIX: track whether user explicitly removed the existing image ──────────
+  const imgRemovedRef = useRef(false);
 
   const defaultDeadline = initial?.applyDeadline
     ? new Date(initial.applyDeadline).toISOString().split('T')[0] : '';
   const defaultTags = Array.isArray(initial?.tags)
     ? initial.tags.join(', ') : (initial?.tags || '');
+
+  function handleRemoveImage() {
+    setImgPreview('');
+    imgRemovedRef.current = true;           // ← mark as explicitly removed
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -368,7 +340,14 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
     fd.append('responsibilitiesList', JSON.stringify(respList.filter(Boolean)));
 
     const imgFile = fileInputRef.current?.files?.[0];
-    if (imgFile) fd.append('careerImage', imgFile);
+    if (imgFile) {
+      // New file chosen — upload it
+      fd.append('careerImage', imgFile);
+    } else if (imgRemovedRef.current) {
+      // FIX: user clicked ✕ without choosing a new file → tell backend to clear
+      fd.append('imageUrl',       '');
+      fd.append('imagePublicId',  '');
+    }
 
     onSubmit(fd);
   }
@@ -396,11 +375,8 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
               /careers/<strong>{initial.slug}</strong>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => navigator.clipboard?.writeText(initial.slug)}
-            style={{ padding: '4px 10px', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 6, fontSize: 11, color: '#15803d', cursor: 'pointer', fontWeight: 600, flexShrink: 0 }}
-          >
+          <button type="button" onClick={() => navigator.clipboard?.writeText(initial.slug)}
+            style={{ padding: '4px 10px', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 6, fontSize: 11, color: '#15803d', cursor: 'pointer', fontWeight: 600, flexShrink: 0 }}>
             Copy
           </button>
         </div>
@@ -410,15 +386,13 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
         {imgPreview ? (
           <div style={{ position: 'relative', height: 120, borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
             <img src={imgPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            <button type="button"
-              onClick={() => { setImgPreview(''); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+            <button type="button" onClick={handleRemoveImage}
               style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,.6)', border: 'none', borderRadius: 6, color: '#fff', width: 26, height: 26, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={13} />
             </button>
           </div>
         ) : (
-          <div
-            onClick={() => fileInputRef.current?.click()}
+          <div onClick={() => fileInputRef.current?.click()}
             style={{ height: 90, borderRadius: 8, border: '2px dashed #d1d5db', background: '#f9fafb', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer' }}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#1a598a'}
             onMouseLeave={e => e.currentTarget.style.borderColor = '#d1d5db'}>
@@ -427,7 +401,13 @@ function CareerForm({ initial, onSubmit, onCancel, saving }) {
           </div>
         )}
         <input type="file" ref={fileInputRef} accept="image/*" style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files[0]; if (f) setImgPreview(URL.createObjectURL(f)); }} />
+          onChange={e => {
+            const f = e.target.files[0];
+            if (f) {
+              setImgPreview(URL.createObjectURL(f));
+              imgRemovedRef.current = false; // new file chosen — not removed anymore
+            }
+          }} />
       </F>
 
       <div style={G2}>
@@ -566,7 +546,6 @@ export default function CareersAdmin() {
     try {
       const params = { page, limit: 10 };
       if (search) params.search = search;
-      // ✅ FIX: send proper boolean values for isActive filter
       if (filter === 'active')   params.isActive = true;
       if (filter === 'inactive') params.isActive = false;
       const r = await careerService.getAllAdmin(params);
@@ -671,7 +650,6 @@ export default function CareersAdmin() {
             onChange={e => { setSearch(e.target.value); setPage(1); }} />
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {/* ✅ FIX: changed filter values from 'true'/'false' strings to 'active'/'inactive' */}
           {[['all', 'All'], ['active', 'Active'], ['inactive', 'Inactive']].map(([v, l]) => (
             <button key={v} onClick={() => { setFilter(v); setPage(1); }}
               style={{ padding: '7px 14px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: filter === v ? '#1a598a' : '#f3f4f6', color: filter === v ? '#fff' : '#374151' }}>

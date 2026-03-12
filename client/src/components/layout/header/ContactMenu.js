@@ -34,9 +34,7 @@ const ContactMenu = ({ isContactOpen, setIsContactOpen }) => {
 						</div>
 						<div className="offcanvas-text">
 							<p>
-								Developing personalize our customer journeys to increase
-								satisfaction & loyalty of our expansion recognized by industry
-								leaders.
+								
 							</p>
 						</div>
 						<div className="hamburger-search-area">
@@ -60,20 +58,20 @@ const ContactMenu = ({ isContactOpen, setIsContactOpen }) => {
 							<div className="contact-info">
 								<div className="contact-item">
 									<span className="subtitle">Phone</span>
-									<Link className="contact-link" href="tel:10095447818">
-										+1 (009) 544-7818
+									<Link className="contact-link" href="tel:+919947945945">
+										+91 9947 945 945
 									</Link>
 								</div>
 								<div className="contact-item">
 									<span className="subtitle">Email</span>
-									<Link className="contact-link" href="mailto:info@bexon.com">
-										info@bexon.com
+									<Link className="contact-link" href="mailto:inspireeduservice001@gmail.com">									
+									inspireeduservice001@gmail.com
 									</Link>
 								</div>
 								<div className="contact-item">
 									<span className="subtitle">Location</span>
 									<span className="contact-link">
-										993 Renner Burg, West Rond, MT 94251-030
+										INSPIRE EDUCATION SERVICE, floor aazra arcade, near central excise office, mettupalayam, Palakkad - 678001
 									</span>
 								</div>
 							</div>
@@ -84,18 +82,18 @@ const ContactMenu = ({ isContactOpen, setIsContactOpen }) => {
 						<div className="social-links style-3">
 							<ul>
 								<li>
-									<a href="https://www.facebook.com/" target="_blank">
+									<a href="https://www.facebook.com/inspireeducationservice/" target="_blank">
 										<i className="fa-brands fa-facebook-f"></i>
 									</a>
 								</li>
 								<li>
-									<a href="https://www.instagram.com/" target="_blank">
+									<a href="https://www.instagram.com/inspireeducationservice/" target="_blank">
 										<i className="fa-brands fa-instagram"></i>
 									</a>
 								</li>
 								<li>
-									<a href="https://x.com/" target="_blank">
-										<i className="fa-brands fa-x-twitter"></i>
+									<a href="https://www.youtube.com/channel/UCxdf2JpHcvAuGhVweQiy6GA?app=desktop" target="_blank">
+										<i className="fa-brands fa-youtube"></i>
 									</a>
 								</li>
 								<li>
