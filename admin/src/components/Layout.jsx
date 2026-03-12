@@ -59,7 +59,7 @@ export default function Layout() {
           <BookOpen size={19} className="text-white" />
         </div>
         <div>
-          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Blog Admin</p>
+          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Inspire Admin</p>
           <p className="text-xs"           style={{ color: '#a9b8b8' }}>Control Panel</p>
         </div>
       </div>

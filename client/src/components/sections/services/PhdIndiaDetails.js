@@ -68,11 +68,11 @@ const PhdIndiaDetails = () => {
 							{/* Hero Image */}
 							<div className="blog-images wow fadeInUp" data-wow-delay=".1s">
 								<Image
-									src="/images/service/service-6.webp"
+									src="/new-imges/serives-image/image-4.jpg"
 									alt="PhD India"
 									width={1170}
 									height={500}
-									style={{ height: "auto", width: "100%" }}
+									style={{ height: "1000px", width: "100%" }}
 								/>
 							</div>
 
@@ -81,7 +81,6 @@ const PhdIndiaDetails = () => {
 								Expert guidance for pursuing PhD programs in India with comprehensive support
 							</h2>
 
-							{/* Main Content */}
 							<div className="blog-text">
 								<p className="wow fadeInUp" data-wow-delay=".3s">
 									Our PhD India services provide comprehensive support for aspiring doctoral candidates seeking admission to prestigious Indian universities. We guide you through every step of the application process, ensuring you meet all requirements and present a compelling application.
@@ -94,43 +93,48 @@ const PhdIndiaDetails = () => {
 								<ul className="wow fadeInUp" data-wow-delay=".3s">
 									{keyFeatures.map((feature, index) => (
 										<li key={index}>
-											<span>
-												<i className="tji-check"></i>
-											</span>
+											<span><i className="tji-check"></i></span>
 											{feature}
 										</li>
 									))}
 								</ul>
 
-								{/* Images Section */}
+								{/* Images Section — fixed equal height */}
 								<div className="images-wrap">
 									<div className="row">
 										<div className="col-sm-6">
-											<div className="image-box wow fadeInUp" data-wow-delay=".3s">
+											<div
+												className="image-box wow fadeInUp"
+												data-wow-delay=".3s"
+												style={{ position: "relative", width: "100%", height: 320, borderRadius: 10, overflow: "hidden" }}
+											>
 												<Image
-													src="/images/service/service-2.webp"
+													src="/new-imges/serives-image/image-2.jpg "
 													alt="PhD India - Detail 1"
-													width={570}
-													height={400}
-													style={{ height: "auto", width: "100%" }}
+													fill
+													sizes="(max-width: 576px) 100vw, 50vw"
+													style={{ objectFit: "cover", objectPosition: "center" }}
 												/>
 											</div>
 										</div>
 										<div className="col-sm-6">
-											<div className="image-box wow fadeInUp" data-wow-delay=".5s">
+											<div
+												className="image-box wow fadeInUp"
+												data-wow-delay=".5s"
+												style={{ position: "relative", width: "100%", height: 320, borderRadius: 10, overflow: "hidden" }}
+											>
 												<Image
-													src="/images/service/service-6.webp"
+													src="/new-imges/serives-image/image-1.jpg"
 													alt="PhD India - Detail 2"
-													width={570}
-													height={400}
-													style={{ height: "auto", width: "100%" }}
+													fill
+													sizes="(max-width: 576px) 100vw, 50vw"
+													style={{ objectFit: "cover", objectPosition: "center" }}
 												/>
 											</div>
 										</div>
 									</div>
 								</div>
 
-								{/* Service Range Section */}
 								<h3 className="wow fadeInUp" data-wow-delay=".3s">
 									Why Choose Our PhD India Services?
 								</h3>
@@ -138,7 +142,7 @@ const PhdIndiaDetails = () => {
 									Navigate the PhD admission process in India with expert guidance and personalized support. We provide end-to-end support with a proven track record of success. Our personalized approach ensures that each student receives tailored guidance based on their unique background, goals, and circumstances. With 150+ Successful Applications, we have the expertise and connections to help you achieve your academic aspirations.
 								</p>
 
-								{/* Benefits/Details Content */}
+								{/* Benefits */}
 								<div className="details-content-box">
 									{benefits.map((benefit, index) => (
 										<div
@@ -147,10 +151,7 @@ const PhdIndiaDetails = () => {
 											data-wow-delay={`.${(index + 1) * 2}s`}
 										>
 											<span className="number">{benefit.number}.</span>
-											<h6 
-												className="title"
-												dangerouslySetInnerHTML={{ __html: benefit.title }}
-											/>
+											<h6 className="title" dangerouslySetInnerHTML={{ __html: benefit.title }} />
 											<div className="desc">
 												<p>{benefit.description}</p>
 											</div>
@@ -158,7 +159,7 @@ const PhdIndiaDetails = () => {
 									))}
 								</div>
 
-								{/* FAQ Section */}
+								{/* FAQ */}
 								<h3 className="wow fadeInUp" data-wow-delay=".3s">
 									Frequently Asked Questions
 								</h3>
