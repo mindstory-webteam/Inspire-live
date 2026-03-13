@@ -68,7 +68,7 @@ const PhdIndiaDetails = () => {
 							{/* Hero Image */}
 							<div className="blog-images wow fadeInUp" data-wow-delay=".1s">
 								<Image
-									src="/new-imges/serives-image/image-5.jpg"
+									src="/new-imges/serives-image/image-1.jpg"
 									alt="PhD India"
 									width={1170}
 									height={500}
