@@ -124,7 +124,7 @@ const PhdAbroadDetails = () => {
 												style={{ position: "relative", width: "100%", height: 320, borderRadius: 10, overflow: "hidden" }}
 											>
 												<Image
-													src="/new-imges/serives-image/image-3.jpg "
+													src="/new-imges/serives-image/image-3.jpg"
 													alt="PhD Abroad - Detail 2"
 													fill
 													sizes="(max-width: 576px) 100vw, 50vw"

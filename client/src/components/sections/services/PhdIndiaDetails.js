@@ -109,7 +109,7 @@ const PhdIndiaDetails = () => {
 												style={{ position: "relative", width: "100%", height: 320, borderRadius: 10, overflow: "hidden" }}
 											>
 												<Image
-													src="/new-imges/serives-image/image-1.jpg"
+													src="/new-imges/serives-image/image-2.jpg"
 													alt="PhD India - Detail 1"
 													fill
 													sizes="(max-width: 576px) 100vw, 50vw"
