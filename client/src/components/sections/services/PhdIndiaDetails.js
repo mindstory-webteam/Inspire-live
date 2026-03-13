@@ -68,7 +68,7 @@ const PhdIndiaDetails = () => {
 							{/* Hero Image */}
 							<div className="blog-images wow fadeInUp" data-wow-delay=".1s">
 								<Image
-									src="/new-imges/serives-image/image-1.jpg"
+									src="/new-imges/serives-image/image-5.jpg"
 									alt="PhD India"
 									width={1170}
 									height={500}
@@ -109,7 +109,7 @@ const PhdIndiaDetails = () => {
 												style={{ position: "relative", width: "100%", height: 320, borderRadius: 10, overflow: "hidden" }}
 											>
 												<Image
-													src="/new-imges/serives-image/image-2.jpg "
+													src="/new-imges/serives-image/image-1.jpg "
 													alt="PhD India - Detail 1"
 													fill
 													sizes="(max-width: 576px) 100vw, 50vw"
