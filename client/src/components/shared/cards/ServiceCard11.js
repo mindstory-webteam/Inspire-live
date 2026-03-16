@@ -1,76 +1,99 @@
 import modifyNumber from "@/libs/modifyNumber";
 import Link from "next/link";
-import Image from "next/image";
 
-const ServiceCard11 = ({ service, idx, lastItemIdx, biggerCard = false }) => {
-	const {
-		title,
-		desc,
-		desc3,
-		slug,
-		id,
-		iconName,
-		iconImage,
-	} = service || {};
+const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
+  const { title, desc, description1, shortDescription, slug, id, heroImage } = service || {};
 
-	const iconUrl = (typeof iconImage === "object" ? iconImage?.url : iconImage) || null;
-	const cardDesc = desc || desc3 || "Through a combination of data-driven insights and innovative approaches business.";
-	const href = `/services/${slug || id}`;
+  // ── correct field: heroImage is a plain URL string per your schema ──
+  const imageUrl = heroImage || null;
 
-	return (
-		<div className={`service-item style-4 ${biggerCard ? "service-item-bigger" : ""}`}>
-			<h6 className="h10-service-sln">{modifyNumber(idx + 1)}.</h6>
+  const cardDesc =
+    desc ||
+    shortDescription ||
+    description1 ||
+    "Through a combination of data-driven insights and innovative approaches business.";
 
-			{iconUrl ? (
-				/* Custom wrapper — bypasses .service-icon theme styles entirely */
-				<div style={{
-					width: 80,
-					height: 80,
-					borderRadius: "50%",
-					overflow: "hidden",
-					position: "relative",
-					flexShrink: 0,
-					/* force-override any inherited background/padding from theme */
-					background: "transparent",
-					padding: 0,
-					margin: 0,
-				}}>
-					<img
-						src={iconUrl}
-						alt={title || "service icon"}
-						style={{
-							position: "absolute",
-							inset: 0,
-							width: "100%",
-							height: "100%",
-							objectFit: "cover",
-							objectPosition: "center",
-							borderRadius: "50%",
-						}}
-					/>
-				</div>
-			) : (
-				<div className="service-icon">
-					<i className={iconName}></i>
-				</div>
-			)}
+  const href = `/services/${slug || id}`;
 
-			<div className="service-content">
-				<h4 className="title">
-					<Link href={href}>{title}</Link>
-				</h4>
-				<p className="desc">{cardDesc}</p>
-				<Link className="text-btn" href={href}>
-					<span className="btn-text">
-						<span>Learn More</span>
-					</span>
-					<span className="btn-icon">
-						<i className="tji-arrow-right-long"></i>
-					</span>
-				</Link>
-			</div>
-		</div>
-	);
+  return (
+    <div
+      className={`service-item style-4 ${biggerCard ? "service-item-bigger" : ""}`}
+      style={{
+        display:       "flex",
+        flexDirection: "column",
+        width:         "100%",
+        height:        "100%",
+        overflow:      "hidden",
+        boxSizing:     "border-box",
+      }}
+    >
+      {/* ── banner image ── */}
+      <div
+        style={{
+          width:        "100%",
+          height:       220,
+          flexShrink:   0,
+          overflow:     "hidden",
+          borderRadius: "12px 12px 0 0",
+          background:   "#dce8f5",
+          position:     "relative",
+        }}
+      >
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={title || "service image"}
+            style={{
+              position:       "absolute",
+              inset:          0,
+              width:          "100%",
+              height:         "100%",
+              objectFit:      "cover",
+              objectPosition: "center",
+              display:        "block",
+            }}
+          />
+        ) : (
+          /* placeholder when no image uploaded yet */
+          <div
+            style={{
+              width:          "100%",
+              height:         "100%",
+              display:        "flex",
+              alignItems:     "center",
+              justifyContent: "center",
+              color:          "#93b8d4",
+              fontSize:       13,
+              letterSpacing:  "0.04em",
+            }}
+          >
+            No image
+          </div>
+        )}
+      </div>
+
+      {/* ── card body ── */}
+      <div
+        className="service-content"
+        style={{
+          padding:       "20px 24px 24px",
+          display:       "flex",
+          flexDirection: "column",
+          flexGrow:      1,
+        }}
+      >
+        <h6 className="h10-service-sln">{modifyNumber(idx + 1)}.</h6>
+        <h4 className="title">
+          <Link href={href}>{title}</Link>
+        </h4>
+        <p className="desc" style={{ flexGrow: 1 }}>{cardDesc}</p>
+        <Link className="text-btn" href={href}>
+          <span className="btn-text"><span>Learn More</span></span>
+          <span className="btn-icon"><i className="tji-arrow-right-long"></i></span>
+        </Link>
+      </div>
+    </div>
+  );
 };
 
 export default ServiceCard11;

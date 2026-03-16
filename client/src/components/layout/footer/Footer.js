@@ -126,10 +126,10 @@ const Footer = () => {
               >
                 <h5 className="title">Resources</h5>
                 <ul>
-                  <li><Link href="/">Home</Link></li>
+                  {/* <li><Link href="/">Home</Link></li> */}
                   <li><Link href="/about">About us</Link></li>
-                  <li><Link href="/history">Our history</Link></li>
-                  <li><Link href="/events">Events</Link></li>
+                  {/* <li><Link href="/history">Our history</Link></li> */}
+                  {/* <li><Link href="/events">Events</Link></li> */}
                   <li><Link href="/team">Team Member</Link></li>
                   <li>
                     <Link href="/careers">

@@ -33,6 +33,10 @@ import Services7 from "@/components/sections/services/Services7";
 import Services8 from "@/components/sections/services/Services8";
 import Services9 from "@/components/sections/services/Services9";
 import Services10 from "@/components/sections/services/Services10";
+import Hero10 from "@/components/sections/hero/Hero10";
+import Funfact1 from "@/components/sections/funfacts/Funfact1";
+import Funfact3 from "@/components/sections/funfacts/Funfact3";
+import Process2 from "@/components/sections/process/Process2";
 
 export default function Home2() {
 	return (
@@ -44,7 +48,7 @@ export default function Home2() {
 				<div id="smooth-content">
 					<main>
 						<div className="top-space-15"></div>
-						<Hero2 />
+						<Hero10 />
 						{/* <About3 type={2} /> */}
 						
 						

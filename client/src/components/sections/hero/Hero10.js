@@ -1,98 +1,317 @@
+"use client";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
+import { useEffect, useRef, useState } from "react";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const SLIDE_DURATION = 5000;
 
 const Hero10 = () => {
-	return (
-		<section className="tj-banner-section-2 h10-hero section-gap-x zoom-on-scroll-wrapper">
-			<div className="container">
-				<div className="row flex-column-reverse flex-lg-row">
-					<div className="col-lg-4 col-xl-3">
-						<div className="h10-hero-award-wrapper">
-							<div
-								className="h6-hero-history wow fadeInUp"
-								data-wow-delay=".3s"
-							>
-								<div className="h6-hero-history-title"></div>
-								<p className="h6-hero-history-desc">
-									Recognized by industry leaders, of our award-winning team has
-									a proven record of delivering excellence across projects.
-								</p>
-							</div>
-							<div
-								className="circle-text-wrap wow bounceInLeft"
-								data-wow-delay=".5s"
-							>
-								<span
-									className="circle-text"
-									style={{
-										backgroundImage:
-											"url('/images/icons/award-rounded-text.svg')",
-									}}
-								></span>
-								<div className="circle-icon">
-									<i className="tji-w-dot"></i>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div className="col-lg-8 col-xl-9">
-						<div className="banner-content-2">
-							<h1 className="banner-title text-anim">
-								Driving Innovation to Transform Business Futures{" "}
-								<i
-									className="tji-curve-arrow wow fadeInRight"
-									data-wow-delay=".7s"
-								></i>
-							</h1>
-							<div
-								className="banner-desc-area wow fadeInUp"
-								data-wow-delay=".7s"
-							>
-								<ButtonPrimary text={"Get Started"} url={"/contact"} />
-								<div className="banner-desc">
-									Recognized by industryaward leaders, award winning team has be
-									a proven record.
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div className="container-fluid gap-0">
-				<div className="row">
-					<div className="col-12">
-						<div className="h10-hero-banner zoom-on-scroll">
-							<div className="h10-hero-banner-img h10-hero-banner-video">
-								<video
-									autoPlay
-									loop
-									muted
-									playsInline
-									data-wf-ignore="true"
-									data-object-fit="cover"
-									poster="/images/hero/h10-hero-banner.webp"
-								>
-									<source
-										src="/video/h10-banner-videio.mp4"
-										data-wf-ignore="true"
-									/>
-									<source
-										src="/video/h10-banner-videio.mp4"
-										data-wf-ignore="true"
-									/>
-								</video>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div className="bg-shape-1">
-				<img src="/images/shape/pattern-2.svg" alt="" />
-			</div>
-			<div className="bg-shape-2">
-				<img src="/images/shape/pattern-3.svg" alt="" />
-			</div>
-		</section>
-	);
+  const [slides, setSlides]             = useState([]);
+  const [activeIndex, setActiveIndex]   = useState(0);
+  const [contentVisible, setContentVisible] = useState(true);
+
+  const videoRef    = useRef(null);
+  const timerRef    = useRef(null);
+  const progressRef = useRef(null);
+  const activeIndexRef = useRef(0); // keep ref in sync for closures
+
+  // ── Fetch slides ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    fetch(`${API_BASE}/banner`)
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((res) => {
+        if (res.success && res.data?.slides) {
+          const active = res.data.slides.filter((s) => s.isActive);
+          setSlides(active);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch banner:", err));
+  }, []);
+
+  const resolveUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url;
+    const base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace("/api", "");
+    return `${base}${url}`;
+  };
+
+  const isVideoSlide = (slide) => {
+    if (!slide) return false;
+    if (slide.type === "video") return true;
+    if (slide.mediaType === "video") return true;
+    const url = slide.mediaUrl || "";
+    return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url);
+  };
+
+  // ── Navigate — always fade out then update index ──────────────────────────
+  const goTo = (idx) => {
+    const total = slides.length;
+    if (!total) return;
+    const next = ((idx % total) + total) % total;
+    clearTimeout(timerRef.current);
+
+    // Fade out content
+    setContentVisible(false);
+
+    setTimeout(() => {
+      activeIndexRef.current = next;
+      setActiveIndex(next);
+      // Fade back in after index update
+      setTimeout(() => setContentVisible(true), 50);
+    }, 300);
+  };
+
+  const goNext = () => goTo(activeIndexRef.current + 1);
+  const goPrev = () => goTo(activeIndexRef.current - 1);
+
+  // ── Progress bar ──────────────────────────────────────────────────────────
+  const startProgress = (duration) => {
+    if (!progressRef.current) return;
+    progressRef.current.style.transition = "none";
+    progressRef.current.style.width = "0%";
+    void progressRef.current.offsetWidth;
+    progressRef.current.style.transition = `width ${duration}ms linear`;
+    progressRef.current.style.width = "100%";
+    timerRef.current = setTimeout(goNext, duration);
+  };
+
+  // ── On slide change ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!slides.length) return;
+    const current = slides[activeIndex];
+    clearTimeout(timerRef.current);
+
+    if (isVideoSlide(current)) {
+      if (progressRef.current) {
+        progressRef.current.style.transition = "none";
+        progressRef.current.style.width = "0%";
+      }
+      if (videoRef.current) {
+        videoRef.current.currentTime = 0;
+        videoRef.current.play().catch(() => {});
+      }
+    } else {
+      startProgress(SLIDE_DURATION);
+    }
+
+    return () => clearTimeout(timerRef.current);
+  }, [activeIndex, slides]);
+
+  const handleVideoLoaded = () => {
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+    startProgress(video.duration * 1000);
+  };
+
+  // ── Active slide data — read directly from slides array ───────────────────
+  const active      = slides[activeIndex] || null;
+  const title       = active?.title       || "Driving Innovation to Transform Business Futures";
+  const description = active?.description || active?.subtitle || "Recognized by industry leaders, our award-winning team has a proven record of delivering excellence across projects.";
+  const subtitle    = active?.subtitle    || "";
+  const buttonText  = active?.buttonText  || "Get Started";
+  const buttonUrl   = active?.buttonUrl   || "/contact";
+  const mediaUrl    = active ? resolveUrl(active.mediaUrl) : "/video/h10-banner-videio.mp4";
+  const isVideo     = isVideoSlide(active);
+
+  return (
+    <>
+      <style>{`
+        .h10-content-fade {
+          transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        .h10-content-fade.hidden {
+          opacity: 0;
+          transform: translateY(12px);
+          pointer-events: none;
+        }
+        .h10-content-fade.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      `}</style>
+
+      <section className="tj-banner-section-2 h10-hero section-gap-x zoom-on-scroll-wrapper">
+
+        {/* ── TOP: Text content — fades on slide change ── */}
+        <div className="container">
+          <div className="row flex-column-reverse flex-lg-row">
+            <div className="col-lg-4 col-xl-3">
+              <div className="h10-hero-award-wrapper">
+                <div className="h6-hero-history wow fadeInUp" data-wow-delay=".3s">
+                  <div className="h6-hero-history-title"></div>
+                  <p className={`h6-hero-history-desc h10-content-fade ${contentVisible ? "visible" : "hidden"}`}>
+                    {description}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-8 col-xl-9">
+              <div className="banner-content-2">
+
+                {/* Subtitle */}
+                <p
+                  className={`slider-subtitle h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
+                  style={{ color: "#ffffff", minHeight: "1.5em" }}
+                >
+                  {subtitle}
+                </p>
+
+                {/* Title — this is the heading that changes */}
+                <h1
+                  className={`banner-title text-anim h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
+                  key={activeIndex} /* key forces re-mount so text-anim replays */
+                >
+                  {title}{" "}
+                  <i className="tji-curve-arrow" />
+                </h1>
+
+                {/* Button */}
+                <div
+                  className={`banner-desc-area h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
+                >
+                  <ButtonPrimary text={buttonText} url={buttonUrl} />
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── BOTTOM: Media banner ── */}
+        <div className="container-fluid gap-0">
+          <div className="row">
+            <div className="col-12">
+              <div className="h10-hero-banner zoom-on-scroll" style={{ position: "relative" }}>
+                <div className="h10-hero-banner-img h10-hero-banner-video">
+
+                  {isVideo ? (
+                    <video
+                      ref={videoRef}
+                      key={mediaUrl}
+                      autoPlay muted playsInline
+                      data-wf-ignore="true"
+                      data-object-fit="cover"
+                      poster="/images/hero/h10-hero-banner.webp"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      onLoadedMetadata={handleVideoLoaded}
+                      onEnded={goNext}
+                    >
+                      <source src={mediaUrl} type="video/mp4" />
+                      <source src={mediaUrl} type="video/webm" />
+                    </video>
+                  ) : (
+                    <img
+                      key={mediaUrl}
+                      src={mediaUrl}
+                      alt={title}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
+                  )}
+
+                  {/* ── Navigation (2+ slides only) ── */}
+                  {slides.length > 1 && (
+                    <div style={{
+                      position: "absolute",
+                      bottom: 0, left: 0, right: 0,
+                      zIndex: 10,
+                      padding: "16px 24px",
+                      display: "flex",
+                      alignItems: "flex-end",
+                      justifyContent: "space-between",
+                      background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)",
+                    }}>
+
+                      {/* Thumbnail strip */}
+                      <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
+                        {slides.map((slide, idx) => {
+                          const thumbUrl = resolveUrl(slide.thumbUrl || slide.mediaUrl);
+                          const isActive = idx === activeIndex;
+                          return (
+                            <div
+                              key={slide._id || idx}
+                              onClick={() => goTo(idx)}
+                              style={{
+                                position: "relative",
+                                width: "110px",
+                                cursor: "pointer",
+                                borderRadius: "6px",
+                                overflow: "hidden",
+                                border: isActive ? "2px solid #ffffff" : "2px solid rgba(255,255,255,0.3)",
+                                transition: "border-color 0.3s ease",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {isVideoSlide(slide) ? (
+                                <video
+                                  src={thumbUrl} muted loop playsInline autoPlay
+                                  style={{ width: "100%", height: "68px", objectFit: "cover", display: "block" }}
+                                />
+                              ) : (
+                                <div style={{
+                                  width: "100%", height: "68px",
+                                  backgroundImage: `url('${thumbUrl}')`,
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
+                                }} />
+                              )}
+
+                              <div style={{
+                                position: "absolute", top: "4px", left: "6px",
+                                fontSize: "10px", fontWeight: 600, color: "#fff",
+                                textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+                              }}>
+                                {String(idx + 1).padStart(2, "0")}
+                              </div>
+
+                              {isActive && (
+                                <div style={{
+                                  position: "absolute", bottom: 0, left: 0, right: 0,
+                                  height: "3px", background: "rgba(255,255,255,0.25)",
+                                }}>
+                                  <div ref={progressRef} style={{ height: "100%", width: "0%", background: "#ffffff" }} />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Prev / Next */}
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        {[{ fn: goPrev, icon: "tji-arrow-left", label: "Previous" },
+                          { fn: goNext, icon: "tji-arrow-right", label: "Next" }].map(({ fn, icon, label }) => (
+                          <button
+                            key={label}
+                            onClick={fn}
+                            aria-label={`${label} slide`}
+                            style={{
+                              width: "40px", height: "40px", borderRadius: "50%",
+                              border: "1px solid rgba(255,255,255,0.5)",
+                              background: "rgba(0,0,0,0.35)", color: "#fff",
+                              cursor: "pointer", display: "flex",
+                              alignItems: "center", justifyContent: "center",
+                              backdropFilter: "blur(4px)", transition: "background 0.2s",
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.6)"}
+                            onMouseLeave={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.35)"}
+                          >
+                            <i className={icon} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </>
+  );
 };
 
 export default Hero10;
