@@ -1,175 +1,202 @@
 "use client";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import ServiceCard11 from "@/components/shared/cards/ServiceCard11";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE    = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const SERVER_BASE = API_BASE.replace(/\/api$/, "");
 const INTERVAL_MS = 4000;
 
-const SERVER_BASE = (
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
-).replace(/\/api$/, "");
-
-function getImageSrc(src) {
-  if (!src) return null;
+function resolveImage(src) {
+  if (!src) return "";
   if (src.startsWith("http") || src.startsWith("/images")) return src;
   return `${SERVER_BASE}${src}`;
 }
 
-function normalizeService(s) {
+function normalize(s) {
   return {
     ...s,
-    desc: s.shortDescription || s.description1 || s.desc || "",
-    heroImage: getImageSrc(s.heroImage || s.iconImage || s.image || null) || "",
+    desc:      s.shortDescription || s.description1 || s.desc || "",
+    heroImage: resolveImage(s.heroImage || s.iconImage || s.image || ""),
   };
 }
 
-const Services10 = () => {
+export default function Services10() {
   const [services, setServices] = useState([]);
-  const [current, setCurrent]   = useState(0);
-  const [perView, setPerView]   = useState(3);
-  const [ready, setReady]       = useState(false);
-  const intervalRef             = useRef(null);
+  const [current,  setCurrent]  = useState(0);
+  const [perView,  setPerView]  = useState(3);
+  const [mounted,  setMounted]  = useState(false);
+  const timerRef = useRef(null);
 
-  // ── Fetch services directly — no getALlServices() ────────────────────────
+  /* ── 1. Fetch ───────────────────────────────────────────────────── */
   useEffect(() => {
+    let cancelled = false;
     fetch(`${API_BASE}/services`, { cache: "no-store" })
       .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then((data) => {
-        const list = Array.isArray(data) ? data : data.data || data.services || [];
-        setServices(list.map(normalizeService));
+        if (cancelled) return;
+        const raw = Array.isArray(data) ? data : (data.data || data.services || []);
+        setServices(raw.map(normalize));
       })
-      .catch((err) => console.error("[Services10]", err));
+      .catch((e) => console.error("[Services10]", e));
+    return () => { cancelled = true; };
   }, []);
 
-  // ── Responsive perView — only run client side ─────────────────────────────
+  /* ── 2. Responsive columns ──────────────────────────────────────── */
   useEffect(() => {
-    const update = () => {
+    function update() {
       const w = window.innerWidth;
-      if (w < 576)      setPerView(1);
-      else if (w < 992) setPerView(2);
-      else              setPerView(3);
-      setReady(true);
-    };
+      setPerView(w < 576 ? 1 : w < 992 ? 2 : 3);
+    }
     update();
+    setMounted(true);
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  /* ── 3. Auto-play ───────────────────────────────────────────────── */
   const totalSlides = Math.max(1, services.length - perView + 1);
 
-  // ── Auto-play interval ────────────────────────────────────────────────────
-  const startInterval = useCallback(() => {
-    clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      setCurrent((prev) => (prev + 1 >= totalSlides ? 0 : prev + 1));
-    }, INTERVAL_MS);
+  const resetTimer = useCallback(() => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(
+      () => setCurrent((p) => (p + 1 >= totalSlides ? 0 : p + 1)),
+      INTERVAL_MS
+    );
   }, [totalSlides]);
 
   useEffect(() => {
     if (services.length === 0) return;
-    startInterval();
-    return () => clearInterval(intervalRef.current);
-  }, [startInterval, services.length]);
+    resetTimer();
+    return () => clearInterval(timerRef.current);
+  }, [resetTimer, services.length]);
 
-  // ── Clamp current if slides shrink ───────────────────────────────────────
+  /* ── 4. Clamp ───────────────────────────────────────────────────── */
   useEffect(() => {
-    if (current >= totalSlides) setCurrent(0);
-  }, [totalSlides, current]);
+    setCurrent((c) => (c >= totalSlides ? 0 : c));
+  }, [totalSlides]);
 
-  const goTo = (idx) => {
-    setCurrent(idx);
-    startInterval();
-  };
+  const goTo = (i) => { setCurrent(i); resetTimer(); };
 
-  const cardWidthPct = 100 / perView;
-  const translateX   = -(current * cardWidthPct);
-
-  // Don't render carousel until client-side perView is known (prevents flash)
-  if (!ready || services.length === 0) return null;
+  const pct        = 100 / perView;
+  const translateX = -(current * pct);
 
   return (
     <section className="h5-service-section h10-service section-gap">
       <div className="container">
 
-        {/* Heading */}
+        {/* ── Heading row ── */}
         <div className="row">
           <div className="col-12">
             <div className="sec-heading-wrap style-8">
               <div className="heading-wrap-content">
                 <div className="sec-heading style-3">
-                  <span className="sub-title wow fadeInUp" data-wow-delay=".3s">
-                    <i className="tji-box"></i> Our Solutions
+                  <span
+                    className="sub-title wow fadeInUp"
+                    data-wow-delay=".3s"
+                  >
+                    <i className="tji-box" /> Our Solutions
                   </span>
-                  <h2 className="sec-title text-anim">
+                  {/* force dark colour so it shows on any background */}
+                  <h2
+                    className="sec-title text-anim"
+                    style={{ color: "var(--tj-color-heading, #0a1e2e)" }}
+                  >
                     Tailor Business Solutions for Corporates.
                   </h2>
                 </div>
                 <div className="btn-area wow fadeInUp" data-wow-delay=".8s">
-                  <ButtonPrimary text={"Explore More"} url={"/services"} />
+                  <ButtonPrimary text="Explore More" url="/services" />
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Carousel — will-change prevents repaint glitch */}
-        <div style={{ marginTop: 40, overflow: "hidden" }}>
-          <div
-            style={{
-              display:        "flex",
-              alignItems:     "stretch",
-              transition:     "transform 0.6s cubic-bezier(0.4,0,0.2,1)",
-              transform:      `translateX(${translateX}%)`,
-              willChange:     "transform",
-            }}
-          >
-            {services.map((service, idx) => (
+        {/* ── Carousel (only after mount so SSR/hydration match) ── */}
+        {mounted && services.length > 0 ? (
+          <>
+            <div style={{ marginTop: 40, overflow: "hidden" }}>
               <div
-                key={service._id || service.slug || idx}
                 style={{
-                  flex:      `0 0 ${cardWidthPct}%`,
-                  width:     `${cardWidthPct}%`,
-                  maxWidth:  `${cardWidthPct}%`,
-                  padding:   "0 12px",
-                  boxSizing: "border-box",
-                  display:   "flex",
+                  display:    "flex",
+                  alignItems: "stretch",
+                  willChange: "transform",
+                  transition: "transform 0.6s cubic-bezier(0.4,0,0.2,1)",
+                  transform:  `translateX(${translateX}%)`,
                 }}
               >
-                <ServiceCard11 service={service} idx={idx} biggerCard={true} />
+                {services.map((service, idx) => (
+                  <div
+                    key={service._id || service.slug || idx}
+                    style={{
+                      flex:      `0 0 ${pct}%`,
+                      width:     `${pct}%`,
+                      maxWidth:  `${pct}%`,
+                      padding:   "0 12px",
+                      boxSizing: "border-box",
+                      display:   "flex",
+                    }}
+                  >
+                    <ServiceCard11 service={service} idx={idx} biggerCard />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Dots */}
-        {totalSlides > 1 && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 32 }}>
-            {Array.from({ length: totalSlides }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => goTo(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                style={{
-                  width:        i === current ? 24 : 8,
-                  height:       8,
-                  borderRadius: 4,
-                  border:       "none",
-                  cursor:       "pointer",
-                  padding:      0,
-                  background:   i === current
-                    ? "var(--tj-color-theme-primary, #015599)"
-                    : "#c0d5e8",
-                  transition: "width 0.3s ease, background 0.3s ease",
-                }}
-              />
+            {/* Dots */}
+            {totalSlides > 1 && (
+              <div style={{
+                display:        "flex",
+                justifyContent: "center",
+                gap:            8,
+                marginTop:      32,
+              }}>
+                {Array.from({ length: totalSlides }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => goTo(i)}
+                    aria-label={`Slide ${i + 1}`}
+                    style={{
+                      width:        i === current ? 24 : 8,
+                      height:       8,
+                      borderRadius: 4,
+                      border:       "none",
+                      cursor:       "pointer",
+                      padding:      0,
+                      background:   i === current
+                        ? "var(--tj-color-theme-primary, #015599)"
+                        : "#c0d5e8",
+                      transition: "width 0.3s ease, background 0.3s ease",
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          /* Skeleton placeholders — same height as cards, no layout shift */
+          <div style={{ display: "flex", gap: 24, marginTop: 40 }}>
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} style={{
+                flex:         "1 1 0",
+                height:       360,
+                borderRadius: 12,
+                background:   "linear-gradient(90deg,#e8f0f7 25%,#d4e2ee 50%,#e8f0f7 75%)",
+                backgroundSize: "200% 100%",
+                animation:    "shimmer10 1.4s infinite",
+              }} />
             ))}
+            <style>{`
+              @keyframes shimmer10 {
+                0%   { background-position: 200% 0 }
+                100% { background-position: -200% 0 }
+              }
+            `}</style>
           </div>
         )}
 
       </div>
     </section>
   );
-};
-
-export default Services10;
+}

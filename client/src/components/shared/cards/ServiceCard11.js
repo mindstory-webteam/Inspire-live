@@ -12,19 +12,17 @@ const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
     heroImage,
   } = service || {};
 
+  const href     = `/services/${slug || id || ""}`;
   const imageUrl = heroImage || null;
-
   const cardDesc =
     desc ||
     shortDescription ||
     description1 ||
     "Through a combination of data-driven insights and innovative approaches business.";
 
-  const href = `/services/${slug || id}`;
-
   return (
     <div
-      className={`service-item style-4 ${biggerCard ? "service-item-bigger" : ""}`}
+      className={`service-item style-4${biggerCard ? " service-item-bigger" : ""}`}
       style={{
         display:       "flex",
         flexDirection: "column",
@@ -35,21 +33,19 @@ const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
       }}
     >
       {/* Banner image */}
-      <div
-        style={{
-          width:        "100%",
-          height:       220,
-          flexShrink:   0,
-          overflow:     "hidden",
-          borderRadius: "12px 12px 0 0",
-          background:   "#dce8f5",
-          position:     "relative",
-        }}
-      >
+      <div style={{
+        width:        "100%",
+        height:       220,
+        flexShrink:   0,
+        overflow:     "hidden",
+        borderRadius: "12px 12px 0 0",
+        background:   "#dce8f5",
+        position:     "relative",
+      }}>
         {imageUrl ? (
           <img
             src={imageUrl}
-            alt={title || "service image"}
+            alt={title || "service"}
             style={{
               position:       "absolute",
               inset:          0,
@@ -69,14 +65,13 @@ const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
             justifyContent: "center",
             color:          "#93b8d4",
             fontSize:       13,
-            letterSpacing:  "0.04em",
           }}>
             No image
           </div>
         )}
       </div>
 
-      {/* Card body */}
+      {/* Body */}
       <div
         className="service-content"
         style={{
@@ -93,7 +88,7 @@ const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
         <p className="desc" style={{ flexGrow: 1 }}>{cardDesc}</p>
         <Link className="text-btn" href={href}>
           <span className="btn-text"><span>Learn More</span></span>
-          <span className="btn-icon"><i className="tji-arrow-right-long"></i></span>
+          <span className="btn-icon"><i className="tji-arrow-right-long" /></span>
         </Link>
       </div>
     </div>
