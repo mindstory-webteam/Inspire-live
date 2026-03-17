@@ -3,9 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import ServiceCard11 from "@/components/shared/cards/ServiceCard11";
 
-const API_BASE    = process.env.NEXT_PUBLIC_API_URL;
+// ── Always provide a fallback so SERVER_BASE.replace() never crashes ──────────
+const API_BASE    = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 const SERVER_BASE = API_BASE.replace(/\/api$/, "");
-const INTERVAL_MS = 1000;
+const INTERVAL_MS = 4000;
 
 function resolveImage(src) {
   if (!src) return "";
@@ -85,19 +86,15 @@ export default function Services10() {
     <section className="h5-service-section h10-service section-gap">
       <div className="container">
 
-        {/* ── Heading row ── */}
+        {/* Heading */}
         <div className="row">
           <div className="col-12">
             <div className="sec-heading-wrap style-8">
               <div className="heading-wrap-content">
                 <div className="sec-heading style-3">
-                  <span
-                    className="sub-title wow fadeInUp"
-                    data-wow-delay=".3s"
-                  >
+                  <span className="sub-title wow fadeInUp" data-wow-delay=".3s">
                     <i className="tji-box" /> Our Solutions
                   </span>
-                  {/* force dark colour so it shows on any background */}
                   <h2
                     className="sec-title text-anim"
                     style={{ color: "var(--tj-color-heading, #0a1e2e)" }}
@@ -113,7 +110,7 @@ export default function Services10() {
           </div>
         </div>
 
-        {/* ── Carousel (only after mount so SSR/hydration match) ── */}
+        {/* Carousel — only after client mount to avoid SSR mismatch */}
         {mounted && services.length > 0 ? (
           <>
             <div style={{ marginTop: 40, overflow: "hidden" }}>
@@ -146,12 +143,7 @@ export default function Services10() {
 
             {/* Dots */}
             {totalSlides > 1 && (
-              <div style={{
-                display:        "flex",
-                justifyContent: "center",
-                gap:            8,
-                marginTop:      32,
-              }}>
+              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 32 }}>
                 {Array.from({ length: totalSlides }, (_, i) => (
                   <button
                     key={i}
@@ -175,16 +167,16 @@ export default function Services10() {
             )}
           </>
         ) : (
-          /* Skeleton placeholders — same height as cards, no layout shift */
+          /* Skeleton while loading */
           <div style={{ display: "flex", gap: 24, marginTop: 40 }}>
             {Array.from({ length: 3 }, (_, i) => (
               <div key={i} style={{
-                flex:         "1 1 0",
-                height:       360,
-                borderRadius: 12,
-                background:   "linear-gradient(90deg,#e8f0f7 25%,#d4e2ee 50%,#e8f0f7 75%)",
+                flex:           "1 1 0",
+                height:         360,
+                borderRadius:   12,
+                background:     "linear-gradient(90deg,#e8f0f7 25%,#d4e2ee 50%,#e8f0f7 75%)",
                 backgroundSize: "200% 100%",
-                animation:    "shimmer10 1.4s infinite",
+                animation:      "shimmer10 1.4s infinite",
               }} />
             ))}
             <style>{`

@@ -4,10 +4,10 @@ import About3 from "@/components/sections/about/About3";
 import Blogs2 from "@/components/sections/blogs/Blogs2";
 
 import Hero2 from "@/components/sections/hero/Hero2";
-import Portfolios2 from "@/components/sections/portfolios/Portfolios2";
-import PricingPlan from "@/components/sections/pricing-plan/PricingPlan";
+
+
 import Funfact2 from "@/components/sections/funfacts/Funfact2";
-import Portfolios4 from "@/components/sections/portfolios/Portfolios4";
+
 import Process from "@/components/sections/process/Process";
 import Services3 from "@/components/sections/services/Services3";
 import Team1 from "@/components/sections/teams/Team1";
@@ -55,7 +55,7 @@ export default function Home2() {
 						<About9 />
 						
 						
-						{/* <Services10 /> */}
+						<Services10 />
 						<Funfact2 />
 						{/* <Portfolios2 /> */}
 						{/* <Portfolios4 /> */}
