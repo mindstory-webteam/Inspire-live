@@ -1,62 +1,55 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
-import getALlServices from "@/libs/getALlServices";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import ServiceCard11 from "@/components/shared/cards/ServiceCard11";
 
-const FALLBACK = [
-  {
-    _id: "phd-india",
-    slug: "phd-india",
-    title: "PhD India",
-    shortDescription: "Complete assistance for PhD admissions in India, from university selection to application submission and interview preparation.",
-    heroImage: "/new-imges/serives-image/icons/icon-4.png",
-  },
-  {
-    _id: "phd-abroad",
-    slug: "phd-abroad",
-    title: "PhD Abroad",
-    shortDescription: "Specialized guidance for PhD admissions abroad with support for research proposals, funding applications, and supervisor connections.",
-    heroImage: "/new-imges/serives-image/icons/icon-5.png",
-  },
-];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const INTERVAL_MS = 4000;
+
+const SERVER_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+).replace(/\/api$/, "");
+
+function getImageSrc(src) {
+  if (!src) return null;
+  if (src.startsWith("http") || src.startsWith("/images")) return src;
+  return `${SERVER_BASE}${src}`;
+}
 
 function normalizeService(s) {
   return {
     ...s,
-    // ── correct field names from your mongoose schema ──
-    desc:      s.shortDescription || s.description1 || s.desc || "",
-    heroImage: s.heroImage || "",   // plain Cloudinary URL string per schema
+    desc: s.shortDescription || s.description1 || s.desc || "",
+    heroImage: getImageSrc(s.heroImage || s.iconImage || s.image || null) || "",
   };
 }
 
-const INTERVAL_MS = 4000;
-
 const Services10 = () => {
-  const [services, setServices] = useState(FALLBACK);
+  const [services, setServices] = useState([]);
   const [current, setCurrent]   = useState(0);
-  const [perView, setPerView]   = useState(2);
+  const [perView, setPerView]   = useState(3);
+  const [ready, setReady]       = useState(false);
   const intervalRef             = useRef(null);
 
-  /* ── fetch ALL services ── */
+  // ── Fetch services directly — no getALlServices() ────────────────────────
   useEffect(() => {
-    getALlServices()
-      .then((all) => {
-        const list = Array.isArray(all) ? all : [];
-        console.log("[Services10] raw first item:", list[0]); // debug — check heroImage
-        const normalized = list.map(normalizeService);
-        if (normalized.length > 0) setServices(normalized);
+    fetch(`${API_BASE}/services`, { cache: "no-store" })
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data.data || data.services || [];
+        setServices(list.map(normalizeService));
       })
       .catch((err) => console.error("[Services10]", err));
   }, []);
 
-  /* ── responsive perView ── */
+  // ── Responsive perView — only run client side ─────────────────────────────
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
       if (w < 576)      setPerView(1);
       else if (w < 992) setPerView(2);
       else              setPerView(3);
+      setReady(true);
     };
     update();
     window.addEventListener("resize", update);
@@ -65,6 +58,7 @@ const Services10 = () => {
 
   const totalSlides = Math.max(1, services.length - perView + 1);
 
+  // ── Auto-play interval ────────────────────────────────────────────────────
   const startInterval = useCallback(() => {
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
@@ -73,10 +67,12 @@ const Services10 = () => {
   }, [totalSlides]);
 
   useEffect(() => {
+    if (services.length === 0) return;
     startInterval();
     return () => clearInterval(intervalRef.current);
-  }, [startInterval]);
+  }, [startInterval, services.length]);
 
+  // ── Clamp current if slides shrink ───────────────────────────────────────
   useEffect(() => {
     if (current >= totalSlides) setCurrent(0);
   }, [totalSlides, current]);
@@ -89,11 +85,14 @@ const Services10 = () => {
   const cardWidthPct = 100 / perView;
   const translateX   = -(current * cardWidthPct);
 
+  // Don't render carousel until client-side perView is known (prevents flash)
+  if (!ready || services.length === 0) return null;
+
   return (
     <section className="h5-service-section h10-service section-gap">
       <div className="container">
 
-        {/* heading */}
+        {/* Heading */}
         <div className="row">
           <div className="col-12">
             <div className="sec-heading-wrap style-8">
@@ -114,39 +113,36 @@ const Services10 = () => {
           </div>
         </div>
 
-        {/* carousel track */}
+        {/* Carousel — will-change prevents repaint glitch */}
         <div style={{ marginTop: 40, overflow: "hidden" }}>
           <div
             style={{
-              display:    "flex",
-              alignItems: "stretch",
-              transition: "transform 0.6s cubic-bezier(0.4,0,0.2,1)",
-              transform:  `translateX(${translateX}%)`,
+              display:        "flex",
+              alignItems:     "stretch",
+              transition:     "transform 0.6s cubic-bezier(0.4,0,0.2,1)",
+              transform:      `translateX(${translateX}%)`,
+              willChange:     "transform",
             }}
           >
             {services.map((service, idx) => (
               <div
                 key={service._id || service.slug || idx}
                 style={{
-                  flex:       `0 0 ${cardWidthPct}%`,
-                  width:      `${cardWidthPct}%`,
-                  maxWidth:   `${cardWidthPct}%`,
-                  padding:    "0 12px",
-                  boxSizing:  "border-box",
-                  display:    "flex",
+                  flex:      `0 0 ${cardWidthPct}%`,
+                  width:     `${cardWidthPct}%`,
+                  maxWidth:  `${cardWidthPct}%`,
+                  padding:   "0 12px",
+                  boxSizing: "border-box",
+                  display:   "flex",
                 }}
               >
-                <ServiceCard11
-                  service={service}
-                  idx={idx}
-                  biggerCard={true}
-                />
+                <ServiceCard11 service={service} idx={idx} biggerCard={true} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* dots */}
+        {/* Dots */}
         {totalSlides > 1 && (
           <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 32 }}>
             {Array.from({ length: totalSlides }).map((_, i) => (

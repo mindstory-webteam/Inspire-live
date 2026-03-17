@@ -2,9 +2,16 @@ import modifyNumber from "@/libs/modifyNumber";
 import Link from "next/link";
 
 const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
-  const { title, desc, description1, shortDescription, slug, id, heroImage } = service || {};
+  const {
+    title,
+    desc,
+    description1,
+    shortDescription,
+    slug,
+    id,
+    heroImage,
+  } = service || {};
 
-  // ── correct field: heroImage is a plain URL string per your schema ──
   const imageUrl = heroImage || null;
 
   const cardDesc =
@@ -27,7 +34,7 @@ const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
         boxSizing:     "border-box",
       }}
     >
-      {/* ── banner image ── */}
+      {/* Banner image */}
       <div
         style={{
           width:        "100%",
@@ -54,25 +61,22 @@ const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
             }}
           />
         ) : (
-          /* placeholder when no image uploaded yet */
-          <div
-            style={{
-              width:          "100%",
-              height:         "100%",
-              display:        "flex",
-              alignItems:     "center",
-              justifyContent: "center",
-              color:          "#93b8d4",
-              fontSize:       13,
-              letterSpacing:  "0.04em",
-            }}
-          >
+          <div style={{
+            width:          "100%",
+            height:         "100%",
+            display:        "flex",
+            alignItems:     "center",
+            justifyContent: "center",
+            color:          "#93b8d4",
+            fontSize:       13,
+            letterSpacing:  "0.04em",
+          }}>
             No image
           </div>
         )}
       </div>
 
-      {/* ── card body ── */}
+      {/* Card body */}
       <div
         className="service-content"
         style={{

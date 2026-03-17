@@ -85,10 +85,10 @@ const Footer = () => {
                   </Link>
                 </div>
                 <div className="footer-text">
-                  {/* <p>
+                  <p>
                     Developing personalze our customer journeys to increase
                     satisfaction &amp; loyalty of our expansion.
-                  </p> */}
+                  </p>
                 </div>
                 {/* <div className="award-logo-area">
                   <div className="award-logo">
