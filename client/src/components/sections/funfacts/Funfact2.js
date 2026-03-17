@@ -9,10 +9,10 @@ const Funfact2 = () => {
 						<div className="heading-wrap-content">
 							<div className="sec-heading style-4">
 								<span className="sub-title wow fadeInUp" data-wow-delay=".3s">
-									<i className="tji-box"></i>OUR FUN FACT
+									<i className="tji-box"></i>OUR IMPACT
 								</span>
 								<h2 className="sec-title title-anim">
-									Numbers and facts that define performance.
+									Proven Results That Define Our Impact
 								</h2>
 							</div>
 							<div className="progress-item">
@@ -21,7 +21,7 @@ const Funfact2 = () => {
 								</div>
 								<div className="progress-text">
 									<span className="sub-title">
-										Increased revenue in the last 6 months.
+										Students achieved their preferred university placements
 									</span>
 								</div>
 							</div>
@@ -39,8 +39,10 @@ const Funfact2 = () => {
 							</span>
 							<span className="steps">01.</span>
 							<div className="count-inner">
-								<span className="count-text">Faster Growth</span>
-								<FunfactSingle currentValue={8.5} symbol={"X"} />
+								<span className="count-text">Successful Admissions</span>
+								<span className="count-text">Students placed in top universities worldwide</span>
+								
+								<FunfactSingle currentValue={500} symbol={"+"} />
 							</div>
 						</div>
 					</div>
@@ -54,8 +56,9 @@ const Funfact2 = () => {
 							</span>
 							<span className="steps">02.</span>
 							<div className="count-inner">
-								<span className="count-text">Reach Worldwide</span>
-								<FunfactSingle currentValue={20} symbol={"M"} />
+								<span className="count-text">Global Reach</span>
+								<span className="count-text">Partner universities and research programs</span>
+								<FunfactSingle currentValue={25} symbol={"+"} />
 							</div>
 						</div>
 					</div>
@@ -69,8 +72,9 @@ const Funfact2 = () => {
 							</span>
 							<span className="steps">03.</span>
 							<div className="count-inner">
-								<span className="count-text">Projects Completed.</span>
-								<FunfactSingle currentValue={93} symbol={"%"} />
+								<span className="count-text">Success Rate</span>
+								<span className="count-text"> PhD admission success across batches</span>
+								<FunfactSingle currentValue={100} symbol={"%"} />
 							</div>
 						</div>
 					</div>

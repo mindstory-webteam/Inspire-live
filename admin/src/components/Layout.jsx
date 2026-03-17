@@ -52,12 +52,13 @@ export default function Layout() {
         className="flex items-center gap-3 px-6 py-5"
         style={{ borderBottom: '1px solid #ecf0f0' }}
       >
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
-          style={{ background: 'linear-gradient(135deg, #1a598a, #015599)' }}
-        >
-          <BookOpen size={19} className="text-white" />
-        </div>
+       <div className="w-10 h-10 flex items-center justify-center">
+  <img
+    src="/inspire_icon.png"
+    alt="Inspire Logo"
+    className="w-full h-full object-contain"
+  />
+</div>
         <div>
           <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Inspire Admin</p>
           <p className="text-xs"           style={{ color: '#a9b8b8' }}>Control Panel</p>

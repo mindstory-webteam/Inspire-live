@@ -128,7 +128,7 @@ export default function Services10() {
                     className="sec-title text-anim"
                     style={{ color: "var(--tj-color-heading, #0a1e2e)" }}
                   >
-                    Tailor Business Solutions for Corporates.
+                    From Aspirations to Achievements  We Guide Every Step
                   </h2>
                 </div>
                 <div className="btn-area wow fadeInUp" data-wow-delay=".8s">

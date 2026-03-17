@@ -318,7 +318,7 @@ START: Theme Header CSS
 			> a {
 				position: relative;
 				font-size: 16px;
-				color: var(--tj-color-heading-primary);
+				color: var(--tj-color-theme-primary);
 				display: block;
 				padding: 37px 0;
 				font-weight: var(--tj-fw-medium);
@@ -640,7 +640,7 @@ START: Theme Header CSS
 					&:hover,
 					&.current-menu-ancestor {
 						> a {
-							color: var(--tj-color-text-body-2);
+							color: #015599;
 							&::after {
 								color: currentColor;
 							}

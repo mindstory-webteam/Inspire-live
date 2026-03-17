@@ -35,7 +35,7 @@ export const metadata = {
 	title: "inspirePhD - Research and Publication Support Services",
 	description: "inspirePhD - Research and Publication Support Services",
 	icons: {
-    icon: "/new-imges/logo/logo_inspire-01.png",        // standard favicon
+    icon: "/new-imges/logo/inspire_icon.jpg.jpeg",        // standard favicon
     shortcut: "/favicon.ico",    // shortcut icon
     apple: "/apple-touch-icon.png", // optional for iPhone
   },
