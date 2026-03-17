@@ -39,7 +39,7 @@ const About9 = () => {
 										data-wow-delay=".3s"
 									>
 										<div className="about-img">
-											<img src="/images/about/h10-about-banner.webp" alt="" />
+											<img src="/new-imges/about-images/img-1.png" alt="" />
 										</div>
 									</div>
 								</div>

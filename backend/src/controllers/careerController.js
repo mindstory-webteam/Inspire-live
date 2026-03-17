@@ -15,6 +15,7 @@
  *  4. All controllers wrapped in try/catch with proper error logging
  *     so a single bad doc doesn't 500 the whole list endpoint.
  */
+const mongoose = require('mongoose'); 
 
 const Career = require('../models/Career'); // adjust path if needed
 
@@ -57,10 +58,26 @@ const getAllCareers = async (req, res) => {
 const getCareerById = async (req, res) => {
   try {
     noCache(res);
-    const career = await Career.findOne({ _id: req.params.id, isActive: true })
+
+    const { id } = req.params;
+
+    // Check if it looks like a valid MongoDB ObjectId
+    const isObjectId = mongoose.Types.ObjectId.isValid(id) &&
+      String(new mongoose.Types.ObjectId(id)) === id;
+
+    // Query by _id OR slug depending on what was passed
+    const career = await Career.findOne(
+      isObjectId
+        ? { _id: id,   isActive: true }
+        : { slug: id,  isActive: true }
+    )
       .select('-applications')
       .lean();
-    if (!career) return res.status(404).json({ success: false, message: 'Career not found' });
+
+    if (!career) {
+      return res.status(404).json({ success: false, message: 'Career not found' });
+    }
+
     res.json({ success: true, data: career });
   } catch (err) {
     console.error('getCareerById:', err);
@@ -70,9 +87,22 @@ const getCareerById = async (req, res) => {
 
 const applyForCareer = async (req, res) => {
   try {
-    const career = await Career.findOne({ _id: req.params.id, isActive: true });
-    if (!career) return res.status(404).json({ success: false, message: 'Career not found or no longer active' });
+    const { id } = req.params;
 
+    const isObjectId = mongoose.Types.ObjectId.isValid(id) &&
+      String(new mongoose.Types.ObjectId(id)) === id;
+
+    const career = await Career.findOne(
+      isObjectId
+        ? { _id: id,  isActive: true }
+        : { slug: id, isActive: true }
+    );
+
+    if (!career) {
+      return res.status(404).json({ success: false, message: 'Career not found or no longer active' });
+    }
+
+    // ... rest of the function stays exactly the same
     const { fullName, email, phone, coverLetter } = req.body;
     if (!fullName || !email) return res.status(400).json({ success: false, message: 'Full name and email are required' });
 
@@ -86,7 +116,6 @@ const applyForCareer = async (req, res) => {
       appliedAt: new Date(),
     };
 
-    // FIX: old docs may have applications: undefined if created before schema default
     if (!Array.isArray(career.applications)) career.applications = [];
     career.applications.push(application);
     await career.save();
@@ -97,7 +126,6 @@ const applyForCareer = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
-
 // ── ADMIN ─────────────────────────────────────────────────────────────────────
 
 /**

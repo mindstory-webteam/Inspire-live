@@ -110,7 +110,7 @@ const Hero10 = () => {
   const subtitle    = active?.subtitle    || "";
   const buttonText  = active?.buttonText  || "Get Started";
   const buttonUrl   = active?.buttonUrl   || "/contact";
-  const mediaUrl    = active ? resolveUrl(active.mediaUrl) : "/video/h10-banner-videio.mp4";
+  const mediaUrl    = active ? resolveUrl(active.mediaUrl) : "";
   const isVideo     = isVideoSlide(active);
 
   return (
@@ -192,7 +192,7 @@ const Hero10 = () => {
                       autoPlay muted playsInline
                       data-wf-ignore="true"
                       data-object-fit="cover"
-                      poster="/images/hero/h10-hero-banner.webp"
+                      poster=""
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                       onLoadedMetadata={handleVideoLoaded}
                       onEnded={goNext}

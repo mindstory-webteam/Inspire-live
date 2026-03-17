@@ -8,23 +8,23 @@ import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 export default function Careers() {
-	return (
-		<div>
-			<BackToTop />
-			<Header />
-			<Header isStickyHeader={true} />
-			<div id="smooth-wrapper">
-				<div id="smooth-content">
-					<main>
-						<HeaderSpace />
-						<HeroInner title={"Careers"} text={"Careers"} />
-						<Careers1 />
-						<Cta />
-					</main>
-					<Footer />
-				</div>
-			</div>
-			<ClientWrapper />
-		</div>
-	);
+  return (
+    <div>
+      <BackToTop />
+      <Header />
+      <Header isStickyHeader={true} />
+      <div id="smooth-wrapper">
+        <div id="smooth-content">
+          <main>
+            <HeaderSpace />
+            <HeroInner title={"Careers"} text={"Careers"} />
+            <Careers1 />
+            <Cta />
+          </main>
+          <Footer />
+        </div>
+      </div>
+      <ClientWrapper />
+    </div>
+  );
 }
