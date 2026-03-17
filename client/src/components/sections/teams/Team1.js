@@ -6,7 +6,9 @@ import usePagination from "@/hooks/usePagination";
 import { fetchTeamMembersClient } from "@/utils/teamApi";
 import { useEffect, useState } from "react";
 
-const Team1 = ({ type }) => {
+const 
+
+Team1 = ({ type }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
