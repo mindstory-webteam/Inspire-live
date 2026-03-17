@@ -55,7 +55,7 @@ export default function Home2() {
 						<About9 />
 						
 						
-						<Services10 />
+						{/* <Services10 /> */}
 						<Funfact2 />
 						{/* <Portfolios2 /> */}
 						{/* <Portfolios4 /> */}
