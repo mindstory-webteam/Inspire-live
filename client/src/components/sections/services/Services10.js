@@ -3,9 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import ServiceCard11 from "@/components/shared/cards/ServiceCard11";
 
-const API_BASE    = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE    = process.env.NEXT_PUBLIC_API_URL;
 const SERVER_BASE = API_BASE.replace(/\/api$/, "");
-const INTERVAL_MS = 4000;
+const INTERVAL_MS = 1000;
 
 function resolveImage(src) {
   if (!src) return "";
