@@ -56,10 +56,12 @@ export default function Home2() {
 						
 						
 						<Services10 />
+						
 						<Funfact2 />
 						{/* <Portfolios2 /> */}
 						{/* <Portfolios4 /> */}
 						<Events4 />
+
 						<Process />
 						<Team1 />
 
