@@ -6,7 +6,6 @@ import { subscribeNewsletter } from "../../../utils/newsletterApi";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-// ── Static items always shown at the top of the Services list ──
 const STATIC_SERVICES = [
   { id: "phd-india",  name: "PhD India",  path: "/services/phd-india" },
   { id: "phd-abroad", name: "PhD Abroad", path: "/services/phd-abroad" },
@@ -18,8 +17,10 @@ const Footer = () => {
   const [agreed,      setAgreed]      = useState(false);
   const [submitting,  setSubmitting]  = useState(false);
   const [formMessage, setFormMessage] = useState(null);
+  const [mounted,     setMounted]     = useState(false); // FIX: hydration guard
 
   useEffect(() => {
+    setMounted(true);
     fetch(API_BASE + "/services")
       .then((res) => res.json())
       .then((data) => {
@@ -65,10 +66,9 @@ const Footer = () => {
     }
   };
 
-  // Merge: static items first, then dynamic services (skip any that duplicate a static path)
-  const staticPaths = new Set(STATIC_SERVICES.map((s) => s.path));
+  const staticPaths     = new Set(STATIC_SERVICES.map((s) => s.path));
   const dynamicServices = services.filter((s) => !staticPaths.has(s.path));
-  const allServices = [...STATIC_SERVICES, ...dynamicServices];
+  const allServices     = [...STATIC_SERVICES, ...dynamicServices];
 
   return (
     <footer className="tj-footer-section footer-1 section-gap-x">
@@ -90,23 +90,12 @@ const Footer = () => {
                     satisfaction &amp; loyalty of our expansion.
                   </p>
                 </div>
-                {/* <div className="award-logo-area">
-                  <div className="award-logo">
-                    <img src="/images/footer/award-logo-1.webp" alt="" />
-                  </div>
-                  <div className="award-logo">
-                    <img src="/images/footer/award-logo-2.webp" alt="" />
-                  </div>
-                </div> */}
               </div>
             </div>
 
-            {/* ── Services: static first, dynamic below ── */}
+            {/* ── Services ── */}
             <div className="col-xl-3 col-lg-4 col-md-6">
-              <div
-                className="footer-widget widget-nav-menu wow fadeInUp"
-                data-wow-delay=".3s"
-              >
+              <div className="footer-widget widget-nav-menu wow fadeInUp" data-wow-delay=".3s">
                 <h5 className="title">Services</h5>
                 <ul>
                   {allServices.map((service) => (
@@ -120,16 +109,10 @@ const Footer = () => {
 
             {/* ── Resources ── */}
             <div className="col-xl-2 col-lg-4 col-md-6">
-              <div
-                className="footer-widget widget-nav-menu wow fadeInUp"
-                data-wow-delay=".5s"
-              >
+              <div className="footer-widget widget-nav-menu wow fadeInUp" data-wow-delay=".5s">
                 <h5 className="title">Resources</h5>
                 <ul>
-                  {/* <li><Link href="/">Home</Link></li> */}
                   <li><Link href="/about">About us</Link></li>
-                  {/* <li><Link href="/history">Our history</Link></li> */}
-                  {/* <li><Link href="/events">Events</Link></li> */}
                   <li><Link href="/team">Team Member</Link></li>
                   <li>
                     <Link href="/careers">
@@ -138,48 +121,49 @@ const Footer = () => {
                   </li>
                   <li><Link href="/blog-grid">Blog</Link></li>
                   <li><Link href="/contact">Contact</Link></li>
-                   <li><Link href="/terms-and-conditions">Terms & Conditions</Link></li>
-                   <li><Link href="/privacy-policy">Privacy Policy</Link></li>
+                  <li><Link href="/terms-and-conditions">Terms &amp; Conditions</Link></li>
+                  <li><Link href="/privacy-policy">Privacy Policy</Link></li>
                 </ul>
               </div>
             </div>
 
             {/* ── Newsletter ── */}
             <div className="col-xl-4 col-lg-5 col-md-6">
-              <div
-                className="footer-widget widget-subscribe wow fadeInUp"
-                data-wow-delay=".7s"
-              >
+              <div className="footer-widget widget-subscribe wow fadeInUp" data-wow-delay=".7s">
                 <h3 className="title">Subscribe to Our Newsletter.</h3>
                 <div className="subscribe-form">
-                  <form onSubmit={handleSubscribe}>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Enter email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      disabled={submitting}
-                    />
-                    <button type="submit" disabled={submitting}>
-                      {submitting ? (
-                        <span style={{ fontSize: "11px" }}>...</span>
-                      ) : (
-                        <i className="tji-plane"></i>
-                      )}
-                    </button>
-                    <label htmlFor="agree">
+                  {/* FIX: only render form after mount to prevent hydration mismatch */}
+                  {mounted && (
+                    <form onSubmit={handleSubscribe} noValidate>
                       <input
-                        id="agree"
-                        type="checkbox"
-                        checked={agreed}
-                        onChange={(e) => setAgreed(e.target.checked)}
+                        type="email"
+                        name="email"
+                        placeholder="Enter email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         disabled={submitting}
+                        autoComplete="email"
                       />
-                      Agree to our{" "}
-                      <Link href="/terms-and-conditions">Terms &amp; Condition?</Link>
-                    </label>
-                  </form>
+                      <button type="submit" disabled={submitting}>
+                        {submitting ? (
+                          <span style={{ fontSize: "11px" }}>...</span>
+                        ) : (
+                          <i className="tji-plane"></i>
+                        )}
+                      </button>
+                      <label htmlFor="footer-agree">
+                        <input
+                          id="footer-agree"
+                          type="checkbox"
+                          checked={agreed}
+                          onChange={(e) => setAgreed(e.target.checked)}
+                          disabled={submitting}
+                        />
+                        Agree to our{" "}
+                        <Link href="/terms-and-conditions">Terms &amp; Condition?</Link>
+                      </label>
+                    </form>
+                  )}
                   {formMessage && (
                     <p style={{
                       marginTop:  "8px",
@@ -247,10 +231,7 @@ const Footer = () => {
                 <div className="copyright-text">
                   <p>
                     &copy; 2025{" "}
-                    <Link
-                      href="https://themeforest.net/user/theme-junction/portfolio"
-                      target="_blank"
-                    >
+                    <Link href="https://themeforest.net/user/theme-junction/portfolio" target="_blank">
                       Inspire
                     </Link>{" "}
                     All right reserved

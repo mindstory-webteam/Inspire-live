@@ -13,7 +13,7 @@ const Hero10 = () => {
   const videoRef    = useRef(null);
   const timerRef    = useRef(null);
   const progressRef = useRef(null);
-  const activeIndexRef = useRef(0); // keep ref in sync for closures
+  const activeIndexRef = useRef(0);
 
   // ── Fetch slides ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -50,13 +50,11 @@ const Hero10 = () => {
     const next = ((idx % total) + total) % total;
     clearTimeout(timerRef.current);
 
-    // Fade out content
     setContentVisible(false);
 
     setTimeout(() => {
       activeIndexRef.current = next;
       setActiveIndex(next);
-      // Fade back in after index update
       setTimeout(() => setContentVisible(true), 50);
     }, 300);
   };
@@ -103,7 +101,7 @@ const Hero10 = () => {
     startProgress(video.duration * 1000);
   };
 
-  // ── Active slide data — read directly from slides array ───────────────────
+  // ── Active slide data ─────────────────────────────────────────────────────
   const active      = slides[activeIndex] || null;
   const title       = active?.title       || "Driving Innovation to Transform Business Futures";
   const description = active?.description || active?.subtitle || "Recognized by industry leaders, our award-winning team has a proven record of delivering excellence across projects.";
@@ -132,7 +130,7 @@ const Hero10 = () => {
 
       <section className="tj-banner-section-2 h10-hero section-gap-x zoom-on-scroll-wrapper">
 
-        {/* ── TOP: Text content — fades on slide change ── */}
+        {/* ── TOP: Text content ── */}
         <div className="container">
           <div className="row flex-column-reverse flex-lg-row">
             <div className="col-lg-4 col-xl-3">
@@ -149,7 +147,6 @@ const Hero10 = () => {
             <div className="col-lg-8 col-xl-9">
               <div className="banner-content-2">
 
-                {/* Subtitle */}
                 <p
                   className={`slider-subtitle h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
                   style={{ color: "#ffffff", minHeight: "1.5em" }}
@@ -157,16 +154,14 @@ const Hero10 = () => {
                   {subtitle}
                 </p>
 
-                {/* Title — this is the heading that changes */}
                 <h1
                   className={`banner-title text-anim h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
-                  key={activeIndex} /* key forces re-mount so text-anim replays */
+                  key={activeIndex}
                 >
                   {title}{" "}
                   <i className="tji-curve-arrow" />
                 </h1>
 
-                {/* Button */}
                 <div
                   className={`banner-desc-area h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
                 >
@@ -201,12 +196,17 @@ const Hero10 = () => {
                       <source src={mediaUrl} type="video/webm" />
                     </video>
                   ) : (
-                    <img
-                      key={mediaUrl}
-                      src={mediaUrl}
-                      alt={title}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                    />
+                    /* ── FIX: guard against empty mediaUrl ── */
+                    mediaUrl ? (
+                      <img
+                        key={mediaUrl}
+                        src={mediaUrl}
+                        alt={title}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", background: "#0c1e21" }} />
+                    )
                   )}
 
                   {/* ── Navigation (2+ slides only) ── */}

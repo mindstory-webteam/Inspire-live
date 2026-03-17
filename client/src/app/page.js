@@ -59,7 +59,7 @@ export default function Home2() {
 						<Funfact2 />
 						{/* <Portfolios2 /> */}
 						{/* <Portfolios4 /> */}
-						{/* <Events4 /> */}
+						<Events4 />
 						<Process />
 						<Team1 />
 
@@ -69,7 +69,8 @@ export default function Home2() {
 
 					
 						<Blogs2 />
-						<Cta />
+						<Cta/>
+
 					</main>
 					<Footer />
 				</div>

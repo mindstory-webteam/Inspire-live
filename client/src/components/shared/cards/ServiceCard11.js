@@ -30,6 +30,9 @@ const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
         height:        "100%",
         overflow:      "hidden",
         boxSizing:     "border-box",
+        /* ── FIX: promote to own compositor layer — kills paint glitch ── */
+        transform:     "translateZ(0)",
+        backfaceVisibility: "hidden",
       }}
     >
       {/* Banner image */}
@@ -54,6 +57,8 @@ const ServiceCard11 = ({ service, idx, biggerCard = false }) => {
               objectFit:      "cover",
               objectPosition: "center",
               display:        "block",
+              /* ── FIX: GPU layer for smooth carousel slide ── */
+              transform:      "translateZ(0)",
             }}
           />
         ) : (

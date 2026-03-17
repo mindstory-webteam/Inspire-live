@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import ServiceCard11 from "@/components/shared/cards/ServiceCard11";
 
-// ── Always provide a fallback so SERVER_BASE.replace() never crashes ──────────
 const API_BASE    = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 const SERVER_BASE = API_BASE.replace(/\/api$/, "");
 const INTERVAL_MS = 4000;
@@ -27,7 +26,10 @@ export default function Services10() {
   const [current,  setCurrent]  = useState(0);
   const [perView,  setPerView]  = useState(3);
   const [mounted,  setMounted]  = useState(false);
-  const timerRef = useRef(null);
+
+  const timerRef     = useRef(null);
+  const currentRef   = useRef(0);   // avoid stale closure in interval
+  const isAnimating  = useRef(false);
 
   /* ── 1. Fetch ───────────────────────────────────────────────────── */
   useEffect(() => {
@@ -43,42 +45,69 @@ export default function Services10() {
     return () => { cancelled = true; };
   }, []);
 
-  /* ── 2. Responsive columns ──────────────────────────────────────── */
+  /* ── 2. Responsive columns — debounced to prevent mid-resize flicker ── */
   useEffect(() => {
+    let rafId;
     function update() {
-      const w = window.innerWidth;
-      setPerView(w < 576 ? 1 : w < 992 ? 2 : 3);
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const w = window.innerWidth;
+        setPerView(w < 576 ? 1 : w < 992 ? 2 : 3);
+      });
     }
     update();
     setMounted(true);
     window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
-  /* ── 3. Auto-play ───────────────────────────────────────────────── */
+  /* ── 3. Derived values — stable, no extra renders ───────────────── */
   const totalSlides = Math.max(1, services.length - perView + 1);
 
-  const resetTimer = useCallback(() => {
+  /* ── 4. Auto-play — only restarts when totalSlides actually changes ── */
+  const startTimer = useCallback(() => {
     clearInterval(timerRef.current);
-    timerRef.current = setInterval(
-      () => setCurrent((p) => (p + 1 >= totalSlides ? 0 : p + 1)),
-      INTERVAL_MS
-    );
+    timerRef.current = setInterval(() => {
+      const next = currentRef.current + 1 >= totalSlides ? 0 : currentRef.current + 1;
+      currentRef.current = next;
+      // block new ticks while CSS transition is running (600ms)
+      if (isAnimating.current) return;
+      isAnimating.current = true;
+      setCurrent(next);
+      setTimeout(() => { isAnimating.current = false; }, 650);
+    }, INTERVAL_MS);
   }, [totalSlides]);
 
   useEffect(() => {
     if (services.length === 0) return;
-    resetTimer();
+    startTimer();
     return () => clearInterval(timerRef.current);
-  }, [resetTimer, services.length]);
+  }, [startTimer, services.length]);
 
-  /* ── 4. Clamp ───────────────────────────────────────────────────── */
+  /* ── 5. Clamp on resize ─────────────────────────────────────────── */
   useEffect(() => {
-    setCurrent((c) => (c >= totalSlides ? 0 : c));
+    setCurrent((c) => {
+      const clamped = c >= totalSlides ? 0 : c;
+      currentRef.current = clamped;
+      return clamped;
+    });
   }, [totalSlides]);
 
-  const goTo = (i) => { setCurrent(i); resetTimer(); };
+  const goTo = (i) => {
+    if (isAnimating.current) return;          // ignore clicks mid-transition
+    isAnimating.current = true;
+    currentRef.current  = i;
+    setCurrent(i);
+    startTimer();
+    setTimeout(() => { isAnimating.current = false; }, 650);
+  };
 
+  /* ── 6. Use px-based translation via CSS custom property ────────── */
+  //   translateX in % causes layout recalculation every frame.
+  //   We let CSS handle the math with a custom property instead.
   const pct        = 100 / perView;
   const translateX = -(current * pct);
 
@@ -110,30 +139,35 @@ export default function Services10() {
           </div>
         </div>
 
-        {/* Carousel — only after client mount to avoid SSR mismatch */}
+        {/* Carousel */}
         {mounted && services.length > 0 ? (
           <>
+            <style>{`
+              .s10-track {
+                display: flex;
+                align-items: stretch;
+                /* GPU-composited — no layout recalc on every frame */
+                will-change: transform;
+                transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+              }
+              .s10-slide {
+                flex-shrink: 0;
+                box-sizing: border-box;
+                padding: 0 12px;
+                display: flex;
+              }
+            `}</style>
+
             <div style={{ marginTop: 40, overflow: "hidden" }}>
               <div
-                style={{
-                  display:    "flex",
-                  alignItems: "stretch",
-                  willChange: "transform",
-                  transition: "transform 0.6s cubic-bezier(0.4,0,0.2,1)",
-                  transform:  `translateX(${translateX}%)`,
-                }}
+                className="s10-track"
+                style={{ transform: `translateX(${translateX}%)` }}
               >
                 {services.map((service, idx) => (
                   <div
                     key={service._id || service.slug || idx}
-                    style={{
-                      flex:      `0 0 ${pct}%`,
-                      width:     `${pct}%`,
-                      maxWidth:  `${pct}%`,
-                      padding:   "0 12px",
-                      boxSizing: "border-box",
-                      display:   "flex",
-                    }}
+                    className="s10-slide"
+                    style={{ width: `${pct}%` }}
                   >
                     <ServiceCard11 service={service} idx={idx} biggerCard />
                   </div>
@@ -167,7 +201,7 @@ export default function Services10() {
             )}
           </>
         ) : (
-          /* Skeleton while loading */
+          /* Skeleton */
           <div style={{ display: "flex", gap: 24, marginTop: 40 }}>
             {Array.from({ length: 3 }, (_, i) => (
               <div key={i} style={{
