@@ -5,14 +5,14 @@ import { Swiper, SwiperSlide } from "swiper/react";
 
 // Fake brand data inline (replace getBrands import)
 const fakeBrands = [
-  { img: "/images/brands/brand-1.webp", name: "TechNova" },
-  { img: "/images/brands/brand-2.webp", name: "Axiom" },
-  { img: "/images/brands/brand-3.webp", name: "Luminary" },
-  { img: "/images/brands/brand-4.webp", name: "Vortex" },
-  { img: "/images/brands/brand-5.webp", name: "Pinnacle" },
-  { img: "/images/brands/brand-6.webp", name: "Nexus" },
-  { img: "/images/brands/brand-7.webp", name: "Orbis" },
-  { img: "/images/brands/brand-8.webp", name: "Stratix" },
+  { img: "/new-imges/flags/f-1.jpg", name: "TechNova" },
+  { img: "/new-imges/flags/f-2.jpg", name: "Axiom" },
+  { img: "/new-imges/flags/f-3.jpg", name: "Luminary" },
+  { img: "/new-imges/flags/f-4.jpg", name: "Vortex" },
+  { img: "/new-imges/flags/f-5.jpg", name: "Pinnacle" },
+  { img: "/new-imges/flags/f-1.jpg", name: "Nexus" },
+  { img: "/new-imges/flags/f-2.jpg", name: "Orbis" },
+  { img: "/new-imges/flags/f-3.jpg", name: "Stratix" },
 ];
 
 const BrandSlider1 = ({ className, brands: propBrands }) => {
