@@ -13,9 +13,9 @@ const Brands1 = ({ type = 1 }) => {
 					<div className="col-12">
 						<div className="client-content">
 							<h5 className="sec-title" style={{
-      color: "white",
+      color: "#015599",
     }}>
-  Join Over <span className="client-numbers">1000+</span>{" "}
+  Join Over <span  className="client-numbers">1000+</span>{" "}
   Students Who Chose
   <span  style={{
       color: "#1a598a",
