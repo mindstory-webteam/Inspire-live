@@ -7,8 +7,8 @@ import { subscribeNewsletter } from "../../../utils/newsletterApi";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 const STATIC_SERVICES = [
-  { id: "phd-india",  name: "PhD India",  path: "/services/phd-india" },
-  { id: "phd-abroad", name: "PhD Abroad", path: "/services/phd-abroad" },
+  // { id: "phd-india",  name: "PhD India",  path: "/services/phd-india" },
+  // { id: "phd-abroad", name: "PhD Abroad", path: "/services/phd-abroad" },
 ];
 
 const Footer = () => {
