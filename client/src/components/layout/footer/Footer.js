@@ -230,7 +230,7 @@ const Footer = () => {
                 </div>
                 <div className="copyright-text">
                   <p>
-                    &copy; 2025{" "}
+                    &copy; 2026{" "}
                     <Link href="https://themeforest.net/user/theme-junction/portfolio" target="_blank">
                       Inspire
                     </Link>{" "}
