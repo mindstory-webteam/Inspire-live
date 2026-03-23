@@ -46,14 +46,14 @@ const About9 = () => {
 								<div className="col-12 col-md-6 col-lg-12">
 									<div className="about-content-text">
 										<p className="desc wow fadeInUp" data-wow-delay=".4s">
-											Inspire Education Service is a trusted education consultancy dedicated to supporting students, scholars, and professionals in achieving their academic and research goals. With a strong focus on PhD guidance, research mentorship, and study-abroad consulting, we help aspirants navigate complex academic pathways with clarity and confidence.
+											INSPIRE is a community-driven platform that connects students with the world of research and higher education. We enable learners to virtually engage with research colleges, explore academic environments, and gain early exposure to real research experiences beyond traditional classrooms.
 										</p>
 										<p className="desc wow fadeInUp" data-wow-delay=".5s">
-											We specialize in PhD admissions support, supervisor identification, research assistance, and end-to-end mentoring, ensuring students receive expert guidance from enrollment to successful completion. Our structured approach combines academic expertise, personalized counselling, and ethical practices to deliver measurable outcomes.
+											Through structured learning and guided activities, students can study in a way similar to schools and colleges while building deeper understanding and practical skills. Our approach helps learners gain extra academic experience, develop confidence, and prepare for future educational pathways.
 										</p>
-										{/* <p className="desc wow fadeInUp" data-wow-delay=".6s">
-											With experience supporting students across multiple countries, we have built a reputation for reliability, transparency, and results. Our team works closely with each candidate to understand their academic background, research interests, and career aspirations—offering tailored solutions that align with global education standards.
-										</p> */}
+										<p className="desc wow fadeInUp" data-wow-delay=".6s">
+											At INSPIRE, we create opportunities for students to learn, connect, and grow in a global academic environment.
+										</p>
 									</div>
 								</div>
 							</div>

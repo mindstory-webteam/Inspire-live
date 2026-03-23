@@ -7,17 +7,17 @@ const Process = () => {
 		{
 			id: 1,
 			title: "Consultation & Academic Assessment",
-			desc: "We begin by understanding your academic background, research interests, and career goals. Our experts evaluate eligibility, discuss suitable universities or countries, and outline the best pathway for your PhD or study abroad journey.",
+			desc: "We understand your interests, strengths, and goals to shape the right academic direction. Get clarity on research areas and future pathways tailored to you. Start your journey with purpose and confidence.",
 		},
 		{
 			id: 2,
 			title: "Application & Research Execution",
-			desc: "Once the plan is finalized, we assist with university shortlisting, supervisor identification, research proposal preparation, and complete application support. Every step is handled with accuracy, compliance, and academic best practices.",
+			desc: "Step into real academic experiences through research-based learning and activities. Connect with research environments and explore beyond classroom knowledge. Build skills that reflect real college-level learning.",
 		},
 		{
 			id: 3,
 			title: " Admission Support & Continuous Guidance",
-			desc: "After application submission, we provide ongoing support with interviews, offer letters, documentation, and next steps. Our guidance continues even after admission, ensuring a smooth transition and long-term academic success.",
+			desc: "Receive ongoing mentorship and support throughout your journey. Develop deeper understanding, critical thinking, and academic confidence. Prepare yourself for future research and global opportunities.",
 		},
 	];
 	return (
@@ -36,8 +36,7 @@ const Process = () => {
 									</h2>
 								</div>
 								<p className="desc wow fadeInUp" data-wow-delay=".5s">
-									Developing personalized customer journeys to increase
-									satisfaction and loyalty.
+									A guided journey that transforms curiosity into real academic experience, helping students learn, connect, and grow with confidence.
 								</p>
 								<div className="btn-wrap wow fadeInUp" data-wow-delay=".6s">
 									<ButtonPrimary text={"Request a Call"} url={"/contact"} />
