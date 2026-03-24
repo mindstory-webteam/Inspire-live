@@ -12,7 +12,7 @@ const Hero10 = () => {
 
   const videoRef    = useRef(null);
   const timerRef    = useRef(null);
-  const progressRef = useRef(null);
+  const progressRef = useRef(null);       // always kept up-to-date via callback ref
   const activeIndexRef = useRef(0);
 
   // ── Fetch slides ──────────────────────────────────────────────────────────
@@ -62,14 +62,15 @@ const Hero10 = () => {
   const goNext = () => goTo(activeIndexRef.current + 1);
   const goPrev = () => goTo(activeIndexRef.current - 1);
 
-  // ── Progress bar ──────────────────────────────────────────────────────────
+  // ── Progress bar — reads from progressRef which is kept live ─────────────
   const startProgress = (duration) => {
-    if (!progressRef.current) return;
-    progressRef.current.style.transition = "none";
-    progressRef.current.style.width = "0%";
-    void progressRef.current.offsetWidth;
-    progressRef.current.style.transition = `width ${duration}ms linear`;
-    progressRef.current.style.width = "100%";
+    const el = progressRef.current;
+    if (!el) return;
+    el.style.transition = "none";
+    el.style.width = "0%";
+    void el.offsetWidth;                           // force reflow
+    el.style.transition = `width ${duration}ms linear`;
+    el.style.width = "100%";
     timerRef.current = setTimeout(goNext, duration);
   };
 
@@ -80,16 +81,16 @@ const Hero10 = () => {
     clearTimeout(timerRef.current);
 
     if (isVideoSlide(current)) {
-      if (progressRef.current) {
-        progressRef.current.style.transition = "none";
-        progressRef.current.style.width = "0%";
-      }
+      const el = progressRef.current;
+      if (el) { el.style.transition = "none"; el.style.width = "0%"; }
       if (videoRef.current) {
         videoRef.current.currentTime = 0;
         videoRef.current.play().catch(() => {});
       }
     } else {
-      startProgress(SLIDE_DURATION);
+      // Small delay so the callback ref has time to attach to the new thumbnail
+      const raf = requestAnimationFrame(() => startProgress(SLIDE_DURATION));
+      return () => { cancelAnimationFrame(raf); clearTimeout(timerRef.current); };
     }
 
     return () => clearTimeout(timerRef.current);
@@ -196,7 +197,6 @@ const Hero10 = () => {
                       <source src={mediaUrl} type="video/webm" />
                     </video>
                   ) : (
-                    /* ── FIX: guard against empty mediaUrl ── */
                     mediaUrl ? (
                       <img
                         key={mediaUrl}
@@ -225,7 +225,9 @@ const Hero10 = () => {
                       {/* Thumbnail strip */}
                       <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
                         {slides.map((slide, idx) => {
-                          const thumbUrl = resolveUrl(slide.thumbUrl || slide.mediaUrl);
+                          // FIX: prefer mediaUrl — it's always current after edits.
+                          // thumbUrl can be stale/deleted after a media replacement.
+                          const thumbUrl = resolveUrl(slide.mediaUrl || slide.thumbUrl);
                           const isActive = idx === activeIndex;
                           return (
                             <div
@@ -264,12 +266,16 @@ const Hero10 = () => {
                                 {String(idx + 1).padStart(2, "0")}
                               </div>
 
+                              {/* ── FIX: callback ref so progressRef always points to the live DOM node ── */}
                               {isActive && (
                                 <div style={{
                                   position: "absolute", bottom: 0, left: 0, right: 0,
                                   height: "3px", background: "rgba(255,255,255,0.25)",
                                 }}>
-                                  <div ref={progressRef} style={{ height: "100%", width: "0%", background: "#ffffff" }} />
+                                  <div
+                                    ref={(el) => { if (el) progressRef.current = el; }}
+                                    style={{ height: "100%", width: "0%", background: "#ffffff" }}
+                                  />
                                 </div>
                               )}
                             </div>

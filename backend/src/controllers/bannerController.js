@@ -1,5 +1,4 @@
 const Banner = require('../models/Banner');
-// Fix: Update the path to match your project structure
 const { deleteFromCloudinary, getPublicIdFromUrl, isCloudinaryUrl } = require('../middleware/uploadMiddleware');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -14,7 +13,6 @@ const getOrCreateBanner = async () => {
 
 // ─── Public ──────────────────────────────────────────────────────────────────
 
-// GET /api/banner  — returns active banner with active slides (for frontend)
 exports.getPublicBanner = async (req, res) => {
   try {
     const banner = await Banner.findOne({ isActive: true }).lean();
@@ -32,7 +30,6 @@ exports.getPublicBanner = async (req, res) => {
 
 // ─── Admin ───────────────────────────────────────────────────────────────────
 
-// GET /api/admin/banner
 exports.getBanner = async (req, res) => {
   try {
     const banner = await getOrCreateBanner();
@@ -43,22 +40,18 @@ exports.getBanner = async (req, res) => {
   }
 };
 
-// POST /api/admin/banner/slides  — add a new slide
 exports.addSlide = async (req, res) => {
   try {
     const banner = await getOrCreateBanner();
     const { title, subtitle, description, type, mediaUrl, thumbUrl, buttonText, buttonUrl, isActive } = req.body;
 
-    // Handle Cloudinary upload
     let resolvedMediaUrl = mediaUrl;
     let resolvedThumbUrl = thumbUrl || '';
 
     if (req.file) {
-      // Cloudinary stores the secure_url in req.file.path
       resolvedMediaUrl = req.file.path;
-      if (type === 'video') {
-        resolvedThumbUrl = resolvedMediaUrl;
-      }
+      // Always sync thumbUrl to the new media
+      resolvedThumbUrl = resolvedMediaUrl;
     }
 
     const newSlide = {
@@ -83,32 +76,31 @@ exports.addSlide = async (req, res) => {
   }
 };
 
-// PUT /api/admin/banner/slides/:slideId  — update a slide
 exports.updateSlide = async (req, res) => {
   try {
     const banner = await getOrCreateBanner();
     const slide = banner.slides.id(req.params.slideId);
     if (!slide) return res.status(404).json({ success: false, message: 'Slide not found' });
 
-    // Store old media URL for cleanup if file is being replaced
     const oldMediaUrl = slide.mediaUrl;
 
+    // Apply text fields from body
     const fields = ['title', 'subtitle', 'description', 'type', 'mediaUrl', 'thumbUrl', 'buttonText', 'buttonUrl', 'order', 'isActive'];
     fields.forEach((f) => {
       if (req.body[f] !== undefined) slide[f] = req.body[f];
     });
 
-    // Handle new file upload
+    // Handle new file upload — FIX: always sync thumbUrl to new mediaUrl
     if (req.file) {
-      slide.mediaUrl = req.file.path; // Cloudinary secure_url
-      if (slide.type === 'video') slide.thumbUrl = slide.mediaUrl;
+      slide.mediaUrl = req.file.path;           // Cloudinary secure_url
+      slide.thumbUrl = req.file.path;           // ← KEY FIX: keep thumbnail in sync
 
-      // Delete old file from Cloudinary if it exists
+      // Delete old file from Cloudinary
       if (oldMediaUrl && isCloudinaryUrl(oldMediaUrl)) {
         const publicId = getPublicIdFromUrl(oldMediaUrl);
         if (publicId) {
           const resourceType = slide.type === 'video' ? 'video' : 'image';
-          await deleteFromCloudinary(publicId, resourceType).catch(err => 
+          await deleteFromCloudinary(publicId, resourceType).catch((err) =>
             console.error('Failed to delete old file from Cloudinary:', err)
           );
         }
@@ -122,19 +114,17 @@ exports.updateSlide = async (req, res) => {
   }
 };
 
-// DELETE /api/admin/banner/slides/:slideId
 exports.deleteSlide = async (req, res) => {
   try {
     const banner = await getOrCreateBanner();
     const slide = banner.slides.id(req.params.slideId);
     if (!slide) return res.status(404).json({ success: false, message: 'Slide not found' });
 
-    // Delete from Cloudinary if it's a Cloudinary URL
     if (slide.mediaUrl && isCloudinaryUrl(slide.mediaUrl)) {
       const publicId = getPublicIdFromUrl(slide.mediaUrl);
       if (publicId) {
         const resourceType = slide.type === 'video' ? 'video' : 'image';
-        await deleteFromCloudinary(publicId, resourceType).catch(err =>
+        await deleteFromCloudinary(publicId, resourceType).catch((err) =>
           console.error('Failed to delete file from Cloudinary:', err)
         );
       }
@@ -148,10 +138,8 @@ exports.deleteSlide = async (req, res) => {
   }
 };
 
-// PUT /api/admin/banner/slides/reorder  — reorder slides
 exports.reorderSlides = async (req, res) => {
   try {
-    // body: { order: [{ id, order }] }
     const banner = await getOrCreateBanner();
     const { order } = req.body;
     order.forEach(({ id, order: ord }) => {
@@ -165,7 +153,6 @@ exports.reorderSlides = async (req, res) => {
   }
 };
 
-// PUT /api/admin/banner/toggle  — toggle whole banner active state
 exports.toggleBanner = async (req, res) => {
   try {
     const banner = await getOrCreateBanner();

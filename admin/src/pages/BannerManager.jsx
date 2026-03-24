@@ -40,17 +40,25 @@ function SlideForm({ initial = emptySlide(), onSave, onCancel, loading }) {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleFile = (e) => {
+
+ const handleFile = (e) => {
     const f = e.target.files[0];
     if (!f) return;
     setFile(f);
     setPreview(URL.createObjectURL(f));
-    set('type', f.type.startsWith('video') ? 'video' : 'image');
+    const detectedType = f.type.startsWith('video') ? 'video' : 'image';
+    // FIX: clear stale mediaUrl/thumbUrl so the server uses req.file instead
+    setForm((prev) => ({ ...prev, type: detectedType, mediaUrl: '', thumbUrl: '' }));
   };
-
+ 
   const handleSubmit = () => {
     const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    Object.entries(form).forEach(([k, v]) => {
+      // Don't send empty mediaUrl/thumbUrl when a file is being uploaded —
+      // the server will derive both from req.file
+      if (file && (k === 'mediaUrl' || k === 'thumbUrl')) return;
+      fd.append(k, v);
+    });
     if (file) fd.append('media', file);
     onSave(fd);
   };
