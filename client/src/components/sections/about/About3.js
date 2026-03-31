@@ -89,9 +89,9 @@ const About3 = ({ type }) => {
 								</ul>
 							</div>
 						</div>
-						{/* <div className="about-btn-area wow fadeInUp" data-wow-delay=".5s">
-							<ButtonPrimary text={"Learn More About Us"} url={"/about"} />
-						</div> */}
+						<div className="about-btn-area  wow fadeInUp" data-wow-delay=".5s">
+							<ButtonPrimary text={"Featured in Times of India"} url={"https://www.timesnownews.com/education/inspire-education-service-indias-premier-phd-guidance-platform-expands-global-footprint-article-112924264/amp"} />
+						</div>
 					</div>
 				</div>
 			</div>

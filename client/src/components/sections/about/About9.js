@@ -29,7 +29,7 @@ const About9 = () => {
 									className="sec-title title-highlight wow fadeInUp"
 									data-wow-delay=".3s"
 								>
-							Empowering Academic Excellence Through Research & Global Education Guidance
+									Academic Excellence Through Research & Global Education
 								</h2>
 							</div>
 							<div className="row">
@@ -46,14 +46,13 @@ const About9 = () => {
 								<div className="col-12 col-md-6 col-lg-12">
 									<div className="about-content-text">
 										<p className="desc wow fadeInUp" data-wow-delay=".4s">
-											INSPIRE is a community-driven platform that connects students with the world of research and higher education. We enable learners to virtually engage with research colleges, explore academic environments, and gain early exposure to real research experiences beyond traditional classrooms.
+											INSPIRE is a community-driven platform that connects students to the world of research and higher education. We enable learners to virtually engage with research institutions, explore academic environments, and gain early exposure to real-world research experiences beyond traditional classrooms.
 										</p>
 										<p className="desc wow fadeInUp" data-wow-delay=".5s">
-											Through structured learning and guided activities, students can study in a way similar to schools and colleges while building deeper understanding and practical skills. Our approach helps learners gain extra academic experience, develop confidence, and prepare for future educational pathways.
-										</p>
+											Through structured learning and guided activities, students experience an academic approach similar to schools and universities while building deeper understanding and practical skills. Our model empowers learners to gain advanced academic exposure, strengthen confidence, and prepare for future educational pathways.										</p>
 										<p className="desc wow fadeInUp" data-wow-delay=".6s">
-											At INSPIRE, we create opportunities for students to learn, connect, and grow in a global academic environment.
-										</p>
+											As Asia’s leading PhD ecosystem, INSPIRE fosters a dynamic community of scholars, bringing together students from over 20+ countries in a collaborative and research-focused environment. </p>
+										<p>At INSPIRE, we create opportunities for students to learn, connect, and grow within a global academic ecosystem.										</p>
 									</div>
 								</div>
 							</div>
