@@ -38,7 +38,7 @@ const Funfact2 = () => {
               <span className="steps">01.</span>
               <div className="count-inner">
                 <span className="count-text">Successful Admissions</span>
-                <span className="count-text">Students successfully placed in leading universities worldwide</span>
+                <span className="count-text">Students placed in top universities worldwide</span>
                 <FunfactSingle currentValue={435} symbol={"+"} />
               </div>
             </div>
@@ -51,8 +51,8 @@ const Funfact2 = () => {
               <span className="steps">02.</span>
               <div className="count-inner">
                 <span className="count-text">Global Student Base</span>
-                <span className="count-text">Diverse student community from across the globe</span>
-                <FunfactSingle currentValue={20} symbol={"+"} />
+                <span className="count-text">Students from countries worldwide</span>
+                <FunfactSingle currentValue={200} symbol={"+"} />
               </div>
             </div>
           </div>
@@ -63,8 +63,8 @@ const Funfact2 = () => {
               <span className="count-icon"><i className="tji-complete"></i></span>
               <span className="steps">03.</span>
               <div className="count-inner">
-                <span className="count-text">Enrolment Success Rate</span>
-                <span className="count-text">Consistent track record of successful PhD enrolments</span>
+                <span className="count-text">Success Rate</span>
+                <span className="count-text">PhD admission success across batches</span>
                 <FunfactSingle currentValue={100} symbol={"%"} />
               </div>
             </div>

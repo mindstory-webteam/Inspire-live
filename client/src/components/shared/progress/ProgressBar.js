@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 
 const ProgressBar = ({
-	value = 95,
+	value = 100,
 	size = 120,
 	thickness = 0.16,
 	strokeLinecap = 0,
