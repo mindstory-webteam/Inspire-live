@@ -51,7 +51,7 @@ const Funfact2 = () => {
               <span className="steps">02.</span>
               <div className="count-inner">
                 <span className="count-text">Global Student Base</span>
-                <span className="count-text">Students from countries worldwide</span>
+                <span className="count-text">Students from countries worldwide worldwide</span>
                 <FunfactSingle currentValue={200} symbol={"+"} />
               </div>
             </div>

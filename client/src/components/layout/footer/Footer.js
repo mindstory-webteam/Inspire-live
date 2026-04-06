@@ -119,7 +119,7 @@ const Footer = () => {
                       Careers <span className="badge">New</span>
                     </Link>
                   </li>
-                  <li><Link href="/blog-grid">Blog</Link></li>
+                  <li><Link href="/blogs">Blog</Link></li>
                   <li><Link href="/contact">Contact</Link></li>
                   <li><Link href="/terms-and-conditions">Terms &amp; Conditions</Link></li>
                   <li><Link href="/privacy-policy">Privacy Policy</Link></li>
