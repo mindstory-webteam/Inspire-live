@@ -29,7 +29,7 @@ const About9 = () => {
 									className="sec-title title-highlight wow fadeInUp"
 									data-wow-delay=".3s"
 								>
-							Empowering Academic Excellence Through Research & Global Education Guidance
+							Academic Excellence Through Research & Global Education
 								</h2>
 							</div>
 							<div className="row">
