@@ -19,17 +19,18 @@ import {
 import { useState } from 'react';
 
 const NAV = [
-  { to: '/dashboard',    icon: LayoutDashboard, label: 'Dashboard'    },
-  { to: '/blogs',        icon: FileText,        label: 'Blogs'        },
-  { to: '/banner',       icon: Layers,          label: 'Banner'       },
-  { to: '/services',     icon: Layers,          label: 'Services'     },
-  { to: '/events',       icon: Calendar,        label: 'Events'       },
-  { to: '/careers',      icon: Briefcase,       label: 'Careers'      },
-  { to: '/contacts',     icon: Mail,            label: 'Contacts'     },
-  { to: '/newsletter',   icon: Bell,            label: 'Newsletter'   },
-  { to: '/team',         icon: Users,           label: 'Team'         },
-  { to: '/testimonials', icon: Star,            label: 'Testimonials' },
-  { to: '/settings',     icon: Settings,        label: 'Settings'     },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/blogs', icon: FileText, label: 'Blogs' },
+  { to: '/banner', icon: Layers, label: 'Banner' },
+  { to: '/services', icon: Layers, label: 'Services' },
+  { to: '/events', icon: Calendar, label: 'Events' },
+  { to: '/careers', icon: Briefcase, label: 'Careers' },
+  { to: '/contacts', icon: Mail, label: 'Contacts' },
+  { to: '/newsletter', icon: Bell, label: 'Newsletter' },
+  { to: '/team', icon: Users, label: 'Team' },
+  { to: '/ourresourceperson', icon: Users, label: 'Resource Person' },
+  { to: '/testimonials', icon: Star, label: 'Testimonials' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Layout() {
@@ -52,16 +53,16 @@ export default function Layout() {
         className="flex items-center gap-3 px-6 py-5"
         style={{ borderBottom: '1px solid #ecf0f0' }}
       >
-       <div className="w-10 h-10 flex items-center justify-center">
-  <img
-    src="/inspire_icon.png"
-    alt="Inspire Logo"
-    className="w-full h-full object-contain"
-  />
-</div>
+        <div className="w-10 h-10 flex items-center justify-center">
+          <img
+            src="/inspire_icon.png"
+            alt="Inspire Logo"
+            className="w-full h-full object-contain"
+          />
+        </div>
         <div>
           <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Inspire Admin</p>
-          <p className="text-xs"           style={{ color: '#a9b8b8' }}>Control Panel</p>
+          <p className="text-xs" style={{ color: '#a9b8b8' }}>Control Panel</p>
         </div>
       </div>
 
@@ -73,8 +74,7 @@ export default function Layout() {
             to={to}
             onClick={() => setSidebarOpen(false)}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isActive ? 'active-nav' : 'inactive-nav'
+              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive ? 'active-nav' : 'inactive-nav'
               }`
             }
             style={({ isActive }) =>
@@ -107,7 +107,7 @@ export default function Layout() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold truncate" style={{ color: '#0c1e21' }}>{user?.name}</p>
-            <p className="text-xs truncate capitalize"    style={{ color: '#a9b8b8' }}>{user?.role}</p>
+            <p className="text-xs truncate capitalize" style={{ color: '#a9b8b8' }}>{user?.role}</p>
           </div>
         </div>
         <button
