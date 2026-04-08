@@ -104,7 +104,7 @@ const Hero10 = () => {
 
   // ── Active slide data ─────────────────────────────────────────────────────
   const active      = slides[activeIndex] || null;
-  const title       = active?.title ;
+  const title       = active?.title       || "Ideas That Change the World Start Here";
   const description = active?.description || active?.subtitle || "Recognized by industry leaders, our award-winning team has a proven record of delivering excellence across projects.";
   const subtitle    = active?.subtitle    || "";
   const buttonText  = active?.buttonText  || "Get Started";
@@ -225,8 +225,6 @@ const Hero10 = () => {
                       {/* Thumbnail strip */}
                       <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
                         {slides.map((slide, idx) => {
-                          // FIX: prefer mediaUrl — it's always current after edits.
-                          // thumbUrl can be stale/deleted after a media replacement.
                           const thumbUrl = resolveUrl(slide.mediaUrl || slide.thumbUrl);
                           const isActive = idx === activeIndex;
                           return (
