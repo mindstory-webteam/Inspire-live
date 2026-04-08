@@ -25,7 +25,7 @@ const ReactNiceSelect = ({
 		getSelectedOption(option);
 	}, []);
 	return (
-		<div
+		<div style={{ color: "#adbbbb ", backgroundColor:"#fff" }}
 			data-lenis-prevent
 			className={`nice-select orderby ${isOpen ? "open" : ""} ${
 				className ? className : ""

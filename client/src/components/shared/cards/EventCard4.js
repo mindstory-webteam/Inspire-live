@@ -27,7 +27,7 @@ const EventCard4 = ({ event }) => {
 	return (
 		<div className="project-item h4-project-item">
 			<div className="project-content">
-				<span className="categories">
+				<span className="categories" style={{ textTransform:"uppercase"}}>
 					<Link href="/events">{displayType}</Link>
 				</span>
 				<div className="project-text">

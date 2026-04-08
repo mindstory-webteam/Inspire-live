@@ -13,8 +13,8 @@ const Logo = ({ headerType, isStickyHeader }) => {
 							headerType === 7 ||
 							headerType === 9) &&
 						!isStickyHeader
-							? "/new-imges/logo/logo_inspire-01.png"
-							: "/new-imges/logo/logo_inspire-01.png"
+							? "/new-imges/logo/logo_inspire-03.png"
+							: "/new-imges/logo/logo_inspire-03.png"
 					}
 					alt=""
 					width={544}

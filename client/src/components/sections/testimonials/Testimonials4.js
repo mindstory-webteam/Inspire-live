@@ -10,13 +10,13 @@ import { getTestimonialsClient } from "@/utils/testimonialApi";
 
 // ── Service options ───────────────────────────────────────────────────────────
 const SERVICE_OPTIONS = [
-  { value: "",                           optionName: "Choose a Service"          },
-  { value: "Business Strategy",          optionName: "Business Strategy"         },
-  { value: "Customer Experience",        optionName: "Customer Experience"       },
-  { value: "Sustainability and ESG",     optionName: "Sustainability and ESG"    },
-  { value: "Training and Development",   optionName: "Training and Development"  },
-  { value: "IT Support & Maintenance",   optionName: "IT Support & Maintenance"  },
-  { value: "Marketing Strategy",         optionName: "Marketing Strategy"        },
+  { value: "", optionName: "Choose a Service" },
+  { value: "Business Strategy", optionName: "Business Strategy" },
+  { value: "Customer Experience", optionName: "Customer Experience" },
+  { value: "Sustainability and ESG", optionName: "Sustainability and ESG" },
+  { value: "Training and Development", optionName: "Training and Development" },
+  { value: "IT Support & Maintenance", optionName: "IT Support & Maintenance" },
+  { value: "Marketing Strategy", optionName: "Marketing Strategy" },
 ];
 
 const EMPTY_FORM = { fullName: "", email: "", phone: "", service: "", message: "" };
@@ -27,7 +27,7 @@ const Testimonials4 = () => {
   const [testimonials, setTestimonials] = useState([]);
 
   // ── Contact form state ────────────────────────────────────────────────────
-  const [form,   setForm]   = useState(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [errMsg, setErrMsg] = useState("");
   const submitting = useRef(false);
@@ -63,10 +63,10 @@ const Testimonials4 = () => {
     try {
       const res = await contactApi.submit({
         fullName: form.fullName.trim(),
-        email:    form.email.trim(),
-        phone:    form.phone.trim(),
-        service:  form.service,
-        message:  form.message.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        service: form.service,
+        message: form.message.trim(),
       });
 
       if (res.data?.success) {
@@ -154,7 +154,7 @@ const Testimonials4 = () => {
                         value={form.fullName}
                         onChange={handleChange}
                         placeholder="Full Name*"
-						style={{ color: "#ffffff " }}
+                        style={{ color: "#ffffff ", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
@@ -168,7 +168,7 @@ const Testimonials4 = () => {
                         value={form.email}
                         onChange={handleChange}
                         placeholder="Email Address*"
-						style={{ color: "#ffffff " }}
+                        style={{ color: "#ffffff ", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
@@ -182,7 +182,7 @@ const Testimonials4 = () => {
                         value={form.phone}
                         onChange={handleChange}
                         placeholder="Phone number"
-						style={{ color: "#ffffff " }}
+                        style={{ color: "#ffffff ", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
@@ -196,7 +196,7 @@ const Testimonials4 = () => {
                             selectedIndex={0}
                             options={SERVICE_OPTIONS}
                             getSelectedOption={handleServiceChange}
-							style={{ color: "#ffffff " }}
+                            style={{ color: "#ffffff ", backgroundColor: "#fff" }}
                           />
                         </div>
                       </div>
@@ -212,7 +212,7 @@ const Testimonials4 = () => {
                         value={form.message}
                         onChange={handleChange}
                         placeholder="Type message*"
-						style={{ color: "#ffffff " }}
+                        style={{ color: "#ffffff ", backgroundColor: "#fff"}}
                       />
                     </div>
                   </div>
