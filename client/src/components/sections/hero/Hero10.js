@@ -104,7 +104,7 @@ const Hero10 = () => {
 
   // ── Active slide data ─────────────────────────────────────────────────────
   const active      = slides[activeIndex] || null;
-  const title       = active?.title       || "Driving Innovation to Transform Business Futures";
+  const title       = active?.title ;
   const description = active?.description || active?.subtitle || "Recognized by industry leaders, our award-winning team has a proven record of delivering excellence across projects.";
   const subtitle    = active?.subtitle    || "";
   const buttonText  = active?.buttonText  || "Get Started";
