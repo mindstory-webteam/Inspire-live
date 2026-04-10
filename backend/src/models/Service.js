@@ -24,7 +24,10 @@ const serviceSchema = new mongoose.Schema(
     slug:             { type: String, required: true, unique: true, lowercase: true, trim: true },
     subtitle:         { type: String, trim: true, default: '' },
     shortDescription: { type: String, trim: true, default: '' },
-    icon:             { type: String, trim: true, default: '' },
+
+    // ── Icon — uploaded file URL (Cloudinary) ─────────────────────────────
+    icon:        { type: String, trim: true, default: '' },
+    iconImageId: { type: String, default: '' }, // Cloudinary public_id for deletion
 
     // ── Images — Cloudinary secure URLs ──────────────────────────────────────
     heroImage:    { type: String, default: '' },
@@ -61,7 +64,7 @@ const serviceSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     order:    { type: Number,  default: 0 },
 
-    // ── Visibility (hidden from client/public, still exists in DB) ────────────
+    // ── Visibility ────────────────────────────────────────────────────────────
     isHidden: { type: Boolean, default: false },
   },
   {

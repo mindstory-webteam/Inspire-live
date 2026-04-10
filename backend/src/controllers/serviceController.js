@@ -97,11 +97,11 @@ const getAll = async (req, res) => {
   try {
     const { page, limit } = req.query;
 
-    // isHidden: false ensures hidden services never appear on the public site
     const filter = { isActive: true, isHidden: false };
 
+    // icon and iconImageId included so navbar can display the uploaded icon
     const selectFields =
-      'title slug subtitle shortDescription icon heroImage order isActive isHidden createdAt';
+      'title slug subtitle shortDescription icon iconImageId heroImage order isActive isHidden createdAt';
 
     let q = Service.find(filter)
       .sort({ order: 1, createdAt: 1 })
@@ -138,7 +138,7 @@ const getBySlug = async (req, res) => {
     const service = await Service.findOne({
       slug: req.params.slug,
       isActive: true,
-      isHidden: false,   // hidden services are not accessible on the public site
+      isHidden: false,
     }).lean();
 
     if (!service) {
@@ -161,7 +161,7 @@ const getById = async (req, res) => {
   try {
     const service = await Service.findOne({
       _id: req.params.id,
-      isHidden: false,   // hidden services return 404 on public routes
+      isHidden: false,
     }).lean();
 
     if (!service) {
@@ -197,7 +197,6 @@ const getAllAdmin = async (req, res) => {
     if (status === 'active')   filter.isActive = true;
     if (status === 'inactive') filter.isActive = false;
 
-    // Filter by hidden state if query param provided
     if (hidden === 'true')  filter.isHidden = true;
     if (hidden === 'false') filter.isHidden = false;
 
@@ -210,7 +209,6 @@ const getAllAdmin = async (req, res) => {
       Service.countDocuments(filter),
     ]);
 
-    // Also return counts for the stats cards
     const [hiddenCount, activeCount, inactiveCount, totalCount] = await Promise.all([
       Service.countDocuments({ isHidden: true }),
       Service.countDocuments({ isActive: true }),
@@ -255,13 +253,18 @@ const create = async (req, res) => {
     const heroFile    = files.heroImage?.[0];
     const detail1File = files.detailImage1?.[0];
     const detail2File = files.detailImage2?.[0];
+    const iconFile    = files.iconImage?.[0]; // ← NEW
 
     const service = await Service.create({
       title:            body.title,
       slug,
       subtitle:         body.subtitle         || '',
       shortDescription: body.shortDescription || '',
-      icon:             body.icon             || '',
+
+      // Icon — uploaded file takes priority; fallback to empty string
+      // (no text fallback since icon is now always uploaded)
+      icon:        iconFile ? iconFile.path     : '',
+      iconImageId: iconFile ? iconFile.filename : '',
 
       heroImage:    heroFile    ? heroFile.path    : (body.heroImage    || ''),
       detailImage1: detail1File ? detail1File.path : (body.detailImage1 || ''),
@@ -333,7 +336,25 @@ const update = async (req, res) => {
     const heroFile    = files.heroImage?.[0];
     const detail1File = files.detailImage1?.[0];
     const detail2File = files.detailImage2?.[0];
+    const iconFile    = files.iconImage?.[0]; // ← NEW
 
+    // ── Icon ──────────────────────────────────────────────────────────────────
+    let icon        = service.icon;
+    let iconImageId = service.iconImageId;
+
+    if (iconFile) {
+      // New file uploaded — delete the old one first
+      await safeDeleteCloudinary(service.iconImageId, service.icon);
+      icon        = iconFile.path;
+      iconImageId = iconFile.filename;
+    } else if (body.icon === '') {
+      // Frontend explicitly cleared the icon
+      await safeDeleteCloudinary(iconImageId, icon);
+      icon        = '';
+      iconImageId = '';
+    }
+
+    // ── Hero / Detail images ───────────────────────────────────────────────────
     let heroImage      = service.heroImage;
     let heroImageId    = service.heroImageId;
     let detailImage1   = service.detailImage1;
@@ -368,7 +389,8 @@ const update = async (req, res) => {
         slug,
         subtitle:         body.subtitle         ?? service.subtitle,
         shortDescription: body.shortDescription ?? service.shortDescription,
-        icon:             body.icon             ?? service.icon,
+        icon,
+        iconImageId,
         heroImage,    heroImageId,
         detailImage1, detailImage1Id,
         detailImage2, detailImage2Id,
@@ -432,9 +454,7 @@ const toggleStatus = async (req, res) => {
 
 /**
  * PATCH /api/services/:id/hide
- * Toggle isHidden (hide from / show on public client site)
- * When isHidden = true  → service is NOT returned by any public endpoint
- * When isHidden = false → service is visible on the public site (if also isActive)
+ * Toggle isHidden
  */
 const toggleHidden = async (req, res) => {
   try {
@@ -488,7 +508,7 @@ const reorder = async (req, res) => {
 
 /**
  * DELETE /api/services/:id
- * Permanently delete a service and its Cloudinary images
+ * Permanently delete a service and all its Cloudinary assets
  */
 const remove = async (req, res) => {
   try {
@@ -498,6 +518,7 @@ const remove = async (req, res) => {
     }
 
     await Promise.allSettled([
+      safeDeleteCloudinary(service.iconImageId,    service.icon),         // ← NEW
       safeDeleteCloudinary(service.heroImageId,    service.heroImage),
       safeDeleteCloudinary(service.detailImage1Id, service.detailImage1),
       safeDeleteCloudinary(service.detailImage2Id, service.detailImage2),
@@ -507,6 +528,24 @@ const remove = async (req, res) => {
     res.json({ success: true, message: 'Service deleted successfully' });
   } catch (err) {
     console.error('remove service error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+
+/**
+ * GET /api/services/admin/:id
+ * Admin single service — returns even if hidden
+ */
+const getByIdAdmin = async (req, res) => {
+  try {
+    const service = await Service.findById(req.params.id).lean();
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
+    }
+    res.json({ success: true, data: service });
+  } catch (err) {
+    console.error('getByIdAdmin error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
@@ -523,4 +562,5 @@ module.exports = {
   toggleHidden,
   reorder,
   remove,
+  getByIdAdmin,
 };

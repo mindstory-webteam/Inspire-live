@@ -359,7 +359,22 @@ const ServiceManager = () => {
                           )}
                         </div>
                         <div className="sm-service-info">
-                          <span className="sm-service-name">{service.title}</span>
+                         <span className="sm-service-name">
+  {/* Inline icon */}
+  {service.icon && (
+    <span className="sm-row-icon">
+      {service.icon.trim().startsWith('<') ? (
+        <span
+          className="sm-row-icon__svg"
+          dangerouslySetInnerHTML={{ __html: service.icon }}
+        />
+      ) : (
+        <img src={service.icon} alt="" className="sm-row-icon__img" />
+      )}
+    </span>
+  )}
+  {service.title}
+</span>
                           {service.subtitle && (
                             <span className="sm-service-sub">
                               {service.subtitle.length > 52 ? service.subtitle.slice(0, 52) + "…" : service.subtitle}
@@ -785,6 +800,27 @@ const ServiceManager = () => {
           display: flex; align-items: center;
           gap: 5px; justify-content: flex-end; flex-wrap: nowrap;
         }
+
+
+
+
+
+        /* ─ Row icon ─ */
+.sm-row-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: #eff6ff; border: 1px solid #dbeafe; flex-shrink: 0;
+  overflow: hidden;
+}
+.sm-row-icon__svg {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; color: #1a598a;
+}
+.sm-row-icon__svg svg { width: 100%; height: 100%; }
+.sm-row-icon__img { width: 100%; height: 100%; object-fit: contain; }
+
+
+
         .sm-icon-btn {
           width: 32px; height: 32px;
           display: inline-flex; align-items: center; justify-content: center;

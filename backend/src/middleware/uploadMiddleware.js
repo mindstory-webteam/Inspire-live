@@ -12,7 +12,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Verify configuration on startup
 if (
   !process.env.CLOUDINARY_CLOUD_NAME ||
   !process.env.CLOUDINARY_API_KEY ||
@@ -74,6 +73,25 @@ const serviceImageStorage = new CloudinaryStorage({
   },
 });
 
+// ─── Service Icon Storage ─────────────────────────────────────────────────────
+const serviceIconStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'uploads/service-icons',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [
+      {
+        width: 120,
+        height: 120,
+        crop: 'fit',
+        quality: 'auto:best',
+        fetch_format: 'auto',
+      },
+    ],
+    resource_type: 'image',
+  },
+});
+
 // ─── Team Image Storage ───────────────────────────────────────────────────────
 const teamImageStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
@@ -85,7 +103,7 @@ const teamImageStorage = new CloudinaryStorage({
         width: 400,
         height: 400,
         crop: 'fill',
-        gravity: 'face',   // Smart crop — focuses on the person's face
+        gravity: 'face',
         quality: 'auto:best',
         fetch_format: 'auto',
       },
@@ -136,6 +154,52 @@ const mediaFilter = (req, file, cb) => {
   }
 };
 
+// ─── Mixed filter for service upload (images + icon field) ───────────────────
+// Routes each field to the correct storage based on fieldname
+const serviceFileFilter = (req, file, cb) => {
+  const allowed = /jpeg|jpg|png|gif|webp/;
+  const ext  = allowed.test(file.originalname.toLowerCase());
+  const mime = allowed.test(file.mimetype);
+  if (ext && mime) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files (JPEG, JPG, PNG, GIF, WEBP) are allowed'), false);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DYNAMIC STORAGE — routes iconImage to service-icons, others to services
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const dynamicServiceStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: (req, file) => {
+    if (file.fieldname === 'iconImage') {
+      return {
+        folder: 'uploads/service-icons',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+        transformation: [
+          {
+            width: 120,
+            height: 120,
+            crop: 'fit',
+            quality: 'auto:best',
+            fetch_format: 'auto',
+          },
+        ],
+        resource_type: 'image',
+      };
+    }
+    // heroImage, detailImage1, detailImage2
+    return {
+      folder: 'uploads/services',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+      transformation: [{ quality: 'auto:best', fetch_format: 'auto' }],
+      resource_type: 'image',
+    };
+  },
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MULTER INSTANCES
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -162,24 +226,25 @@ const uploadMedia = multer({
 });
 
 // ─── Service Upload ───────────────────────────────────────────────────────────
-// Accepts 3 named image fields: heroImage, detailImage1, detailImage2
+// Accepts 4 named image fields: heroImage, detailImage1, detailImage2, iconImage
+// iconImage → uploads/service-icons (120×120 fit crop)
+// others    → uploads/services
 const serviceUpload = multer({
-  storage: serviceImageStorage,
-  fileFilter: imageFilter,
-  limits: { fileSize: 10 * 1024 * 1024, files: 3 },
+  storage: dynamicServiceStorage,
+  fileFilter: serviceFileFilter,
+  limits: { fileSize: 10 * 1024 * 1024, files: 4 },
 }).fields([
   { name: 'heroImage',    maxCount: 1 },
   { name: 'detailImage1', maxCount: 1 },
   { name: 'detailImage2', maxCount: 1 },
+  { name: 'iconImage',    maxCount: 1 }, // ← NEW: service icon
 ]);
 
 // ─── Team Upload ──────────────────────────────────────────────────────────────
-// Single photo field named "img" — uploaded to uploads/team on Cloudinary
-// with automatic face-aware cropping to 400×400
 const teamUpload = multer({
   storage: teamImageStorage,
   fileFilter: imageFilter,
-  limits: { fileSize: 5 * 1024 * 1024, files: 1 }, // 5 MB — portrait photos are small
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
 }).single('img');
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -305,8 +370,8 @@ module.exports = {
   uploadImage,
   uploadVideo,
   uploadMedia,
-  serviceUpload,
-  teamUpload,            // ← NEW: single 'img' field, uploads to uploads/team
+  serviceUpload,   // ← now handles heroImage, detailImage1, detailImage2, iconImage
+  teamUpload,
 
   // Cloudinary instance
   cloudinary,

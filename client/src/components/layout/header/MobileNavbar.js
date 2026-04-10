@@ -15,6 +15,44 @@ function getServiceImage(src) {
   return SERVER_BASE + src;
 }
 
+// ─── Reusable icon renderer (same logic as Navbar) ────────────────────────────
+const ServiceIcon = ({ item }) => {
+  if (item.iconIsSvg) {
+    return (
+      <span style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 40, height: 40, borderRadius: "50%",
+        background: "#1a598a18", flexShrink: 0, color: "#1a598a",
+      }}
+        dangerouslySetInnerHTML={{ __html: item.image }}
+      />
+    );
+  }
+  if (item.image) {
+    return (
+      <span style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 40, height: 40, borderRadius: "50%",
+        overflow: "hidden", background: "#1a598a18", flexShrink: 0,
+      }}>
+        <Image
+          src={item.image} alt={item.name}
+          width={40} height={40}
+          style={{ objectFit: "cover", width: "100%", height: "100%" }}
+        />
+      </span>
+    );
+  }
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+      width: 40, height: 40, borderRadius: "50%", background: "#1a598a18",
+    }}>
+      <i className="tji-settings" style={{ fontSize: 18, color: "#1a598a" }}></i>
+    </span>
+  );
+};
+
 const staticNavItems = [
   { id: 1, name: "Home",      path: "/" },
   {
@@ -41,12 +79,13 @@ const MobileNavbar = () => {
         const items = data.data || [];
         setServices(
           items.map((s) => ({
-            id:    s._id,
-            name:  s.title,
-            path:  "/services/" + (s.slug || s._id),
-            image: getServiceImage(
-              s.heroImage || s.image || s.thumbnail || s.img || s.icon || null
-            ),
+            id:       s._id,
+            name:     s.title,
+            path:     "/services/" + (s.slug || s._id),
+            image:    s.icon
+                        ? s.icon
+                        : getServiceImage(s.heroImage || s.image || s.thumbnail || s.img || null),
+            iconIsSvg: typeof s.icon === "string" && s.icon.trim().startsWith("<"),
           }))
         );
       })
@@ -91,7 +130,7 @@ const MobileNavbar = () => {
                 ))}
               </MobileMenuItem>
 
-              {/* ── Services (dynamic from API) ─────────────────────────── */}
+              {/* ── Services ───────────────────────────────────────────── */}
               <MobileMenuItem
                 text={serviceNav?.name || "Services"}
                 url="/services"
@@ -108,44 +147,7 @@ const MobileNavbar = () => {
                     <li key={item.id}>
                       <Link className="mega-menu-service-single" href={item.path}>
                         <span className="mega-menu-service-icon">
-                          {item.image ? (
-                            // ✅ FIX: circle wrapper with overflow:hidden clips image into a circle
-                            <span
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                width: 40,
-                                height: 40,
-                                borderRadius: "50%",
-                                overflow: "hidden",
-                                background: "#1a598a18",
-                                flexShrink: 0,
-                              }}
-                            >
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                width={40}
-                                height={40}
-                                style={{ objectFit: "cover", width: "100%", height: "100%" }}
-                              />
-                            </span>
-                          ) : (
-                            <span
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                width: 40,
-                                height: 40,
-                                borderRadius: "50%",
-                                background: "#1a598a18",
-                              }}
-                            >
-                              <i className="tji-settings" style={{ fontSize: 18, color: "#1a598a" }}></i>
-                            </span>
-                          )}
+                          <ServiceIcon item={item} />
                         </span>
                         <span className="mega-menu-service-title">{item.name}</span>
                         <span className="mega-menu-service-nav">
