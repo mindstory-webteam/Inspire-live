@@ -14,7 +14,7 @@ const serviceRoutes = require('./routes/serviceRoutes');
 const { teamRouter, teamAdminRouter } = require('./routes/teamRoutes');
 const { testimonialRoutes, testimonialAdminRoutes } = require('./routes/testimonialRoutes');
 const newsletterRoutes = require('./routes/newsletterRoutes');
-const { ourresourceRouter, resourcepersonAdminRouter } = require('./routes/resourcePersonRoutes');
+const { resourcepersonAdminRouter, ourresourceRouter } = require('./routes/ourresourcePersonRoutes');
 
 // Connect to MongoDB
 connectDB();
