@@ -187,7 +187,7 @@ var Contact3 = function () {
           <div className="col-lg-6">
             <div className="map-area wow fadeInUp" data-wow-delay=".3s">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m10!1m8!1m3!1d316440.5712687838!2d-74.01091796224334!3d40.67186885683901!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sbd!4v1745918398047!5m2!1sen!2sbd"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.542481756926!2d76.6592754750418!3d10.769700389378642!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba86de3f032c3bf%3A0x9748913a691cbde4!2sINSPIRE%20EDUCATION%20SERVICE%20Study%20Abroad%20%26%20PhD%20consultants!5e0!3m2!1sen!2sin!4v1775810312618!5m2!1sen!2sin"
                 title="Office Location"
               />
             </div>

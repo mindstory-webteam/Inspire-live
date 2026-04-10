@@ -19,7 +19,7 @@ const CeoSection = ({ type }) => {
 
 								{/* Content paragraphs */}
 								<p className="desc wow fadeInUp" data-wow-delay=".4s" style={{ marginTop: 16 }}>
-									In 2011, Inspire was born from a vision — to guide students with purpose and care. Today, we are proud to be India&apos;s No.1 PhD guidance platform, supporting scholars across 17 countries.
+									In 2011, Inspire was born from a vision to guide students with purpose and care. Today, we are proud to be India&apos;s No.1 PhD guidance platform, supporting scholars across 20 countries.
 								</p>
 								<p className="desc wow fadeInUp" data-wow-delay=".45s" style={{ marginTop: 12, marginBottom: 0 }}>
 									If you&apos;re on a research journey, you&apos;re not alone. With Inspire, you have a partner who believes in your potential.
@@ -59,7 +59,7 @@ const CeoSection = ({ type }) => {
 								</p>
 								<ul className="list-items">
 									<li><i className="tji-list"></i>Founded in 2011</li>
-									<li><i className="tji-list"></i>500+ PhD Placements Worldwide</li>
+									<li><i className="tji-list"></i>437+ PhD Placements Worldwide</li>
 								</ul>
 							</div>
 							<div
@@ -72,7 +72,7 @@ const CeoSection = ({ type }) => {
 									Specializing in PhD admissions, research proposal development, and international scholarship guidance across all major disciplines.
 								</p>
 								<ul className="list-items">
-									<li><i className="tji-list"></i>Scholars across 17 Countries</li>
+									<li><i className="tji-list"></i>Scholars across 20 Countries</li>
 									<li><i className="tji-list"></i>India&apos;s No.1 PhD Platform</li>
 								</ul>
 							</div>

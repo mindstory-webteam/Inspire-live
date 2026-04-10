@@ -37,7 +37,7 @@ const ContactMenu = ({ isContactOpen, setIsContactOpen }) => {
 								
 							</p>
 						</div>
-						<div className="hamburger-search-area">
+						{/* <div className="hamburger-search-area">
 							<h5 className="hamburger-title">Search Now!</h5>
 							<div className="hamburger_search">
 								<form method="get" action="/">
@@ -52,7 +52,7 @@ const ContactMenu = ({ isContactOpen, setIsContactOpen }) => {
 									/>
 								</form>
 							</div>
-						</div>
+						</div> */}
 						<div className="hamburger-infos">
 							<h5 className="hamburger-title">Contact Info</h5>
 							<div className="contact-info">
