@@ -2,11 +2,11 @@ const TeamCard = ({ teamMember }) => {
   const {
     name,
     desig,
-    img       = "/images/team/team-1.webp",
-    facebook  = "https://www.facebook.com/",
-    instagram = "https://www.instagram.com/",
-    twitter   = "https://x.com/",
-    linkedin  = "https://www.linkedin.com/",
+    img      = "/images/team/team-1.webp",
+    // facebook  = "https://www.facebook.com/",
+    // instagram = "https://www.instagram.com/",
+    // twitter   = "https://x.com/",
+    // linkedin  = "https://www.linkedin.com/",
   } = teamMember || {};
 
   return (
@@ -15,6 +15,7 @@ const TeamCard = ({ teamMember }) => {
         <div className="team-img-inner">
           <img src={img} alt={name || "Team member"} />
         </div>
+        {/* Social Links — hidden for now, uncomment when needed
         <div className="social-links">
           <ul>
             <li>
@@ -39,7 +40,9 @@ const TeamCard = ({ teamMember }) => {
             </li>
           </ul>
         </div>
+        */}
       </div>
+
       <div className="team-content">
         <h4 className="title">{name}</h4>
         <span className="designation">{desig}</span>

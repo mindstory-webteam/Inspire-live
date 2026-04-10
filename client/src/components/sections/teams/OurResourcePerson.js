@@ -11,13 +11,13 @@ const OurResourcePerson = ({ type }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchResourceMembersClient()                                         
+    fetchResourceMembersClient()
       .then((data) => setItems(data))
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const limit = type === 2 ? 8 : 4;
+  const limit = type === 2 ? 8 : 5;
 
   const {
     currentItems,
@@ -53,11 +53,11 @@ const OurResourcePerson = ({ type }) => {
               <div className={`sec-heading text-center ${type === 3 ? "" : "style-2"}`}>
                 <span className="sub-title wow fadeInUp" data-wow-delay=".3s">
                   {type === 3 ? <i className="tji-box"></i> : ""}
-                 Expert Resource Team
+                  Expert Resource Team
                 </span>
                 {type === 3 ? (
                   <h2 className="sec-title title-anim">
-                    Meet the Experts Behind Our Success 
+                    Meet the Experts Behind Our Success
                   </h2>
                 ) : (
                   <h2 className={`sec-title ${type === 2 ? "title-anim" : "text-anim"}`}>
@@ -71,7 +71,7 @@ const OurResourcePerson = ({ type }) => {
 
         {loading && (
           <div className="row">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="col-lg-3 col-sm-6">
                 <div
                   style={{
@@ -97,7 +97,9 @@ const OurResourcePerson = ({ type }) => {
               ))
             ) : (
               <div className="col-12 text-center">
-                <p style={{ color: "#888", padding: "40px 0" }}>No resource persons found.</p>
+                <p style={{ color: "#888", padding: "40px 0" }}>
+                  No resource persons found.
+                </p>
               </div>
             )}
           </div>
@@ -106,7 +108,10 @@ const OurResourcePerson = ({ type }) => {
         {type === 2 ? (
           ""
         ) : (
-          <div className="team-btn d-md-none mt-40 text-center wow fadeInUp" data-wow-delay="0.9s">
+          <div
+            className="team-btn d-md-none mt-40 text-center wow fadeInUp"
+            data-wow-delay="0.9s"
+          >
             <ButtonPrimary text={"More member"} url={"/team"} />
           </div>
         )}
