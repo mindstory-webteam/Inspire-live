@@ -1,6 +1,6 @@
 const Blog = require('../models/Blog');
 // Fix: Update the path to match your project structure
-const { deleteFromCloudinary, getPublicIdFromUrl, isCloudinaryUrl } = require('../middleware/uploadMiddleware');
+const { deleteFromCloudinary, getPublicIdFromUrl, isCloudinaryUrl } = require('../middleware/upload');
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
