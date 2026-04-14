@@ -2,7 +2,7 @@ const express = require('express');
 const blogRouter = express.Router();
 const adminRouter = express.Router();
 const blogController = require('../controllers/blogController');
-const { uploadImage } = require('../middleware/uploadMiddleware');
+const { uploadImage } = require('../middleware/upload');
 const { protect, adminOrAbove } = require('../middleware/auth');
 
 // ═══════════════════════════════════════════════════════════════════════════
