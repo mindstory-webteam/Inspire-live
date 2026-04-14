@@ -23,8 +23,9 @@ const app = express();
 
 // ─── CORS Configuration ──────────────────────────────────────────────────────
 const allowedOrigins = [
-  'https://inspire-live.vercel.app',
-  'https://inspire-live-225z.vercel.app',
+  'http://187.127.151.100',
+  'http://187.127.151.100:3000',
+  'http://187.127.151.100:4173',
   'http://localhost:5173',
   'http://localhost:3000',
 ].filter(Boolean);
