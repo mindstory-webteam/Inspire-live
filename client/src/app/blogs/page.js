@@ -160,7 +160,7 @@ export default function BlogsGridPrimary() {
         .bg-page {
           background: var(--tg1);
           min-height: 100vh;
-          font-family: 'DM Sans', sans-serif;
+         
         }
 
         /* ── Section ── */
