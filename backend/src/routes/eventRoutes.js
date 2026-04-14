@@ -11,7 +11,7 @@ const {
 } = require('../controllers/eventController');
 
 const { protect, adminOrAbove } = require('../middleware/auth');
-const { uploadImage, handleMulterError } = require('../middleware/uploadMiddleware');
+const { uploadImage, handleMulterError } = require('../middleware/upload');
 
 // ═════════════════════════════════════════════════════════════════════════════
 // PUBLIC ROUTES — no auth required

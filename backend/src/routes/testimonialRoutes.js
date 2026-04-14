@@ -10,7 +10,7 @@ const express = require('express');
 
 const ctrl = require('../controllers/testimonialController');
 const { protect, adminOrAbove } = require('../middleware/auth');
-const { uploadImage, handleMulterError } = require('../middleware/uploadMiddleware');
+const { uploadImage, handleMulterError } = require('../middleware/upload');
 
 // Multer — accept up to 3 image fields (author photo + 2 logo variants)
 const testimonialUpload = uploadImage.fields([

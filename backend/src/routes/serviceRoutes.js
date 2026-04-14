@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 
 const ctrl              = require('../controllers/serviceController');
-const { serviceUpload } = require('../middleware/uploadMiddleware');
+const { serviceUpload } = require('../middleware/upload');
 const { protect, adminOrAbove } = require('../middleware/auth');
 
 // ── Public ────────────────────────────────────────────────────────────────────

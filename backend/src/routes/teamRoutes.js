@@ -11,7 +11,7 @@ const {
 
 // ✅ Correct middleware filenames (matches careerRoutes pattern)
 const { protect, adminOrAbove } = require('../middleware/auth');
-const { teamUpload }            = require('../middleware/uploadMiddleware');
+const { teamUpload }            = require('../middleware/upload');
 
 // ─── Public Router — /api/team ────────────────────────────────────────────────
 const teamRouter = express.Router();

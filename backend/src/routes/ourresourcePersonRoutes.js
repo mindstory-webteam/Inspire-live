@@ -1,6 +1,6 @@
 const express = require('express');
 const { protect, adminOrAbove } = require('../middleware/auth');
-const { teamUpload }            = require('../middleware/uploadMiddleware');
+const { teamUpload }            = require('../middleware/upload');
 const {
   getOurResourceMembers,
   getOurResourceMember,

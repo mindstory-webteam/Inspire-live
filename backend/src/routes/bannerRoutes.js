@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bannerController = require('../controllers/bannerController');
-const { uploadMedia } = require('../middleware/uploadMiddleware');
+const { uploadMedia } = require('../middleware/upload');
 const { protect, adminOrAbove } = require('../middleware/auth');
 
 // ═══════════════════════════════════════════════════════════════════════════

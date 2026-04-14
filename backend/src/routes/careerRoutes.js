@@ -22,7 +22,7 @@ const {
 } = require('../controllers/careerController');
 
 const { protect, adminOrAbove } = require('../middleware/auth');
-const { uploadImage } = require('../middleware/uploadMiddleware');
+const { uploadImage } = require('../middleware/upload');
 
 // ═══════════════════════════════════════════════════════════════
 // RESUME UPLOAD (PDF / DOC / DOCX → Cloudinary RAW)
