@@ -98,14 +98,14 @@ export function Login() {
           </form>
         </div>
 
-        <div className="mt-4 rounded-2xl p-4 text-xs space-y-1" style={{ background: '#ffffff', border: '1px solid #ecf0f0' }}>
+        {/* <div className="mt-4 rounded-2xl p-4 text-xs space-y-1" style={{ background: '#ffffff', border: '1px solid #ecf0f0' }}>
           <p className="font-semibold mb-2" style={{ color: '#1a425c' }}>Default credentials after seeding:</p>
           <p style={{ color: '#67787a' }}>📧 Email: <span className="font-mono" style={{ color: '#1a598a' }}>admin@blog.com</span></p>
           <p style={{ color: '#67787a' }}>🔑 Password: <span className="font-mono" style={{ color: '#1a598a' }}>admin123</span></p>
           <p className="pt-2" style={{ borderTop: '1px solid #ecf0f0', color: '#a9b8b8' }}>
             Run <span className="font-mono" style={{ color: '#67787a' }}>node seed.js</span> in backend if not seeded
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
