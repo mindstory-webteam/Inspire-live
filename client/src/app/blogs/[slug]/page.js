@@ -331,7 +331,7 @@ export default function BlogDetailsPage() {
           --tb:#1a425c; --tb3:#67787a; --tg1:#ecf0f0; --tg2:#a9b8b8; --tbr5:#1e8a8a26;
         }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-        .bd-page{background:var(--tg1);min-height:100vh;font-family:'DM Sans',sans-serif;}
+        .bd-page{background:var(--tg1);min-height:100vh;}
 
         /* LAYOUT */
         .bd-layout{max-width:1240px;margin:0 auto;padding:60px 40px 100px;display:grid;grid-template-columns:1fr 300px;gap:48px;align-items:start;}
