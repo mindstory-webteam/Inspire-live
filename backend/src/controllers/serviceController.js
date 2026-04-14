@@ -263,7 +263,7 @@ const create = async (req, res) => {
 
       // Icon — uploaded file takes priority; fallback to empty string
       // (no text fallback since icon is now always uploaded)
-      icon:        iconFile ? iconFile.path     : '',
+      icon: iconFile ? `https://inspireeducationservice.com/uploads/${iconFile.filename}` : '',
       iconImageId: iconFile ? iconFile.filename : '',
 
       heroImage:    heroFile    ? heroFile.path    : (body.heroImage    || ''),
