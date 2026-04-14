@@ -203,7 +203,7 @@ const STYLES = `
   }
   .card-title {
     font-size: 24px;
-    font-weight: 900;
+   
     color: #ffffff;
     margin-bottom: 10px;
     line-height: 1.2;
@@ -232,7 +232,7 @@ const STYLES = `
     gap: 6px;
     font-size: 13px;
     color: rgba(255,255,255,0.8);
-    font-weight: 600;
+   
   }
   .meta-icon { width: 16px; height: 16px; color: #9ed3fb; flex-shrink: 0; }
   .pagination {
