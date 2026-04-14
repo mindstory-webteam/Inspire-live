@@ -324,7 +324,7 @@ export default function BlogDetailsPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+     
         :root {
           --tp:#1a598a; --td:#0c1e21; --td2:#18292c; --td3:#015599;
           --tbg:#9ed3fb; --tbg2:#ffffff; --tbg3:#202e30;
