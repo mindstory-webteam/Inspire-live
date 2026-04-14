@@ -289,7 +289,7 @@ export default function BlogsGridPrimary() {
 
         /* ── Title ── */
         .bc-title {
-          font-family: 'Playfair Display', serif;
+         
           font-size: 1.2rem;
           font-weight: 700;
           color: var(--td);
@@ -392,7 +392,7 @@ export default function BlogsGridPrimary() {
           text-align: center;
         }
         .bg-error-title {
-          font-family: 'Playfair Display', serif;
+        
           color: #7b2020;
           font-size: 1.2rem;
           margin-bottom: 8px;
