@@ -3,7 +3,7 @@
  */
 
 const Service = require('../models/Service');
-const { deleteFromCloudinary, getPublicIdFromUrl } = require('../middleware/uploadMiddleware');
+const { deleteFromCloudinary, getPublicIdFromUrl } = require('../middleware/upload');
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
