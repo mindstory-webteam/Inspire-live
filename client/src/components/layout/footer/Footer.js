@@ -6,21 +6,26 @@ import { subscribeNewsletter } from "../../../utils/newsletterApi";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
 
-const STATIC_SERVICES = [
-  // { id: "phd-india",  name: "PhD India",  path: "/services/phd-india" },
-  // { id: "phd-abroad", name: "PhD Abroad", path: "/services/phd-abroad" },
-];
+const STATIC_SERVICES = [];
+
+const FALLBACK_CONTACT = {
+  phone: { value: "+91 9947 945 945", href: "tel:+919947945945" },
+  email: { value: "inspireeduservice001@gmail.com", href: "mailto:inspireeduservice001@gmail.com" },
+};
 
 const Footer = () => {
   const [services,    setServices]    = useState([]);
+  const [contact,     setContact]     = useState(FALLBACK_CONTACT);
   const [email,       setEmail]       = useState("");
   const [agreed,      setAgreed]      = useState(false);
   const [submitting,  setSubmitting]  = useState(false);
   const [formMessage, setFormMessage] = useState(null);
-  const [mounted,     setMounted]     = useState(false); // FIX: hydration guard
+  const [mounted,     setMounted]     = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
+    // ── Fetch services ──────────────────────────────────────────────
     fetch(API_BASE + "/services")
       .then((res) => res.json())
       .then((data) => {
@@ -34,6 +39,27 @@ const Footer = () => {
         );
       })
       .catch(() => {});
+
+    // ── Fetch contact info ──────────────────────────────────────────
+    fetch(API_BASE + "/contact-info")
+      .then((res) => res.json())
+      .then((res) => {
+        if (!res.success || !res.data?.length) return;
+        const map = {};
+        res.data.forEach((card) => { map[card.type] = card; });
+
+        setContact({
+          phone: {
+            value: map.phone?.lines?.[0]?.value || FALLBACK_CONTACT.phone.value,
+            href:  map.phone?.lines?.[0]?.href  || FALLBACK_CONTACT.phone.href,
+          },
+          email: {
+            value: map.email?.lines?.[0]?.value || FALLBACK_CONTACT.email.value,
+            href:  map.email?.lines?.[0]?.href  || FALLBACK_CONTACT.email.href,
+          },
+        });
+      })
+      .catch(() => {/* keep fallback */});
   }, []);
 
   const handleSubscribe = async (e) => {
@@ -114,12 +140,7 @@ const Footer = () => {
                 <ul>
                   <li><Link href="/about">About us</Link></li>
                   <li><Link href="/team">Team Member</Link></li>
-                  <li>
-                    <Link href="/careers">
-                      Careers 
-                      {/* <span className="badge">New</span> */}
-                    </Link>
-                  </li>
+                  <li><Link href="/careers">Careers</Link></li>
                   <li><Link href="/blogs">Blog</Link></li>
                   <li><Link href="/contact">Contact</Link></li>
                   <li><Link href="/terms-and-conditions">Terms &amp; Conditions</Link></li>
@@ -133,7 +154,6 @@ const Footer = () => {
               <div className="footer-widget widget-subscribe wow fadeInUp" data-wow-delay=".7s">
                 <h3 className="title">Subscribe to Our Newsletter.</h3>
                 <div className="subscribe-form">
-                  {/* FIX: only render form after mount to prevent hydration mismatch */}
                   {mounted && (
                     <form onSubmit={handleSubscribe} noValidate>
                       <input
@@ -192,15 +212,15 @@ const Footer = () => {
                 <div className="footer-contact">
                   <ul>
                     <li>
-                      <Link href="tel:+919947945945">
+                      <Link href={contact.phone.href}>
                         <span className="icon"><i className="tji-phone-2"></i></span>
-                        <span className="text">+91 9947 945 945</span>
+                        <span className="text">{contact.phone.value}</span>
                       </Link>
                     </li>
                     <li>
-                      <Link href="mailto:inspireeduservice001@gmail.com">
+                      <Link href={contact.email.href}>
                         <span className="icon"><i className="tji-envelop-2"></i></span>
-                        <span className="text">inspireeduservice001@gmail.com</span>
+                        <span className="text">{contact.email.value}</span>
                       </Link>
                     </li>
                   </ul>
