@@ -144,12 +144,7 @@ const STYLES = `
     min-height: 320px;
 }
 
-/* add this */
-.event-card:nth-child(4) .card-description,
-.event-card:nth-child(5) .card-description,
-.event-card:nth-child(6) .card-description {
-    display: none;
-}
+
   .card-image {
     width: 100%; height: 100%;
     object-fit: cover;
