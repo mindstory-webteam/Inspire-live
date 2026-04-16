@@ -177,3 +177,21 @@ export const newsletterService = {
       responseType: 'blob',   // triggers file download
     }),
 };
+
+
+export const contactInfoService = {
+  /** GET /api/admin/contact-info  – all cards */
+  getAll:   ()             => api.get('/admin/contact-info'),
+
+  /** PUT /api/admin/contact-info/:type  – update one card */
+  update:   (type, data)   => api.put(`/admin/contact-info/${type}`, data),
+
+  /** PATCH /api/admin/contact-info/:type/toggle  – activate / deactivate */
+  toggle:   (type)         => api.patch(`/admin/contact-info/${type}/toggle`),
+
+  /** PUT /api/admin/contact-info/reorder  – body: { items: [{type, order}] } */
+  reorder:  (items)        => api.put('/admin/contact-info/reorder', { items }),
+
+  /** POST /api/admin/contact-info/seed  – reset to factory defaults */
+  seed:     ()             => api.post('/admin/contact-info/seed'),
+};

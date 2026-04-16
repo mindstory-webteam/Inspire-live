@@ -26,6 +26,7 @@ const NAV = [
   { to: '/events', icon: Calendar, label: 'Events' },
   { to: '/careers', icon: Briefcase, label: 'Careers' },
   { to: '/contacts', icon: Mail, label: 'Contacts' },
+   { to: '/contactinfo', icon: Mail, label: 'Contact Info' },
   { to: '/newsletter', icon: Bell, label: 'Newsletter' },
   { to: '/team', icon: Users, label: 'Team' },
   { to: '/ourresourceperson', icon: Users, label: 'Resource Person' },

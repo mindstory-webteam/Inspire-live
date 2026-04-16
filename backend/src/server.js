@@ -15,7 +15,7 @@ const { teamRouter, teamAdminRouter } = require('./routes/teamRoutes');
 const { testimonialRoutes, testimonialAdminRoutes } = require('./routes/testimonialRoutes');
 const newsletterRoutes = require('./routes/newsletterRoutes');
 const { resourcepersonAdminRouter, ourresourceRouter } = require('./routes/ourresourcePersonRoutes');
-
+const { contactInfoRoutes, contactInfoAdminRoutes } = require('./routes/contactinfoRoutes');
 // Connect to MongoDB
 connectDB();
 
@@ -78,6 +78,10 @@ app.use('/api/admin/ourresourceperson', resourcepersonAdminRouter);
 app.use('/api/testimonials',          testimonialRoutes);
 app.use('/api/admin/testimonials',    testimonialAdminRoutes);
 app.use('/api', newsletterRoutes);
+
+
+app.use('/api/contact-info',          contactInfoRoutes);        // ← add this
+app.use('/api/admin/contact-info',    contactInfoAdminRoutes);   // ← add this
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) =>
