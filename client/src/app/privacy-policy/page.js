@@ -6,6 +6,7 @@ import TermsAndConditionsPrimary from "@/components/sections/registration/TermsA
 import BackToTop from "@/components/shared/others/BackToTop";
 import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
+import PrivacyPolicyPrimary from "@/components/sections/registration/PrivacyPolicyPrimary";
 export default function TermsAndConditions() {
 	return (
 		<div>
@@ -17,10 +18,10 @@ export default function TermsAndConditions() {
 					<main>
 						<HeaderSpace />
 						<HeroInner
-							title={"Terms and Conditions"}
-							text={"Terms and Conditions"}
+							title={"Privacy Policy"}
+							text={"Privacy Policy"}
 						/>
-						<TermsAndConditionsPrimary />
+						<PrivacyPolicyPrimary />
 						<Cta />
 					</main>
 					<Footer />
