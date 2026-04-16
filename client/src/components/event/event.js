@@ -201,7 +201,7 @@ const STYLES = `
     text-transform: uppercase;
     letter-spacing: 1.5px;
   }
-  .card-title {
+   .event-card .card-title {
     font-size: 24px;
    
     color: #ffffff !important;
