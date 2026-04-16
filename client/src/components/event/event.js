@@ -204,7 +204,7 @@ const STYLES = `
   .card-title {
     font-size: 24px;
    
-    color: #ffffff;
+    color: #ffffff !important;
     margin-bottom: 10px;
     line-height: 1.2;
     letter-spacing: -0.5px;
