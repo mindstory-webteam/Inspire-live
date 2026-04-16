@@ -2,7 +2,8 @@ import Footer from "@/components/layout/footer/Footer";
 import Header from "@/components/layout/header/Header";
 import Cta from "@/components/sections/cta/Cta";
 import HeroInner from "@/components/sections/hero/HeroInner";
-import TermsAndConditionsPrimary from "@/components/sections/registration/TermsAndConditionsPrimary";
+
+import TermsAndConditionsPrimary2 from "@/components/sections/registration/TermsAndConditionsPrimary2";
 import BackToTop from "@/components/shared/others/BackToTop";
 import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
@@ -20,7 +21,7 @@ export default function TermsAndConditions() {
 							title={"Terms and Conditions"}
 							text={"Terms and Conditions"}
 						/>
-						<TermsAndConditionsPrimary />
+						<TermsAndConditionsPrimary2 />
 						<Cta />
 					</main>
 					<Footer />
