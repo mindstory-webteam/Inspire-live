@@ -7,205 +7,186 @@ const TermsAndConditionsPrimary = () => {
 				<div className="row justify-content-center">
 					<div className="col-10">
 						<div className="terms-and-conditions-wrapper">
-
+ 
 							{/* Header */}
 							<div>
-								<h2>Terms &amp; Conditions</h2>
+								<h2>Privacy Policy</h2>
 								<p className="muted">Last updated: April 2026</p>
 								<p>
-									Welcome to <strong>Inspire Education Service</strong>. By
-									using our website or services, you agree to the following
-									terms.
+									At <strong>Inspire Education Service</strong>, your trust
+									matters to us. This Privacy Policy explains how we collect,
+									use, and protect your information when you interact with our
+									website or services.
 								</p>
 							</div>
-
+ 
 							{/* Table of Contents */}
 							<nav className="toc" aria-label="Table of contents">
 								<h2>Table of Contents</h2>
 								<ol>
 									<li>
-										<button className="tj-scroll-btn" data-target="#our-services">
-											Our Services
+										<button className="tj-scroll-btn" data-target="#information-collect">
+											Information We Collect
 										</button>
 									</li>
 									<li>
-										<button className="tj-scroll-btn" data-target="#payments-refunds">
-											Payments &amp; Refunds
+										<button className="tj-scroll-btn" data-target="#how-we-use">
+											How We Use Your Information
 										</button>
 									</li>
 									<li>
-										<button className="tj-scroll-btn" data-target="#user-responsibility">
-											User Responsibility
+										<button className="tj-scroll-btn" data-target="#communication">
+											Communication
 										</button>
 									</li>
 									<li>
-										<button className="tj-scroll-btn" data-target="#no-guarantee">
-											No Guarantee of Admission
+										<button className="tj-scroll-btn" data-target="#data-protection">
+											Data Protection
 										</button>
 									</li>
 									<li>
-										<button className="tj-scroll-btn" data-target="#website-usage">
-											Website Usage
+										<button className="tj-scroll-btn" data-target="#sharing-information">
+											Sharing of Information
 										</button>
 									</li>
 									<li>
-										<button className="tj-scroll-btn" data-target="#accuracy">
-											Accuracy of Information
+										<button className="tj-scroll-btn" data-target="#cookies">
+											Cookies &amp; Website Usage
 										</button>
 									</li>
 									<li>
-										<button className="tj-scroll-btn" data-target="#external-links">
-											External Links
+										<button className="tj-scroll-btn" data-target="#your-rights">
+											Your Rights
 										</button>
 									</li>
 									<li>
-										<button className="tj-scroll-btn" data-target="#liability">
-											Limitation of Liability
+										<button className="tj-scroll-btn" data-target="#policy-updates">
+											Updates to This Policy
 										</button>
 									</li>
 									<li>
-										<button className="tj-scroll-btn" data-target="#user-conduct">
-											User Conduct
-										</button>
-									</li>
-									<li>
-										<button className="tj-scroll-btn" data-target="#changes">
-											Changes to Terms
-										</button>
-									</li>
-									<li>
-										<button className="tj-scroll-btn" data-target="#contact">
-											Contact
+										<button className="tj-scroll-btn" data-target="#contact-us">
+											Contact Us
 										</button>
 									</li>
 								</ol>
 							</nav>
-
+ 
 							{/* Section 1 */}
-							<div id="our-services">
-								<h3>1. Our Services</h3>
-								<p>We provide:</p>
-								<ul>
-									<li>PhD admission guidance</li>
-									<li>Study abroad counselling</li>
-									<li>Academic and career support</li>
-								</ul>
+							<div id="information-collect">
+								<h3>1. Information We Collect</h3>
 								<p>
-									Our role is to guide and assist — final admission decisions
-									are made by universities.
+									When you connect with us (through forms, calls, or WhatsApp),
+									we may collect:
 								</p>
+								<ul>
+									<li>Your name, email address, and phone number</li>
+									<li>
+										Academic details (qualification, interests, preferred
+										country/course)
+									</li>
+									<li>
+										Any additional information you choose to share with us
+									</li>
+								</ul>
+								<p>We only collect what&apos;s necessary to guide you better.</p>
 							</div>
-
+ 
 							{/* Section 2 */}
-							<div id="payments-refunds">
-								<h3>2. Payments &amp; Refunds</h3>
-								<p>
-									All fees paid for counselling and guidance are{" "}
-									<strong>non-refundable</strong> once services begin. This is
-									because our team starts working on your profile immediately
-									after payment.
-								</p>
+							<div id="how-we-use">
+								<h3>2. How We Use Your Information</h3>
+								<p>We use your information to:</p>
+								<ul>
+									<li>Provide counselling and admission guidance</li>
+									<li>
+										Suggest suitable universities, programs, or research
+										opportunities
+									</li>
+									<li>Respond to your enquiries and support requests</li>
+									<li>
+										Share updates, important notifications, or opportunities
+									</li>
+								</ul>
+								<p>We do not sell your personal data to third parties.</p>
 							</div>
-
+ 
 							{/* Section 3 */}
-							<div id="user-responsibility">
-								<h3>3. User Responsibility</h3>
-								<p>You agree to:</p>
+							<div id="communication">
+								<h3>3. Communication</h3>
+								<p>
+									By submitting your details, you agree that we may contact you
+									via:
+								</p>
 								<ul>
-									<li>Provide accurate and honest information</li>
-									<li>Submit genuine documents</li>
-									<li>Follow university and immigration rules</li>
+									<li>Phone calls</li>
+									<li>Email</li>
+									<li>WhatsApp or SMS</li>
 								</ul>
-								<p>Any false information may affect your application.</p>
+								<p>This is only to assist you with your academic journey.</p>
 							</div>
-
+ 
 							{/* Section 4 */}
-							<div id="no-guarantee">
-								<h3>4. No Guarantee of Admission</h3>
+							<div id="data-protection">
+								<h3>4. Data Protection</h3>
 								<p>
-									While we provide expert guidance, we do not guarantee
-									admission, visa approval, or scholarships, as these depend on
-									external institutions.
+									We take reasonable steps to keep your information safe and
+									secure. However, no online platform is 100% secure, so we
+									encourage you to share information responsibly.
 								</p>
 							</div>
-
+ 
 							{/* Section 5 */}
-							<div id="website-usage">
-								<h3>5. Website Usage</h3>
+							<div id="sharing-information">
+								<h3>5. Sharing of Information</h3>
+								<p>
+									We may share limited details only when required, such as:
+								</p>
 								<ul>
 									<li>
-										Content on this website is for informational purposes only.
+										With universities or institutions (for admission processes)
 									</li>
 									<li>
-										You may not copy, reuse, or distribute any content without
-										permission.
+										With trusted partners assisting in your application
 									</li>
 								</ul>
+								<p>
+									We ensure this is done responsibly and only when necessary.
+								</p>
 							</div>
-
+ 
 							{/* Section 6 */}
-							<div id="accuracy">
-								<h3>6. Accuracy of Information</h3>
+							<div id="cookies">
+								<h3>6. Cookies &amp; Website Usage</h3>
 								<p>
-									We try to keep all information accurate and updated, but:
+									Our website may use basic cookies to improve your browsing
+									experience and understand usage patterns.
 								</p>
-								<ul>
-									<li>
-										Some details (like university requirements) may change.
-									</li>
-									<li>
-										Users are advised to verify directly with institutions when
-										needed.
-									</li>
-								</ul>
 							</div>
-
+ 
 							{/* Section 7 */}
-							<div id="external-links">
-								<h3>7. External Links</h3>
-								<p>
-									Our website may include links to third-party websites. We are
-									not responsible for their content or policies.
-								</p>
+							<div id="your-rights">
+								<h3>7. Your Rights</h3>
+								<p>You can:</p>
+								<ul>
+									<li>Request access to your data</li>
+									<li>Ask us to update or delete your information</li>
+									<li>Opt out of communications anytime</li>
+								</ul>
 							</div>
-
+ 
 							{/* Section 8 */}
-							<div id="liability">
-								<h3>8. Limitation of Liability</h3>
-								<p>We are not liable for:</p>
-								<ul>
-									<li>Admission rejections</li>
-									<li>Visa denials</li>
-									<li>
-										Any losses resulting from decisions made based on our
-										guidance
-									</li>
-								</ul>
-							</div>
-
-							{/* Section 9 */}
-							<div id="user-conduct">
-								<h3>9. User Conduct</h3>
-								<p>You agree not to:</p>
-								<ul>
-									<li>Share false, harmful, or illegal content</li>
-									<li>Misuse our website or services</li>
-								</ul>
-							</div>
-
-							{/* Section 10 */}
-							<div id="changes">
-								<h3>10. Changes to Terms</h3>
+							<div id="policy-updates">
+								<h3>8. Updates to This Policy</h3>
 								<p>
-									We may update these Terms &amp; Conditions at any time.
-									Continued use means you accept the updated terms.
+									We may update this Privacy Policy occasionally. Any changes
+									will be reflected on this page.
 								</p>
 							</div>
-
-							{/* Section 11 */}
-							<div id="contact">
-								<h3>11. Contact</h3>
-								<p>For any concerns or clarifications:</p>
+ 
+							{/* Section 9 */}
+							<div id="contact-us">
+								<h3>9. Contact Us</h3>
+								<p>If you have any questions, feel free to reach out:</p>
 								<p>
 									📧{" "}
 									<Link href="mailto:inspireeduservice001@gmail.com">
@@ -213,16 +194,16 @@ const TermsAndConditionsPrimary = () => {
 									</Link>
 								</p>
 							</div>
-
+ 
 							<p className="muted">
 								<small>
-									This Terms &amp; Conditions page is provided for general
-									guidance only and does not constitute legal advice. Please
-									consult your legal advisor to adapt it to your specific needs
-									and local laws.
+									This Privacy Policy page is provided for general guidance only
+									and does not constitute legal advice. Please consult your
+									legal advisor to adapt it to your specific needs and local
+									laws.
 								</small>
 							</p>
-
+ 
 						</div>
 					</div>
 				</div>
