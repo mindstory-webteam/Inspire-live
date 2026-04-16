@@ -412,7 +412,7 @@ export default function BlogDetailsPage() {
         .bd-quote p{font-size:1.12rem;color:var(--td);line-height:1.75;margin:0;}
 
         /* VIDEO */
-        .bd-video-wrap{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:16/9;background:var(--td2);margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,.14);}
+        .bd-video-wrap{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:16/9;background:var(--td2);margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,.14);width:100%;min-height:400px;}
         .bd-video-wrap iframe{width:100%;height:100%;border:none;display:block;position:relative;z-index:1;}
         .bd-video-thumb{position:absolute;inset:0;z-index:0;}
 
