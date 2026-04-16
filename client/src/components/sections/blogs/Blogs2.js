@@ -4,7 +4,7 @@ import BlogCard2 from "@/components/shared/cards/BlogCard2";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-var API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+var API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
 
 var Blogs2 = function () {
   var blogsState = useState([]);

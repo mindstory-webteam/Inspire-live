@@ -203,7 +203,11 @@ const STYLES = `
   }
   .card-title {
     font-size: 24px;
+<<<<<<< Updated upstream
    
+=======
+    
+>>>>>>> Stashed changes
     color: #ffffff;
     margin-bottom: 10px;
     line-height: 1.2;

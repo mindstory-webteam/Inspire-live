@@ -6,7 +6,7 @@ import Ratings1 from "@/components/shared/ratings/Ratings1";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
 
 const Testimonials2 = ({ type }) => {
   const [testimonials, setTestimonials] = useState([]);

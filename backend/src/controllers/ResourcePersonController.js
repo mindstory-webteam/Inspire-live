@@ -1,6 +1,6 @@
 const OurResourcePerson = require('../models/OurResourcePerson');
 
-const { deleteFromCloudinary, getPublicIdFromUrl, isCloudinaryUrl } = require('../middleware/uploadMiddleware');
+const { deleteFromCloudinary, getPublicIdFromUrl, isCloudinaryUrl } = require('../middleware/upload');
 
 exports.getOurResourceMembers = async (req, res) => {
   try {
@@ -35,7 +35,7 @@ exports.createOurResourceMember = async (req, res) => {
   try {
     const { name, desig, email, facebook, instagram, twitter, linkedin, order, isActive } = req.body;
 
-    const img = req.file ? req.file.path : (req.body.img || '/images/team/team-1.webp');
+    const img = req.file ? 'https://inspireeducationservice.com/uploads/' + req.file.filename : (req.body.img || '/images/team/team-1.webp');
 
     const member = await OurResourcePerson.create({
       name, desig, img, email,
@@ -70,7 +70,7 @@ exports.updateOurResourceMember = async (req, res) => {
           );
         }
       }
-      member.img = req.file.path;
+      member.img = 'https://inspireeducationservice.com/uploads/' + req.file.filename;
     } else if (req.body.img) {
       member.img = req.body.img;
     }

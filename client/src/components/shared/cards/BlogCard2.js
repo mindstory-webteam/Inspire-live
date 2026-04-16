@@ -2,7 +2,7 @@
 import Link from "next/link";
 import ButtonPrimary from "../buttons/ButtonPrimary";
 
-var API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+var API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
 
 function resolveImg(src) {
   if (!src) return null;

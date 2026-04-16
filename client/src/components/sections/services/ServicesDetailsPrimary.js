@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 const SERVER_BASE = (
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+  process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api"
 ).replace(/\/api$/, "");
 
 function getImageSrc(src) {

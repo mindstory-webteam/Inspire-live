@@ -1,5 +1,5 @@
 const Banner = require('../models/Banner');
-const { deleteFromCloudinary, getPublicIdFromUrl, isCloudinaryUrl } = require('../middleware/uploadMiddleware');
+const { deleteFromCloudinary, getPublicIdFromUrl, isCloudinaryUrl } = require('../middleware/upload');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -49,7 +49,7 @@ exports.addSlide = async (req, res) => {
     let resolvedThumbUrl = thumbUrl || '';
 
     if (req.file) {
-      resolvedMediaUrl = req.file.path;
+      resolvedMediaUrl = 'https://inspireeducationservice.com/uploads/' + req.file.filename;
       // Always sync thumbUrl to the new media
       resolvedThumbUrl = resolvedMediaUrl;
     }
@@ -92,8 +92,8 @@ exports.updateSlide = async (req, res) => {
 
     // Handle new file upload — FIX: always sync thumbUrl to new mediaUrl
     if (req.file) {
-      slide.mediaUrl = req.file.path;           // Cloudinary secure_url
-      slide.thumbUrl = req.file.path;           // ← KEY FIX: keep thumbnail in sync
+      slide.mediaUrl = 'https://inspireeducationservice.com/uploads/' + req.file.filename;           // Cloudinary secure_url
+      slide.thumbUrl = 'https://inspireeducationservice.com/uploads/' + req.file.filename;           // ← KEY FIX: keep thumbnail in sync
 
       // Delete old file from Cloudinary
       if (oldMediaUrl && isCloudinaryUrl(oldMediaUrl)) {

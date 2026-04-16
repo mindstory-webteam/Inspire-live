@@ -185,14 +185,14 @@ exports.addComment = async (req, res, next) => {
 // @access  Admin/Editor
 exports.createBlog = async (req, res, next) => {
   try {
-    // Handle Cloudinary uploads - multer-storage-cloudinary stores URL in req.file.path
+    // Handle Cloudinary uploads - multer-storage-cloudinary stores URL in 'https://inspireeducationservice.com/uploads/' + req.file.filename
     if (req.files) {
       Object.keys(req.files).forEach((field) => {
-        req.body[field] = req.files[field][0].path; // Cloudinary secure_url
+        req.body[field] = 'https://inspireeducationservice.com/uploads/' + req.files[field][0].filename; // Cloudinary secure_url
       });
     }
     if (req.file) {
-      req.body.img = req.file.path; // Cloudinary secure_url
+      req.body.img = 'https://inspireeducationservice.com/uploads/' + req.file.filename; // Cloudinary secure_url
     }
 
     const data = parseFormFields(req.body);
@@ -224,14 +224,14 @@ exports.updateBlog = async (req, res, next) => {
           oldImages[field] = existingBlog[field];
         }
         // Set new Cloudinary URL
-        req.body[field] = req.files[field][0].path;
+        req.body[field] = 'https://inspireeducationservice.com/uploads/' + req.files[field][0].filename;
       });
     }
     if (req.file) {
       if (existingBlog.img && isCloudinaryUrl(existingBlog.img)) {
         oldImages.img = existingBlog.img;
       }
-      req.body.img = req.file.path;
+      req.body.img = 'https://inspireeducationservice.com/uploads/' + req.file.filename;
     }
 
     // Parse and sanitize — strips internal fields, parses arrays/booleans

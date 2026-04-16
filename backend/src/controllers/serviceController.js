@@ -263,12 +263,12 @@ const create = async (req, res) => {
 
       // Icon — uploaded file takes priority; fallback to empty string
       // (no text fallback since icon is now always uploaded)
-      icon: iconFile ? `https://inspireeducationservice.com/uploads/${iconFile.filename}` : '',
+      icon:        iconFile ? 'https://inspireeducationservice.com/uploads/' + iconFile.filename     : '',
       iconImageId: iconFile ? iconFile.filename : '',
 
-      heroImage:    heroFile    ? heroFile.path    : (body.heroImage    || ''),
-      detailImage1: detail1File ? detail1File.path : (body.detailImage1 || ''),
-      detailImage2: detail2File ? detail2File.path : (body.detailImage2 || ''),
+      heroImage:    heroFile    ? 'https://inspireeducationservice.com/uploads/' + heroFile.filename    : (body.heroImage    || ''),
+      detailImage1: detail1File ? 'https://inspireeducationservice.com/uploads/' + detail1File.filename : (body.detailImage1 || ''),
+      detailImage2: detail2File ? 'https://inspireeducationservice.com/uploads/' + detail2File.filename : (body.detailImage2 || ''),
 
       heroImageId:    heroFile    ? heroFile.filename    : '',
       detailImage1Id: detail1File ? detail1File.filename : '',
@@ -345,7 +345,7 @@ const update = async (req, res) => {
     if (iconFile) {
       // New file uploaded — delete the old one first
       await safeDeleteCloudinary(service.iconImageId, service.icon);
-      icon        = iconFile.path;
+      icon        = 'https://inspireeducationservice.com/uploads/' + iconFile.filename;
       iconImageId = iconFile.filename;
     } else if (body.icon === '') {
       // Frontend explicitly cleared the icon
@@ -364,17 +364,17 @@ const update = async (req, res) => {
 
     if (heroFile) {
       await safeDeleteCloudinary(service.heroImageId, service.heroImage);
-      heroImage   = heroFile.path;
+      heroImage   = 'https://inspireeducationservice.com/uploads/' + heroFile.filename;
       heroImageId = heroFile.filename;
     }
     if (detail1File) {
       await safeDeleteCloudinary(service.detailImage1Id, service.detailImage1);
-      detailImage1   = detail1File.path;
+      detailImage1   = 'https://inspireeducationservice.com/uploads/' + detail1File.filename;
       detailImage1Id = detail1File.filename;
     }
     if (detail2File) {
       await safeDeleteCloudinary(service.detailImage2Id, service.detailImage2);
-      detailImage2   = detail2File.path;
+      detailImage2   = 'https://inspireeducationservice.com/uploads/' + detail2File.filename;
       detailImage2Id = detail2File.filename;
     }
 

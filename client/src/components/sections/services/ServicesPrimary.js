@@ -16,7 +16,7 @@ const ServicesPrimary = function () {
     setLoading(true);
     setError(null);
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
       const res = await fetch(API_BASE + "/services", { cache: "no-store" });
       if (!res.ok) throw new Error("Failed: " + res.status);
       const data = await res.json();

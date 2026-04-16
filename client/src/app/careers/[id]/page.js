@@ -11,7 +11,7 @@ import { notFound } from "next/navigation";
 const API_BASE =
   process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:5000/api";
+  "https://inspireeducationservice.com/api";
 
 // Reserved words that should never be treated as career IDs
 const RESERVED_SLUGS = ["new", "create", "edit", "delete", "undefined", "null", "favicon.ico"];

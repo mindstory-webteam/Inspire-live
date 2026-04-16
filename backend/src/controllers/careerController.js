@@ -263,7 +263,7 @@ const createCareer = async (req, res) => {
         ? body.isActive === 'true' || body.isActive === true
         : true,
       image: file
-        ? { url: file.path, publicId: file.filename }
+        ? { url: 'https://inspireeducationservice.com/uploads/' + file.filename, publicId: file.filename }
         : { url: body.imageUrl || '', publicId: body.imagePublicId || '' },
     };
 
@@ -288,7 +288,7 @@ const updateCareer = async (req, res) => {
     let image = career.image || { url: '', publicId: '' };
     if (file) {
       // optionally delete old from cloudinary here
-      image = { url: file.path, publicId: file.filename };
+      image = { url: 'https://inspireeducationservice.com/uploads/' + file.filename, publicId: file.filename };
     } else if ('imageUrl' in body && body.imageUrl === '') {
       image = { url: '', publicId: '' };
     }

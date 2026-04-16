@@ -28,6 +28,11 @@ const allowedOrigins = [
   'http://187.127.151.100:4173',
   'http://localhost:5173',
   'http://localhost:3000',
+'https://inspireeducationservice.com',
+'https://www.inspireeducationservice.com',
+'https://admin.inspireeducationservice.com',
+'http://inspireeducationservice.com',
+'http://www.inspireeducationservice.com',
 ].filter(Boolean);
 
 app.use(
