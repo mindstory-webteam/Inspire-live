@@ -722,12 +722,12 @@ export default function BlogDetailsPage() {
               )}
 
               {/* Tags + Share */}
-              <div className="bd-divider" />
+              {/* <div className="bd-divider" />
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between' }}>
                 <Tags tags={blog.tags} />
                 <ShareRow title={blog.title} />
               </div>
-              <div className="bd-divider" />
+              <div className="bd-divider" /> */}
 
               {/* Author */}
               <div className="bd-author-card">
