@@ -108,7 +108,7 @@ const STYLES = `
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     gap: 20px;
-    grid-auto-rows: 280px;
+    grid-auto-rows: 340px;
   }
   .event-card {
     position: relative;
@@ -135,6 +135,21 @@ const STYLES = `
     overflow: hidden;
     background: linear-gradient(135deg, #9ed3fb 0%, #1a598a 100%);
   }
+
+  /* add this after the existing card nth-child rules */
+.event-card:nth-child(4),
+.event-card:nth-child(5),
+.event-card:nth-child(6) {
+    grid-column: span 4;
+    min-height: 320px;
+}
+
+/* add this */
+.event-card:nth-child(4) .card-description,
+.event-card:nth-child(5) .card-description,
+.event-card:nth-child(6) .card-description {
+    display: none;
+}
   .card-image {
     width: 100%; height: 100%;
     object-fit: cover;
