@@ -98,9 +98,17 @@ const Header = ({
 										""
 									)}
 									{headerType !== 5 ? (
-										<div className="header-button">
-											<ButtonPrimary text={"Let's Talk"} url={"/contact"} />
-										</div>
+										
+										 <>
+    <div className="header-button">
+      <ButtonPrimary text={"Let's Talk"} url={"/contact"} />
+    </div>
+    <div className="header-button">
+      <ButtonPrimary text={"Learning"} url={"https://learn.inspireeducationservice.com"} />
+    </div>
+  </>
+										
+										
 									) : (
 										""
 									)}
