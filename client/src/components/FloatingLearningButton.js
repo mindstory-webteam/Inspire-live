@@ -43,7 +43,7 @@ const FloatingLearningButton = ({
 					font-weight: var(--tj-fw-sbold);
 					padding: 20px 10px 10px 10px;
 					text-align: center;
-					border-radius: 10px;
+					border-radius: 0px;
 					line-height: 1;
 					z-index: 2;
 					overflow: hidden;
@@ -135,7 +135,7 @@ const FloatingLearningButton = ({
 					width: 52px;
 					height: 52px;
 					padding: 0;
-					border-radius: 50%;
+					
 					gap: 0;
 					animation: pulse-ring 2s ease-out infinite;
 				}
@@ -158,7 +158,7 @@ const FloatingLearningButton = ({
 					width: 62px;
 					height: auto;
 					padding: 20px 10px 10px 10px;
-					border-radius: 100px;
+					
 					gap: 10px;
 					animation: none;
 				}
