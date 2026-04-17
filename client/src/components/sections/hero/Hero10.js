@@ -150,7 +150,7 @@ const Hero10 = () => {
 
                 <p
                   className={`slider-subtitle h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
-                  style={{ color: "#ffffff", minHeight: "1.5em",  fontSize: "48px",}}
+                  style={{ color: "#ffffff", minHeight: "1.5em",  fontSize: "30px",}}
                 >
                   {subtitle}
                 </p>
