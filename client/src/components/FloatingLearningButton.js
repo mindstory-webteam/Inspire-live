@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 const FloatingLearningButton = ({
 	url = "https://learn.inspireeducationservice.com",
-	text = "Learn",
+	text = "Student Login",
 }) => {
 	const [isScrolled, setIsScrolled] = useState(false);
 
@@ -41,7 +41,7 @@ const FloatingLearningButton = ({
 					background-color: var(--tj-color-theme-primary);
 					font-size: 16px;
 					font-weight: var(--tj-fw-sbold);
-					padding: 20px 10px 10px 10px;
+					padding: 30px 10px 10px 10px;
 					text-align: center;
 					border-radius: 0px;
 					line-height: 1;
@@ -49,7 +49,7 @@ const FloatingLearningButton = ({
 					overflow: hidden;
 					white-space: nowrap;
 					text-decoration: none;
-					width: 62px;
+					width: 72px;
 					box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 
 					/* Smooth transition for everything */
@@ -70,7 +70,7 @@ const FloatingLearningButton = ({
 				.floating-learning-btn .btn-text {
 					color: var(--tj-color-common-white);
 					overflow: hidden;
-					max-height: 100px;
+					max-height: 150px;
 					opacity: 1;
 					writing-mode: vertical-rl;
 					text-orientation: mixed;
@@ -164,7 +164,7 @@ const FloatingLearningButton = ({
 				}
 
 				.floating-learning-btn.scrolled:hover .btn-text {
-					max-height: 100px;
+					max-height: 200px;
 					opacity: 1;
 				}
 
