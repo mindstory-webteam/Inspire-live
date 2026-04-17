@@ -12,7 +12,7 @@ const ButtonPrimary = ({ className, text, isTextBtn, url, type, iconName }) => {
 						<span>{text}</span>
 					</span>
 					<span className="btn-icon">
-						<i className="tji-arrow-right-long"></i>
+						<i className={iconName ? iconName : "tji-arrow-right-long"}></i>
 					</span>
 				</button>
 			) : (
@@ -26,7 +26,7 @@ const ButtonPrimary = ({ className, text, isTextBtn, url, type, iconName }) => {
 						<span>{text}</span>
 					</span>
 					<span className="btn-icon">
-						<i className="tji-arrow-right-long"></i>
+						<i className={iconName ? iconName : "tji-arrow-right-long"}></i>
 					</span>
 				</Link>
 			)}
