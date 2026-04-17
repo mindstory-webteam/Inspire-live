@@ -37,6 +37,7 @@ import Hero10 from "@/components/sections/hero/Hero10";
 import Funfact1 from "@/components/sections/funfacts/Funfact1";
 import Funfact3 from "@/components/sections/funfacts/Funfact3";
 import Process2 from "@/components/sections/process/Process2";
+import FloatingLearningButton from "@/components/FloatingLearningButton";
 
 export default function Home2() {
 	return (
@@ -44,10 +45,12 @@ export default function Home2() {
 			<BackToTop />
 			<Header headerType={2} />
 			<Header headerType={2} isStickyHeader={true} />
+			<FloatingLearningButton />
 			<div id="smooth-wrapper">
 				<div id="smooth-content">
 					<main>
 						<div className="top-space-15"></div>
+						
 						<Hero10 />
 						{/* <About3 type={2} /> */}
 						
