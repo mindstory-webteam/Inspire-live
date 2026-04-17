@@ -104,8 +104,8 @@ const Hero10 = () => {
 
   // ── Active slide data ─────────────────────────────────────────────────────
   const active      = slides[activeIndex] || null;
-  const title       = active?.title       || "Ideas That Change the World Start Here";
-  const description = active?.description || active?.subtitle || "Recognized by industry leaders, our award-winning team has a proven record of delivering excellence across projects.";
+  const title       = active?.title       || "";
+  const description = active?.description || active?.subtitle || "";
   const subtitle    = active?.subtitle    || "";
   const buttonText  = active?.buttonText  || "Get Started";
   const buttonUrl   = active?.buttonUrl   || "/contact";
@@ -150,7 +150,7 @@ const Hero10 = () => {
 
                 <p
                   className={`slider-subtitle h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
-                  style={{ color: "#ffffff", minHeight: "1.5em",  fontSize: "18px",}}
+                  style={{ color: "#ffffff", minHeight: "1.5em",  fontSize: "25px",}}
                 >
                   {subtitle}
                 </p>
