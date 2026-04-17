@@ -103,10 +103,10 @@ const Header = ({
     <div className="header-button">
       <ButtonPrimary text={"Let's Talk"} url={"/contact"} />
     </div>
-    <div className="header-button">
+    {/* <div className="header-button">
       <ButtonPrimary text={"Learning"} url={"https://learn.inspireeducationservice.com"}  hideIcon={true}   className={"learning-btn"}
  />
-    </div>
+    </div> */}
   </>
 										
 										
