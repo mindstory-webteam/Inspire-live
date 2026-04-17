@@ -43,7 +43,7 @@ const FloatingLearningButton = ({
 					font-weight: var(--tj-fw-sbold);
 					padding: 20px 10px 10px 10px;
 					text-align: center;
-					border-radius: 100px;
+					border-radius: 10px;
 					line-height: 1;
 					z-index: 2;
 					overflow: hidden;
@@ -97,7 +97,7 @@ const FloatingLearningButton = ({
 					line-height: 1;
 					width: 42px;
 					height: 42px;
-					background-color: var(--tj-color-theme-dark);
+					background-color: var(--tj-color-theme-primary);
 					border-radius: 50%;
 					flex-shrink: 0;
 					transition: 
