@@ -106,7 +106,7 @@ const Hero10 = () => {
   const active      = slides[activeIndex] || null;
   const title       = active?.title       || "Ideas That Change the World Start Here";
   const description = active?.description || active?.subtitle || "Recognized by industry leaders, our award-winning team has a proven record of delivering excellence across projects.";
-  const subtitle    = active?.subtitle    || "";
+  const subtitle    = active?.subtitle    || "Recognized by industry leaders,";
   const buttonText  = active?.buttonText  || "Get Started";
   const buttonUrl   = active?.buttonUrl   || "/contact";
   const mediaUrl    = active ? resolveUrl(active.mediaUrl) : "";
@@ -148,12 +148,16 @@ const Hero10 = () => {
             <div className="col-lg-8 col-xl-9">
               <div className="banner-content-2">
 
-                <p
-                  className={`slider-subtitle h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
-                  style={{ color: "#ffffff", minHeight: "1.5em",  fontSize: "30px",}}
-                >
-                  {subtitle}
-                </p>
+               <p
+  className={`slider-subtitle h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
+  style={{
+    color: "#ffffff",
+    minHeight: "1.5em",
+    fontSize: "clamp(16px, 4vw, 30px)"
+  }}
+>
+  {subtitle}
+</p>
 
                 <h1
                   className={`banner-title text-anim h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
