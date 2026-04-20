@@ -330,7 +330,7 @@
 		textarea,
 		input {
 			height: 60px;
-			border-color: transparent;
+			border-color: black;
 			border-radius: 8px;
 			&::placeholder {
 				color: var(--tj-color-common-black-2);
