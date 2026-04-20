@@ -100,7 +100,7 @@ const CareerCard = ({ career }) => {
 
           {/* Read More */}
           <Link href={href} className="cj-readmore">
-            Read More
+            Apply Now
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
