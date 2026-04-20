@@ -333,7 +333,7 @@
 			border-color: transparent;
 			border-radius: 8px;
 			&::placeholder {
-				color: black;
+				color: var(--tj-color-common-black-2);
 			}
 			&:focus {
 				border: 1px solid var(--tj-color-theme-primary);
@@ -352,7 +352,7 @@
 			padding: 7px;
 			cursor: pointer;
 			background: var(--tj-color-common-white);
-			border: 1px solid transparent;
+			border: 1px solid black;
 			&:focus {
 				border-color: var(--tj-color-theme-primary);
 			}
