@@ -52,7 +52,7 @@ const Contact2 = () => {
 			<style>{`
 				#contact-form-2 input,
 				#contact-form-2 textarea {
-					color: #ffffff !important;
+					color: black !important;
 				}
 				#contact-form-2 input::placeholder,
 				#contact-form-2 textarea::placeholder {

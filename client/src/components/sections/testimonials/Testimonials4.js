@@ -10,13 +10,12 @@ import { getTestimonialsClient } from "@/utils/testimonialApi";
 
 // ── Service options ───────────────────────────────────────────────────────────
 const SERVICE_OPTIONS = [
-  { value: "", optionName: "Choose a Service" },
-  { value: "Business Strategy", optionName: "Business Strategy" },
-  { value: "Customer Experience", optionName: "Customer Experience" },
-  { value: "Sustainability and ESG", optionName: "Sustainability and ESG" },
-  { value: "Training and Development", optionName: "Training and Development" },
-  { value: "IT Support & Maintenance", optionName: "IT Support & Maintenance" },
-  { value: "Marketing Strategy", optionName: "Marketing Strategy" },
+  { value: "",             optionName: "Choose a Service" },
+	{ value: "PhD India",        optionName: "PhD India" },
+	{ value: "PhD Abroad",       optionName: "PhD Abroad" },
+	{ value: "Study Abroad",     optionName: "Study Abroad" },
+	{ value: "Research Support", optionName: "Research Support" },
+	{ value: "Other",            optionName: "Other" },
 ];
 
 const EMPTY_FORM = { fullName: "", email: "", phone: "", service: "", message: "" };
