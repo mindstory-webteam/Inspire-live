@@ -93,7 +93,7 @@ const Testimonials4 = () => {
     <section className="tj-contact-section h4-contact-section section-gap section-gap-x">
        <style>{`
     .testimonial-slider-2.h4-testimonial {
-      height: 320px !important;
+      height: 520px !important;
     }
     .testimonial-slider-2.h4-testimonial .swiper-wrapper {
       align-items: stretch;
@@ -261,7 +261,7 @@ const Testimonials4 = () => {
                   navigation={{ nextEl: ".slider-next", prevEl: ".slider-prev" }}
                   modules={[Autoplay, Navigation]}
                   className="testimonial-slider-2 h4-testimonial"
-                  style={{ height: "320px", overflow: "hidden" }}
+                  style={{ height: "520px", overflow: "hidden" }}
                 >
                   {displayTestimonials.map((testimonial, idx) => (
                     <SwiperSlide key={testimonial._id || idx}>
