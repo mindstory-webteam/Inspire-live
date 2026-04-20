@@ -91,6 +91,18 @@ const Testimonials4 = () => {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <section className="tj-contact-section h4-contact-section section-gap section-gap-x">
+       <style>{`
+    .testimonial-slider-2.h4-testimonial {
+      height: 320px !important;
+    }
+    .testimonial-slider-2.h4-testimonial .swiper-wrapper {
+      align-items: stretch;
+    }
+    .testimonial-slider-2.h4-testimonial .swiper-slide {
+      height: 100% !important;
+      overflow: hidden;
+    }
+  `}</style>
       <div className="container">
         <div className="row">
 
@@ -211,7 +223,7 @@ const Testimonials4 = () => {
                         value={form.message}
                         onChange={handleChange}
                         placeholder="Type message*"
-                        style={{ color: "#ffffff ", backgroundColor: "#fff"}}
+                        style={{ color: "black ", backgroundColor: "#fff"}}
                       />
                     </div>
                   </div>
@@ -249,6 +261,7 @@ const Testimonials4 = () => {
                   navigation={{ nextEl: ".slider-next", prevEl: ".slider-prev" }}
                   modules={[Autoplay, Navigation]}
                   className="testimonial-slider-2 h4-testimonial"
+                  style={{ height: "320px", overflow: "hidden" }}
                 >
                   {displayTestimonials.map((testimonial, idx) => (
                     <SwiperSlide key={testimonial._id || idx}>
