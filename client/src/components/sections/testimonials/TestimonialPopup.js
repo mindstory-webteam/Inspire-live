@@ -107,7 +107,7 @@ const TestimonialPopup = () => {
         .tp-wrap {
           position: fixed;
           bottom: 22px;
-          right: 22px;
+          left: 22px;
           z-index: 99999;
           width: 265px;
         }
