@@ -37,8 +37,8 @@ const Funfact2 = () => {
               <span className="count-icon"><i className="tji-growth"></i></span>
               <span className="steps">01.</span>
               <div className="count-inner">
-                <span className="count-text">Successful Admissions</span>
-                <span className="count-text">Successful PhD admissions with students placed in top universities worldwide</span>
+                <span className="count-text">Successful PhD admissions</span>
+                <span className="count-text">Our students placed in top universities worldwide</span>
                 <FunfactSingle currentValue={435} symbol={"+"} />
               </div>
             </div>
