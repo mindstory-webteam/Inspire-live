@@ -3,49 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getTestimonialsClient } from "@/utils/testimonialApi";
 
-const DUMMY_TESTIMONIALS = [
-  {
-    _id: "1",
-    clientName: "Sarah Johnson",
-    clientRole: "PhD Scholar, IIT Delhi",
-    review: "Inspire Education helped me navigate the entire PhD admission process abroad. Their guidance was exceptional!",
-    rating: 5,
-    clientImage: null,
-  },
-  {
-    _id: "2",
-    clientName: "Rahul Mehta",
-    clientRole: "Research Scholar, UK",
-    review: "The research support team was outstanding. They helped me secure a full scholarship.",
-    rating: 5,
-    clientImage: null,
-  },
-  {
-    _id: "3",
-    clientName: "Ananya Krishnan",
-    clientRole: "MS Student, Germany",
-    review: "Got into my dream university thanks to them! They made everything crystal clear.",
-    rating: 5,
-    clientImage: null,
-  },
-  {
-    _id: "4",
-    clientName: "Mohammed Fariz",
-    clientRole: "PhD Candidate, Australia",
-    review: "From SOP writing to visa guidance, they handled everything professionally.",
-    rating: 5,
-    clientImage: null,
-  },
-  {
-    _id: "5",
-    clientName: "Priya Nair",
-    clientRole: "Study Abroad, Canada",
-    review: "Extremely knowledgeable and patient counselors. Answered every question I had.",
-    rating: 5,
-    clientImage: null,
-  },
-];
-
 const StarRating = ({ rating = 5 }) => (
   <div style={{ display: "flex", gap: 2 }}>
     {Array.from({ length: 5 }).map((_, i) => (
@@ -65,22 +22,23 @@ const TestimonialPopup = () => {
   const intervalRef  = useRef(null);
   const showTimerRef = useRef(null);
 
-  // ── Fetch using testimonialApi (same wrapper as other components) ────────
+  // ── Fetch from backend ───────────────────────────────────────────────────
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        const res = await getTestimonialsClient();
-        // handleResponse wraps the raw json as { data: rawJson }
-        // rawJson shape: { success, data: [...] } OR { success, testimonials: [...] } OR plain array
+        const res  = await getTestimonialsClient();
+        // handleResponse wraps server JSON as { data: serverJson }
+        // serverJson: { success, data: [...] } | { success, testimonials: [...] } | plain array
         const json = res?.data;
         const list = Array.isArray(json)
           ? json
           : (json?.data ?? json?.testimonials ?? []);
 
-        setTestimonials(list.length ? list : DUMMY_TESTIMONIALS);
+        if (list.length) setTestimonials(list);
+        // if list is empty, testimonials stays [] → popup simply won't show
       } catch (err) {
         console.error("TestimonialPopup fetch error:", err.message);
-        setTestimonials(DUMMY_TESTIMONIALS);
+        // no fallback — popup stays hidden if backend is unreachable
       }
     };
     fetchTestimonials();
@@ -114,6 +72,7 @@ const TestimonialPopup = () => {
     clearTimeout(showTimerRef.current);
   };
 
+  // Don't render at all if no data or dismissed
   if (!testimonials.length || dismissed) return null;
 
   const t        = testimonials[current];
