@@ -27,18 +27,13 @@ const TestimonialPopup = () => {
     const fetchTestimonials = async () => {
       try {
         const res  = await getTestimonialsClient();
-        // handleResponse wraps server JSON as { data: serverJson }
-        // serverJson: { success, data: [...] } | { success, testimonials: [...] } | plain array
         const json = res?.data;
         const list = Array.isArray(json)
           ? json
           : (json?.data ?? json?.testimonials ?? []);
-
         if (list.length) setTestimonials(list);
-        // if list is empty, testimonials stays [] → popup simply won't show
       } catch (err) {
         console.error("TestimonialPopup fetch error:", err.message);
-        // no fallback — popup stays hidden if backend is unreachable
       }
     };
     fetchTestimonials();
@@ -72,15 +67,16 @@ const TestimonialPopup = () => {
     clearTimeout(showTimerRef.current);
   };
 
-  // Don't render at all if no data or dismissed
   if (!testimonials.length || dismissed) return null;
 
   const t        = testimonials[current];
-  const name     = t.clientName  || t.name        || "Anonymous";
-  const message  = t.review      || t.message     || "";
+
+  // ✅ Actual MongoDB model fields: authorName, authorDesig, desc2, img, rating
+  const name     = t.authorName  || "Anonymous";
+  const message  = t.desc2       || "";
   const rating   = t.rating      || 5;
-  const avatar   = t.clientImage || t.avatar      || null;
-  const role     = t.clientRole  || t.designation || "";
+  const avatar   = t.img         || null;
+  const role     = t.authorDesig || "";
   const initial  = name.charAt(0).toUpperCase();
   const avatarColors = ["#0a2540","#1a4a7a","#0d3560","#163d6e","#0f2d50"];
   const avatarBg     = avatarColors[name.charCodeAt(0) % avatarColors.length];
