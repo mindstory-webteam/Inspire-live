@@ -37,7 +37,12 @@ import Hero10 from "@/components/sections/hero/Hero10";
 import Funfact1 from "@/components/sections/funfacts/Funfact1";
 import Funfact3 from "@/components/sections/funfacts/Funfact3";
 import Process2 from "@/components/sections/process/Process2";
-import FloatingLearningButton from "@/components/FloatingLearningButton";
+
+import FloatingSocialButtons from "@/components/FloatingSocialButtons";
+
+import ArticleSection from "@/components/sections/about/Articlesection";
+import TestimonialPopup from "@/components/sections/testimonials/TestimonialPopup";
+import ReelsSection from "@/components/ReelsSection";
 
 export default function Home2() {
 	return (
@@ -45,7 +50,8 @@ export default function Home2() {
 			<BackToTop />
 			<Header headerType={2} />
 			<Header headerType={2} isStickyHeader={true} />
-			<FloatingLearningButton />
+			<TestimonialPopup />
+			<FloatingSocialButtons />
 			<div id="smooth-wrapper">
 				<div id="smooth-content">
 					<main>
@@ -56,6 +62,7 @@ export default function Home2() {
 						
 						
 						<About9 />
+						<ArticleSection type={2} />
 						
 						
 						<Services10 />
@@ -64,8 +71,10 @@ export default function Home2() {
 						{/* <Portfolios2 /> */}
 						{/* <Portfolios4 /> */}
 						<Events4 />
+						
 
 						<Process />
+						<ReelsSection />
 						<Team1 />
 
 						{/* <Testimonials2 /> */}
