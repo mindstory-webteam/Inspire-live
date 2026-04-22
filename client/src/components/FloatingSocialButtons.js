@@ -5,19 +5,19 @@ import { useEffect, useState } from "react";
 const SOCIAL_LINKS = [
   {
     icon: "fab fa-whatsapp",
-    url: "https://wa.me/919876543210",
+    url: "https://wa.me/9947945945",
     label: "WhatsApp",
     color: "#25d366"
   },
   {
     icon: "fas fa-phone-alt",
-    url: "tel:+919876543210",
+    url: "tel:+919947945945",
     label: "Call",
     color: "#0a66c2"
   },
   {
     icon: "fas fa-envelope",
-    url: "mailto:info@inspireeducationservice.com",
+    url: "mailto:research@inspireeducationservice.com",
     label: "Email",
     color: "#ea4335"
   }
