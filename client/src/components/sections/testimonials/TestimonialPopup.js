@@ -1,8 +1,7 @@
 // components/shared/TestimonialPopup.jsx
 "use client";
 import { useEffect, useRef, useState } from "react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+import { getTestimonialsClient } from "@/utils/testimonialApi";
 
 const DUMMY_TESTIMONIALS = [
   {
@@ -66,15 +65,14 @@ const TestimonialPopup = () => {
   const intervalRef  = useRef(null);
   const showTimerRef = useRef(null);
 
-  // ── Fetch from backend (same pattern as Testimonials2) ──────────────────
+  // ── Fetch using testimonialApi (same wrapper as other components) ────────
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        const res = await fetch(`${API_BASE}/testimonials`);
-        if (!res.ok) throw new Error(`Server error: ${res.status}`);
-        const json = await res.json();
-
-        // normalise: { success, data: [] } OR { success, testimonials: [] } OR plain array
+        const res = await getTestimonialsClient();
+        // handleResponse wraps the raw json as { data: rawJson }
+        // rawJson shape: { success, data: [...] } OR { success, testimonials: [...] } OR plain array
+        const json = res?.data;
         const list = Array.isArray(json)
           ? json
           : (json?.data ?? json?.testimonials ?? []);
@@ -85,7 +83,6 @@ const TestimonialPopup = () => {
         setTestimonials(DUMMY_TESTIMONIALS);
       }
     };
-
     fetchTestimonials();
   }, []);
 
