@@ -153,7 +153,7 @@ const Testimonials4 = () => {
                         value={form.fullName}
                         onChange={handleChange}
                         placeholder="Full Name*"
-                        style={{ color: "#ffffff ", backgroundColor: "#fff" }}
+                        style={{ color: "black ", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
@@ -167,7 +167,7 @@ const Testimonials4 = () => {
                         value={form.email}
                         onChange={handleChange}
                         placeholder="Email Address*"
-                        style={{ color: "#ffffff ", backgroundColor: "#fff" }}
+                        style={{ color: "black ", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
@@ -181,7 +181,7 @@ const Testimonials4 = () => {
                         value={form.phone}
                         onChange={handleChange}
                         placeholder="Phone number"
-                        style={{ color: "#ffffff ", backgroundColor: "#fff" }}
+                        style={{ color: "black ", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
@@ -195,7 +195,7 @@ const Testimonials4 = () => {
                             selectedIndex={0}
                             options={SERVICE_OPTIONS}
                             getSelectedOption={handleServiceChange}
-                            style={{ color: "#ffffff ", backgroundColor: "#fff" }}
+                            style={{ color: "black ", backgroundColor: "#fff" }}
                           />
                         </div>
                       </div>
@@ -236,7 +236,7 @@ const Testimonials4 = () => {
               data-wow-delay=".5s"
             >
               <h3 className="tes-title">
-                Client Feedback <span>(4.8 / out of 200)</span>
+                Client Feedback <span>(4.9 / out of 200)</span>
               </h3>
 
               {displayTestimonials.length > 0 ? (
