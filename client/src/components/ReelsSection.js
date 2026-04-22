@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Autoplay, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
@@ -59,63 +59,42 @@ const ReelCard = ({ reel }) => {
 
         .reel-card-outer {
           position: relative;
-          aspect-ratio: 9 / 14;
+          aspect-ratio: 9 / 16;
           width: 100%;
           border-radius: 16px;
           box-shadow: 0 8px 32px rgba(10,37,64,.18);
           transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
           background: #0a1f36;
+          overflow: hidden;
         }
         .reel-card-outer:hover {
           transform: translateY(-6px) scale(1.015);
           box-shadow: 0 20px 52px rgba(10,37,64,.28);
         }
 
-        .reel-card-inner {
+        /*
+         * Instagram embeds include ~72px header and ~56px footer we want hidden.
+         * Fix: make the iframe taller than the card and offset it upward so the
+         * video region is centred in the visible window. overflow:hidden on the
+         * parent clips everything outside the card bounds.
+         *
+         * Breakdown:
+         *   height: 145%  — extra height to absorb header + footer
+         *   top: -13%     — shift up so video is vertically centred (not header)
+         *   width: 100%   — fills card horizontally with no side bars
+         */
+        .reel-card-outer iframe {
           position: absolute;
-          inset: 0;
-          border-radius: 16px;
-          overflow: hidden;
-          background: #0a1f36;
-        }
-
-        /* iframe fills card, pointer-events ON so native IG play works */
-        .reel-card-inner iframe {
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
+          top: -13%;
+          left: 0;
           width: 100%;
-          height: 220%;
-          top: -20%;
+          height: 145%;
           border: none;
           display: block;
-          pointer-events: auto;   /* ← allows clicking native IG play button */
+          pointer-events: auto;
         }
 
-        /* Covers IG header */
-        .reel-crop-top {
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 5%;
-          background: #0a1f36;
-          z-index: 3;
-          border-radius: 16px 16px 0 0;
-          /* pointer-events none so clicks pass through to video area below */
-          pointer-events: none;
-        }
-
-        /* Covers IG footer */
-        .reel-crop-bottom {
-          position: absolute;
-          bottom: 0; left: 0; right: 0;
-          height: 27%;
-          background: #0a1f36;
-          z-index: 3;
-          border-radius: 0 0 16px 16px;
-          pointer-events: none;
-        }
-
-        /* Shimmer */
+        /* Shimmer skeleton */
         .reel-skeleton-layer {
           position: absolute;
           inset: 0;
@@ -129,7 +108,7 @@ const ReelCard = ({ reel }) => {
         }
         .reel-skeleton-layer.hidden { opacity: 0; pointer-events: none; }
 
-        /* IG loader */
+        /* IG loader icon */
         .reel-ig-loader {
           position: absolute;
           top: 50%; left: 50%;
@@ -155,8 +134,8 @@ const ReelCard = ({ reel }) => {
           letter-spacing: .06em;
         }
 
-        /* Bottom meta — fades in on hover, above crop overlay */
-       .reel-meta-bar {
+        /* Bottom meta bar — always visible */
+        .reel-meta-bar {
           position: absolute;
           bottom: 0; left: 0; right: 0;
           z-index: 6;
@@ -164,9 +143,8 @@ const ReelCard = ({ reel }) => {
           background: linear-gradient(0deg, rgba(10,31,54,.92) 0%, transparent 100%);
           border-radius: 0 0 16px 16px;
           pointer-events: none;
-          opacity: 1;              /* ← always visible */
+          opacity: 1;
         }
-
         .reel-tag-pill {
           display: inline-block;
           background: #1a6fc4;
@@ -184,35 +162,51 @@ const ReelCard = ({ reel }) => {
         }
 
         /* IG corner badge */
-       .reel-ig-corner {
+        .reel-ig-corner {
           position: absolute;
           top: 10px; right: 10px;
-          z-index: 6;
+          z-index: 7;
           width: 28px; height: 28px;
           background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
           border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
-          opacity: 1; 
-          display: hidden;            /* ← always visible */
+          pointer-events: none;
+        }
+
+        /* Hard cover strips — sit above iframe, hide IG header & footer */
+        .reel-cover-top {
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 13%;
+          background: #0a1f36;
+          z-index: 4;
+          border-radius: 16px 16px 0 0;
+          pointer-events: none;
+        }
+        .reel-cover-bottom {
+          position: absolute;
+          bottom: 0; left: 0; right: 0;
+          height: 22%;
+          background: #0a1f36;
+          z-index: 4;
+          border-radius: 0 0 16px 16px;
           pointer-events: none;
         }
       `}</style>
 
       <div className="reel-card-outer">
+        {/* Cover strips — hide IG header & footer behind card-coloured divs */}
+        <div className="reel-cover-top" />
+        <div className="reel-cover-bottom" />
 
-        <div className="reel-card-inner">
-          <div className="reel-crop-top" />
-          <div className="reel-crop-bottom" />
-          {/* ✅ pointer-events auto — Instagram's native play button works */}
-          <iframe
-            src={reel.embedUrl}
-            title={reel.title}
-            scrolling="no"
-            allowTransparency="true"
-            allowFullScreen
-            onLoad={() => setLoaded(true)}
-          />
-        </div>
+        <iframe
+          src={reel.embedUrl}
+          title={reel.title}
+          scrolling="no"
+          allowTransparency="true"
+          allowFullScreen
+          onLoad={() => setLoaded(true)}
+        />
 
         {/* Shimmer while loading */}
         <div className={`reel-skeleton-layer${loaded ? " hidden" : ""}`} />
@@ -229,9 +223,7 @@ const ReelCard = ({ reel }) => {
           <span className="reel-ig-label">Loading Reel…</span>
         </div>
 
-        {/* ✅ NO custom play button — Instagram's native one handles play */}
-
-        {/* Hover meta bar */}
+        {/* Meta bar */}
         <div className="reel-meta-bar">
           <span className="reel-tag-pill">{reel.tag}</span>
           <p className="reel-title-text">{reel.title}</p>
@@ -245,7 +237,6 @@ const ReelCard = ({ reel }) => {
             <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
           </svg>
         </div>
-
       </div>
     </>
   );
@@ -254,7 +245,10 @@ const ReelCard = ({ reel }) => {
 // ── Main section ──────────────────────────────────────────────────────────────
 const ReelsSection = () => {
   const [loading, setLoading] = useState(true);
-  const [reels, setReels]     = useState([]);
+  const [reels, setReels] = useState([]);
+
+  // ✅ Ref for the external pagination container
+  const paginationRef = useRef(null);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -271,28 +265,37 @@ const ReelsSection = () => {
 
         .reels-section * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
 
+        /* ✅ Clip the swiper but allow vertical overflow for cards hover effect */
+        .reels-section .swiper {
+          overflow: hidden;
+          padding-bottom: 48px !important;
+        }
+        .reels-section .swiper-wrapper {
+          align-items: stretch;
+        }
         .reels-section .swiper-slide {
           height: auto;
-          overflow: visible !important;
         }
-        .reels-section .swiper {
-          overflow: visible !important;
-          padding-bottom: 40px !important;
-        }
-        .reels-section .swiper-wrapper { overflow: visible !important; }
 
-        .reels-section .swiper-pagination-bullet {
-          background: #c2cfe0; opacity: 1;
-          width: 7px; height: 7px;
+        /* ✅ Pagination dots — rendered OUTSIDE swiper via ref */
+        .reels-pagination-wrap {
+          display: flex;
+          justify-content: center;
+          gap: 6px;
+          margin-top: 16px;
+        }
+        .reels-pagination-wrap .swiper-pagination-bullet {
+          display: inline-block;
+          width: 8px; height: 8px;
+          border-radius: 50%;
+          background: #c2cfe0;
+          opacity: 1;
+          cursor: pointer;
           transition: background .3s, transform .3s;
         }
-        .reels-section .swiper-pagination-bullet-active {
+        .reels-pagination-wrap .swiper-pagination-bullet-active {
           background: #1a6fc4;
-          transform: scale(1.4);
-        }
-        .reels-section .swiper-pagination-area {
-          margin-top: 8px;
-          text-align: center;
+          transform: scale(1.5);
         }
 
         @keyframes reel-load-shimmer {
@@ -301,7 +304,7 @@ const ReelsSection = () => {
         }
         .reel-load-skeleton {
           border-radius: 16px;
-          aspect-ratio: 9 / 14;
+          aspect-ratio: 9 / 16;
           background: linear-gradient(90deg,#e2e8f0 25%,#cbd5e1 50%,#e2e8f0 75%);
           background-size: 200% 100%;
           animation: reel-load-shimmer 1.5s infinite;
@@ -331,8 +334,11 @@ const ReelsSection = () => {
                 {loading && (
                   <div style={{ display: "flex", gap: 20, overflow: "hidden" }}>
                     {[...Array(4)].map((_, i) => (
-                      <div key={i} className="reel-load-skeleton"
-                        style={{ minWidth: 180, flex: "0 0 180px" }} />
+                      <div
+                        key={i}
+                        className="reel-load-skeleton"
+                        style={{ minWidth: 180, flex: "0 0 180px" }}
+                      />
                     ))}
                   </div>
                 )}
@@ -344,30 +350,47 @@ const ReelsSection = () => {
                 )}
 
                 {!loading && reels.length > 0 && (
-                  <Swiper
-                    slidesPerView={1.3}
-                    spaceBetween={14}
-                    loop={true}
-                    speed={1200}
-                    autoplay={{ delay: 6000, disableOnInteraction: false }}
-                    pagination={{ el: ".swiper-pagination-area", clickable: true }}
-                    breakpoints={{
-                      480:  { slidesPerView: 2,   spaceBetween: 16 },
-                      768:  { slidesPerView: 3,   spaceBetween: 20 },
-                      992:  { slidesPerView: 4,   spaceBetween: 22 },
-                      1200: { slidesPerView: 4.5, spaceBetween: 24 },
-                      1400: { slidesPerView: 5,   spaceBetween: 24 },
-                    }}
-                    modules={[Pagination, Autoplay]}
-                    className="project-slider-3"
-                  >
-                    {reels.map((reel, idx) => (
-                      <SwiperSlide key={idx}>
-                        <ReelCard reel={reel} />
-                      </SwiperSlide>
-                    ))}
-                    <div className="swiper-pagination-area" />
-                  </Swiper>
+                  <>
+                    <Swiper
+                      slidesPerView={1.2}
+                      spaceBetween={14}
+                      loop={true}
+                      speed={1200}
+                      autoplay={{ delay: 6000, disableOnInteraction: false }}
+                      pagination={{
+                        // ✅ Pass the DOM element directly via ref — most reliable approach
+                        el: paginationRef.current,
+                        clickable: true,
+                      }}
+                      breakpoints={{
+                        480:  { slidesPerView: 2,   spaceBetween: 16 },
+                        768:  { slidesPerView: 3,   spaceBetween: 20 },
+                        992:  { slidesPerView: 4,   spaceBetween: 22 },
+                        1200: { slidesPerView: 4,   spaceBetween: 24 },
+                        1400: { slidesPerView: 4,   spaceBetween: 24 },
+                      }}
+                      modules={[Pagination, Autoplay]}
+                      className="project-slider-3"
+                      // ✅ onSwiper callback ensures pagination attaches after mount
+                      onSwiper={(swiper) => {
+                        if (paginationRef.current) {
+                          swiper.params.pagination.el = paginationRef.current;
+                          swiper.pagination.init();
+                          swiper.pagination.render();
+                          swiper.pagination.update();
+                        }
+                      }}
+                    >
+                      {reels.map((reel, idx) => (
+                        <SwiperSlide key={idx}>
+                          <ReelCard reel={reel} />
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
+
+                    {/* ✅ Pagination container lives OUTSIDE <Swiper> — always in DOM when Swiper mounts */}
+                    <div ref={paginationRef} className="reels-pagination-wrap" />
+                  </>
                 )}
 
               </div>

@@ -74,7 +74,7 @@ export default function Home2() {
 						
 
 						<Process />
-						<ReelsSection />
+						{/* <ReelsSection /> */}
 						<Team1 />
 
 						{/* <Testimonials2 /> */}
