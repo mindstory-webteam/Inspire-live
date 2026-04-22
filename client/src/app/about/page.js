@@ -32,7 +32,7 @@ export default function About() {
 						<CeoSection />
 						<Features type={2} />
 						
-						<Brands1 type={2} />
+						{/* <Brands1 type={2} /> */}
 						<Testimonials2 type={2} />
 						<OurResourcePerson  type={3}/>
 						<Faq2 type={3} />
