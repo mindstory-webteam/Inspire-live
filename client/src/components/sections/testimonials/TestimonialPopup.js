@@ -27,18 +27,15 @@ const TestimonialPopup = () => {
     const fetchTestimonials = async () => {
       try {
         const res  = await getTestimonialsClient();
-        // handleResponse wraps server JSON as { data: serverJson }
-        // serverJson: { success, data: [...] } | { success, testimonials: [...] } | plain array
         const json = res?.data;
+        console.log("RAW API RESPONSE:", JSON.stringify(json, null, 2)); // ← add this
         const list = Array.isArray(json)
           ? json
           : (json?.data ?? json?.testimonials ?? []);
-
+        console.log("FIRST ITEM:", list[0]); // ← and this
         if (list.length) setTestimonials(list);
-        // if list is empty, testimonials stays [] → popup simply won't show
       } catch (err) {
         console.error("TestimonialPopup fetch error:", err.message);
-        // no fallback — popup stays hidden if backend is unreachable
       }
     };
     fetchTestimonials();
