@@ -42,6 +42,7 @@ import FloatingSocialButtons from "@/components/FloatingSocialButtons";
 
 import ArticleSection from "@/components/sections/about/Articlesection";
 import TestimonialPopup from "@/components/sections/testimonials/TestimonialPopup";
+import ReelsSection from "@/components/ReelsSection";
 
 export default function Home2() {
 	return (
@@ -70,8 +71,10 @@ export default function Home2() {
 						{/* <Portfolios2 /> */}
 						{/* <Portfolios4 /> */}
 						<Events4 />
+						
 
 						<Process />
+						<ReelsSection />
 						<Team1 />
 
 						{/* <Testimonials2 /> */}
