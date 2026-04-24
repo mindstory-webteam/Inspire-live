@@ -40,7 +40,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "https://admin.inspireeducationservice.com/", // 🔁 replace with real domain
+        hostname: "your-backend-domain.com",
         pathname: "/**",
       },
     ],
