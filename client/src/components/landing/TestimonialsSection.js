@@ -14,8 +14,9 @@ export default function TestimonialsSection() {
       .then(function(r) { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then(function(d) {
         var list = Array.isArray(d) ? d : d.testimonials ?? d.data ?? [];
+        // filter by isActive (schema field)
         setTestimonials(list.filter(function(t) {
-          return t.isActive !== false && t.isPublished !== false;
+          return t.isActive !== false;
         }));
       })
       .catch(function(e) { setError(e.message); })
@@ -34,6 +35,7 @@ export default function TestimonialsSection() {
   function prev()  { goTo((active - 1 + testimonials.length) % testimonials.length); }
   function next()  { goTo((active + 1) % testimonials.length); }
 
+  // Average rating using schema field: rating
   var avg = testimonials.length
     ? (testimonials.reduce(function(s, t) { return s + (t.rating || 5); }, 0) / testimonials.length).toFixed(1)
     : "5.0";
@@ -136,11 +138,9 @@ export default function TestimonialsSection() {
       </section>
 
       <style>{`
-        /* ── Layout ── */
         .tm-wrap      { background: #edf0f4; padding: 80px 24px 88px; font-family: 'Segoe UI', system-ui, sans-serif; }
         .tm-container { max-width: 1160px; margin: 0 auto; }
 
-        /* ── Header ── */
         .tm-header {
           display: flex; align-items: flex-end; justify-content: space-between;
           gap: 20px; margin-bottom: 44px; flex-wrap: wrap;
@@ -156,7 +156,7 @@ export default function TestimonialsSection() {
           color: #0b2640; margin: 0; line-height: 1.1; letter-spacing: -.025em;
         }
 
-        /* ── Rating pill ── */
+        /* Rating pill */
         .tm-rating-pill {
           display: inline-flex; align-items: center; gap: 8px;
           background: #fff; border: 1.5px solid #dce3ef; border-radius: 50px;
@@ -166,12 +166,12 @@ export default function TestimonialsSection() {
         .tm-avg { font-size: 17px; font-weight: 800; color: #0b2640; }
         .tm-of  { font-size: 13px; color: #6b8caa; }
 
-        /* ── Carousel ── */
+        /* Carousel */
         .tm-carousel    { display: flex; align-items: center; gap: 14px; }
         .tm-track-outer { flex: 1; overflow: hidden; border-radius: 16px; }
         .tm-track       { display: flex; transition: transform .5s cubic-bezier(.4,0,.2,1); }
 
-        /* ── Arrows ── */
+        /* Arrows */
         .tm-arrow {
           flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
           border: 1.5px solid #dce3ef; background: #fff; color: #1a3c6e;
@@ -182,22 +182,47 @@ export default function TestimonialsSection() {
         .tm-arrow svg { width: 18px; height: 18px; }
         .tm-arrow:hover { background: #0d2f4a; border-color: #0d2f4a; color: #fff; transform: scale(1.06); }
 
-        /* ── Card ── */
+        /* Card — two-column layout matching screenshot */
         .tm-card {
           min-width: 100%; background: #fff; border-radius: 16px;
-          padding: 40px 44px; border: 1.5px solid #dce3ef;
+          border: 1.5px solid #dce3ef;
           box-shadow: 0 4px 28px rgba(11,38,64,.08);
-          box-sizing: border-box; position: relative; overflow: hidden;
+          box-sizing: border-box; overflow: hidden;
+          display: grid; grid-template-columns: 1fr auto;
         }
-        .tm-card::before {
-          content: '"'; position: absolute; top: 12px; right: 30px;
+
+        /* Left — quote side */
+        .tm-card-left {
+          padding: 40px 44px;
+          position: relative;
+          border-right: 1.5px solid #dce3ef;
+        }
+        .tm-card-left::before {
+          content: '"'; position: absolute; top: 12px; right: 24px;
           font-size: 110px; line-height: 1; color: #0b2640; opacity: .04;
           font-family: Georgia, serif; pointer-events: none;
         }
-        .tm-card-stars { margin-bottom: 18px; display: flex; gap: 3px; }
+
+        /* Right — author/logo side */
+        .tm-card-right {
+          padding: 32px 28px;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          gap: 18px; min-width: 200px;
+          background: #fafbff;
+        }
+
+        .tm-card-stars { margin-bottom: 16px; display: flex; gap: 3px; }
         .tm-star   { color: #f59e0b; font-size: 16px; }
         .tm-star-e { color: #d1d5db; }
-        .tm-quote  { font-size: clamp(14.5px, 1.8vw, 17px); color: #1a2a3a; line-height: 1.75; margin: 0 0 26px; font-style: italic; }
+
+        /* desc2 — the testimonial text */
+        .tm-quote {
+          font-size: clamp(14.5px, 1.8vw, 17px); color: #1a2a3a;
+          line-height: 1.75; margin: 0 0 28px; font-style: italic;
+        }
+
+        /* Author row inside left panel */
         .tm-author { display: flex; align-items: center; gap: 14px; }
         .tm-avatar {
           flex-shrink: 0; border-radius: 50%; overflow: hidden; position: relative;
@@ -205,29 +230,45 @@ export default function TestimonialsSection() {
           display: flex; align-items: center; justify-content: center;
           font-weight: 800; color: #1a3c6e;
         }
-        .tm-info    { flex: 1; }
-        .tm-name    { font-size: 15px; font-weight: 700; color: #0b2640; margin: 0 0 3px; }
-        .tm-role    { font-size: 12.5px; color: #6b8caa; margin: 0; }
-        .tm-country { font-size: 12px; color: #e8a020; font-weight: 600; margin-top: 3px; }
-        .tm-logo    { margin-left: auto; }
-        .tm-logo img { max-height: 34px; width: auto; object-fit: contain; opacity: .65; }
+        .tm-info     { flex: 1; }
+        /* authorName */
+        .tm-name     { font-size: 15px; font-weight: 700; color: #0b2640; margin: 0 0 3px; }
+        /* authorDesig */
+        .tm-role     { font-size: 12.5px; color: #6b8caa; margin: 0; }
 
-        /* ── Dots ── */
+        /* Right panel — logo (logoImg or logoImgLight) */
+        .tm-right-logo {
+          width: 72px; height: 72px; border-radius: 50%;
+          overflow: hidden; border: 2px solid #dce3ef;
+          background: #fff; display: flex; align-items: center; justify-content: center;
+        }
+        .tm-right-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Right panel — rating stars */
+        .tm-right-stars { display: flex; gap: 3px; }
+        .tm-right-star   { color: #f59e0b; font-size: 18px; }
+        .tm-right-star-e { color: #d1d5db; }
+
+        /* Right panel — name (shown again on right) */
+        .tm-right-name { font-size: 13px; font-weight: 700; color: #0b2640; text-align: center; }
+        .tm-right-desig { font-size: 11.5px; color: #6b8caa; text-align: center; margin-top: 2px; }
+
+        /* Dots */
         .tm-dots { display: flex; justify-content: center; gap: 8px; margin-top: 26px; }
         .tm-dot  { width: 8px; height: 8px; border-radius: 50%; border: none; background: #cdd5e0; cursor: pointer; padding: 0; transition: background .2s, width .3s; }
         .tm-dot-on { background: #0d2f4a; width: 22px; border-radius: 4px; }
 
-        /* ── Thumbs ── */
+        /* Thumbs */
         .tm-thumbs   { display: flex; justify-content: center; gap: 10px; margin-top: 28px; }
         .tm-thumb    { padding: 0; background: none; border: 2.5px solid transparent; border-radius: 50%; cursor: pointer; transition: border-color .2s, transform .15s; }
         .tm-thumb-on { border-color: #0d2f4a; transform: scale(1.12); }
 
-        /* ── States ── */
+        /* States */
         .tm-state { text-align: center; padding: 56px 20px; color: #6b8caa; }
         .tm-state svg { margin: 0 auto 14px; display: block; }
         .tm-empty { text-align: center; color: #6b8caa; padding: 56px 20px; font-size: 15px; }
 
-        /* ── Skeleton ── */
+        /* Skeleton */
         .tm-sk { background: #fff; border-radius: 16px; padding: 40px 44px; border: 1.5px solid #dce3ef; }
         .tm-sk-line {
           height: 13px; border-radius: 4px; margin-bottom: 13px;
@@ -236,57 +277,109 @@ export default function TestimonialsSection() {
         }
         @keyframes tm-sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-        @media (max-width: 640px) {
+        @media (max-width: 700px) {
           .tm-wrap  { padding: 56px 16px 64px; }
-          .tm-card  { padding: 26px 20px; }
+          .tm-card  { grid-template-columns: 1fr; }
+          .tm-card-left { padding: 26px 20px; border-right: none; border-bottom: 1.5px solid #dce3ef; }
+          .tm-card-left::before { display: none; }
+          .tm-card-right { padding: 20px; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; min-width: unset; }
           .tm-arrow { display: none; }
-          .tm-card::before { display: none; }
         }
       `}</style>
     </>
   );
 }
 
-function Stars({ rating }) {
+/* ── Stars ── */
+function Stars({ rating, cls }) {
   return [1, 2, 3, 4, 5].map(function(n) {
-    return <span key={n} className={"tm-star" + (n > rating ? " tm-star-e" : "")}>★</span>;
+    return (
+      <span key={n} className={(cls || "tm-star") + (n > rating ? " " + (cls ? cls + "-e" : "tm-star-e") : "")}>★</span>
+    );
   });
 }
 
+/* ── Avatar — uses schema field: img ── */
 function Avatar({ t, size }) {
-  var src      = t.img || t.photo || t.avatar || null;
-  var initials = (t.name || "U").split(" ").map(function(w) { return w[0]; }).slice(0, 2).join("").toUpperCase();
+  // schema field: img (Cloudinary URL)
+  var src      = t.img || null;
+  // schema field: authorName
+  var initials = (t.authorName || "U").split(" ").map(function(w) { return w[0]; }).slice(0, 2).join("").toUpperCase();
   return (
     <div className="tm-avatar" style={{ width: size, height: size, fontSize: size * 0.36 }}>
       {src
-        ? <Image src={src} alt={t.name || "Reviewer"} fill sizes={size + "px"} />
+        ? <Image src={src} alt={t.authorName || "Reviewer"} fill sizes={size + "px"} />
         : initials
       }
     </div>
   );
 }
 
+/* ── TmCard — all field names from Testimonial schema ── */
 function TmCard({ t }) {
-  var logo = t.logoImg || t.companyLogo || null;
+  // schema fields:
+  // t.authorName   — author's full name
+  // t.authorDesig  — designation / role
+  // t.desc2        — the testimonial text
+  // t.img          — author photo (Cloudinary URL)
+  // t.logoImg      — company logo (dark variant)
+  // t.logoImgLight — company logo (light variant)
+  // t.rating       — 1-5 number
+
+  var logoSrc = t.logoImg || t.logoImgLight || null;
+
   return (
     <div className="tm-card">
-      <div className="tm-card-stars"><Stars rating={t.rating || 5} /></div>
-      <p className="tm-quote">{t.review || t.message || t.content || ""}</p>
-      <div className="tm-author">
-        <Avatar t={t} size={50} />
-        <div className="tm-info">
-          <p className="tm-name">{t.name}</p>
-          {(t.role || t.designation) &&
-            <p className="tm-role">{t.role || t.designation}{t.company ? " · " + t.company : ""}</p>
-          }
-          {t.country && <p className="tm-country">{t.country}</p>}
+
+      {/* ── LEFT — quote + author ── */}
+      <div className="tm-card-left">
+        {/* Stars */}
+        <div className="tm-card-stars">
+          <Stars rating={t.rating || 5} cls="tm-star" />
         </div>
-        {logo && <div className="tm-logo"><img src={logo} alt={t.company || "logo"} /></div>}
+
+        {/* desc2 — testimonial body text */}
+        <p className="tm-quote">{t.desc2 || ""}</p>
+
+        {/* Author row */}
+        <div className="tm-author">
+          <Avatar t={t} size={50} />
+          <div className="tm-info">
+            {/* authorName */}
+            <p className="tm-name">{t.authorName || ""}</p>
+            {/* authorDesig */}
+            {t.authorDesig && <p className="tm-role">{t.authorDesig}</p>}
+          </div>
+        </div>
       </div>
+
+      {/* ── RIGHT — logo + stars ── */}
+      <div className="tm-card-right">
+        {/* Stars again (right panel) */}
+        <div className="tm-right-stars">
+          <Stars rating={t.rating || 5} cls="tm-right-star" />
+        </div>
+
+        {/* Logo or avatar fallback */}
+        <div className="tm-right-logo">
+          {logoSrc
+            ? <img src={logoSrc} alt={t.authorName || "logo"} />
+            : <Avatar t={t} size={72} />
+          }
+        </div>
+
+        {/* Name + desig repeated on right (matches screenshot) */}
+        <div>
+          <p className="tm-right-name">{t.authorName || ""}</p>
+          {t.authorDesig && <p className="tm-right-desig">{t.authorDesig}</p>}
+        </div>
+      </div>
+
     </div>
   );
 }
 
+/* ── Skeleton ── */
 function SkeletonCard() {
   return (
     <div className="tm-sk">
