@@ -1,406 +1,463 @@
-"use client";
-import { useEffect, useRef, useState } from "react";
-import { Autoplay, Pagination } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+"use client"
 
-const REELS_DATA = [
-  {
-    id: "1",
-    embedUrl: "https://www.instagram.com/reel/DXa9iTHFxU-/embed",
-    title: "Inspire Education Reel",
-    tag: "Latest",
-  },
-  {
-    id: "2",
-    embedUrl: "https://www.instagram.com/reel/DWalgjYDbEt/embed",
-    title: "Student Success Story",
-    tag: "Success",
-  },
-  {
-    id: "3",
-    embedUrl: "https://www.instagram.com/reel/DV2ikj5idP9/embed",
-    title: "Study Abroad Journey",
-    tag: "Study Abroad",
-  },
-  {
-    id: "4",
-    embedUrl: "https://www.instagram.com/reel/DVK8ovmgF0w/embed",
-    title: "PhD Guidance Tips",
-    tag: "PhD",
-  },
-  {
-    id: "5",
-    embedUrl: "https://www.instagram.com/reel/DU5KKoTDOUJ/embed",
-    title: "Research Support",
-    tag: "Research",
-  },
-  {
-    id: "6",
-    embedUrl: "https://www.instagram.com/reel/DUGQuMvAToQ/embed",
-    title: "Expert Insights",
-    tag: "Insights",
-  },
-];
+import { useRef, useState, useEffect } from "react"
 
-const ReelCard = ({ reel }) => {
-  const [loaded, setLoaded] = useState(false);
+// Row A — 4 cards, moves LEFT → RIGHT
+const VIDEOS_ROW_A = [
+  {
+    src: "/video/reels/reels-1.mp4",
+    label: "Adventure",
+    tag: "Explore",
+    title: "Into the Wild",
+    desc: "Uncharted trails & mountain peaks",
+  },
+  {
+    src: "/video/reels/reels-2.mp4",
+    label: "Moments",
+    tag: "Golden Hour",
+    title: "Chasing Light",
+    desc: "Sunsets that stop your breath",
+  },
+  {
+    src: "/video/reels/reels-3.mp4",
+    label: "Nature",
+    tag: "Forest",
+    title: "Forest Soul",
+    desc: "Ancient trees, mossy silence",
+  },
+  {
+    src: "/video/reels/reels-4.mp4",
+    label: "City",
+    tag: "Urban",
+    title: "Neon Pulse",
+    desc: "City nights that never sleep",
+  },
+]
+
+// Row B — 4 cards, moves RIGHT → LEFT
+const VIDEOS_ROW_B = [
+  {
+    src: "/video/reels/reels-1.mp4",
+    label: "Explore",
+    tag: "Ocean",
+    title: "Deep Blue",
+    desc: "Surf, dive & drift with the tide",
+  },
+  {
+    src: "/video/reels/reels-2.mp4",
+    label: "Wilderness",
+    tag: "Safari",
+    title: "Wild Kingdom",
+    desc: "Untamed encounters at dawn",
+  },
+  {
+    src: "/video/reels/reels-3.mp4",
+    label: "Journey",
+    tag: "Ancient",
+    title: "Old Roads",
+    desc: "Ruins, spice markets & culture",
+  },
+  {
+    src: "/video/reels/reels-4.mp4",
+    label: "Escape",
+    tag: "Island",
+    title: "Escape Route",
+    desc: "Crystal coves & hidden bays",
+  },
+]
+
+function ReelCard({ src, label, tag, title, desc }) {
+  const videoRef = useRef(null)
+  const [playing, setPlaying] = useState(false)
+  const [muted, setMuted] = useState(true)
+
+  const toggle = (e) => {
+    e.stopPropagation()
+    const v = videoRef.current
+    if (!v) return
+    if (v.paused) {
+      v.play()
+      setPlaying(true)
+    } else {
+      v.pause()
+      setPlaying(false)
+    }
+  }
+
+  const toggleMute = (e) => {
+    e.stopPropagation()
+    const v = videoRef.current
+    if (!v) return
+    v.muted = !v.muted
+    setMuted(v.muted)
+  }
 
   return (
-    <>
-      <style>{`
-        @keyframes reel-shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-        @keyframes ig-pulse {
-          0%,100% { transform: scale(1); opacity: 1; }
-          50%      { transform: scale(1.12); opacity: .8; }
-        }
+    <div
+      onClick={toggle}
+      style={{
+        position: "relative",
+        width: 135,
+        height: 240,
+        flexShrink: 0,
+        marginLeft: 10,
+        marginRight: 10,
+        borderRadius: 16,
+        overflow: "hidden",
+        cursor: "pointer",
+        display: "inline-block",
+        userSelect: "none",
+      }}
+    >
+      <video
+        ref={videoRef}
+        src={src}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+          pointerEvents: "none",
+        }}
+      />
 
-        .reel-card-outer {
-          position: relative;
-          aspect-ratio: 9 / 16;
-          width: 100%;
-          border-radius: 16px;
-          box-shadow: 0 8px 32px rgba(10,37,64,.18);
-          transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
-          background: #0a1f36;
-          overflow: hidden;
-        }
-        .reel-card-outer:hover {
-          transform: translateY(-6px) scale(1.015);
-          box-shadow: 0 20px 52px rgba(10,37,64,.28);
-        }
+      {/* Gradient overlay */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.15) 55%, transparent 100%)",
+          pointerEvents: "none",
+        }}
+      />
 
-        /*
-         * Instagram embeds include ~72px header and ~56px footer we want hidden.
-         * Fix: make the iframe taller than the card and offset it upward so the
-         * video region is centred in the visible window. overflow:hidden on the
-         * parent clips everything outside the card bounds.
-         *
-         * Breakdown:
-         *   height: 145%  — extra height to absorb header + footer
-         *   top: -13%     — shift up so video is vertically centred (not header)
-         *   width: 100%   — fills card horizontally with no side bars
-         */
-        .reel-card-outer iframe {
-          position: absolute;
-          top: -13%;
-          left: 0;
-          width: 100%;
-          height: 145%;
-          border: none;
-          display: block;
-          pointer-events: auto;
-        }
-
-        /* Shimmer skeleton */
-        .reel-skeleton-layer {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(90deg,#1a3a5c 25%,#1e4570 50%,#1a3a5c 75%);
-          background-size: 200% 100%;
-          animation: reel-shimmer 1.5s infinite;
-          z-index: 5;
-          border-radius: 16px;
-          transition: opacity .5s ease;
-          pointer-events: none;
-        }
-        .reel-skeleton-layer.hidden { opacity: 0; pointer-events: none; }
-
-        /* IG loader icon */
-        .reel-ig-loader {
-          position: absolute;
-          top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
-          z-index: 6;
-          display: flex; flex-direction: column;
-          align-items: center; gap: 8px;
-          transition: opacity .4s ease;
-          pointer-events: none;
-        }
-        .reel-ig-loader.hidden { opacity: 0; pointer-events: none; }
-        .reel-ig-icon {
-          width: 44px; height: 44px;
-          background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
-          border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          animation: ig-pulse 1.4s ease infinite;
-        }
-        .reel-ig-label {
-          font-size: 10px; font-weight: 600;
-          color: rgba(255,255,255,.65);
-          font-family: 'DM Sans', sans-serif;
-          letter-spacing: .06em;
-        }
-
-        /* Bottom meta bar — always visible */
-        .reel-meta-bar {
-          position: absolute;
-          bottom: 0; left: 0; right: 0;
-          z-index: 6;
-          padding: 36px 14px 14px;
-          background: linear-gradient(0deg, rgba(10,31,54,.92) 0%, transparent 100%);
-          border-radius: 0 0 16px 16px;
-          pointer-events: none;
-          opacity: 1;
-        }
-        .reel-tag-pill {
-          display: inline-block;
-          background: #1a6fc4;
-          color: #fff;
-          font-size: 9px; font-weight: 700;
-          letter-spacing: .08em; text-transform: uppercase;
-          padding: 3px 10px; border-radius: 20px;
-          margin-bottom: 5px;
-          font-family: 'DM Sans', sans-serif;
-        }
-        .reel-title-text {
-          font-size: 12px; font-weight: 600;
-          color: #fff; line-height: 1.4; margin: 0;
-          font-family: 'DM Sans', sans-serif;
-        }
-
-        /* IG corner badge */
-        .reel-ig-corner {
-          position: absolute;
-          top: 10px; right: 10px;
-          z-index: 7;
-          width: 28px; height: 28px;
-          background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
-          border-radius: 8px;
-          display: flex; align-items: center; justify-content: center;
-          pointer-events: none;
-        }
-
-        /* Hard cover strips — sit above iframe, hide IG header & footer */
-        .reel-cover-top {
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 13%;
-          background: #0a1f36;
-          z-index: 4;
-          border-radius: 16px 16px 0 0;
-          pointer-events: none;
-        }
-        .reel-cover-bottom {
-          position: absolute;
-          bottom: 0; left: 0; right: 0;
-          height: 22%;
-          background: #0a1f36;
-          z-index: 4;
-          border-radius: 0 0 16px 16px;
-          pointer-events: none;
-        }
-      `}</style>
-
-      <div className="reel-card-outer">
-        {/* Cover strips — hide IG header & footer behind card-coloured divs */}
-        <div className="reel-cover-top" />
-        <div className="reel-cover-bottom" />
-
-        <iframe
-          src={reel.embedUrl}
-          title={reel.title}
-          scrolling="no"
-          allowTransparency="true"
-          allowFullScreen
-          onLoad={() => setLoaded(true)}
-        />
-
-        {/* Shimmer while loading */}
-        <div className={`reel-skeleton-layer${loaded ? " hidden" : ""}`} />
-
-        {/* IG loader icon */}
-        <div className={`reel-ig-loader${loaded ? " hidden" : ""}`}>
-          <div className="reel-ig-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="white" strokeWidth="1.8"/>
-              <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.8"/>
-              <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
-            </svg>
-          </div>
-          <span className="reel-ig-label">Loading Reel…</span>
+      {/* Card content — bottom */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: "10px 10px 12px",
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 9,
+            fontWeight: 600,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.65)",
+            marginBottom: 3,
+          }}
+        >
+          {tag}
         </div>
-
-        {/* Meta bar */}
-        <div className="reel-meta-bar">
-          <span className="reel-tag-pill">{reel.tag}</span>
-          <p className="reel-title-text">{reel.title}</p>
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#fff",
+            lineHeight: 1.25,
+            marginBottom: 3,
+            textShadow: "0 1px 4px rgba(0,0,0,0.7)",
+          }}
+        >
+          {title}
         </div>
-
-        {/* IG corner badge */}
-        <div className="reel-ig-corner">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <rect x="2" y="2" width="20" height="20" rx="5" stroke="white" strokeWidth="2"/>
-            <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="2"/>
-            <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
-          </svg>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", lineHeight: 1.35 }}>
+          {desc}
         </div>
       </div>
-    </>
-  );
-};
 
-// ── Main section ──────────────────────────────────────────────────────────────
-const ReelsSection = () => {
-  const [loading, setLoading] = useState(true);
-  const [reels, setReels] = useState([]);
+      {/* Play icon — visible when paused */}
+      {!playing && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.18)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <svg style={{ marginLeft: 2 }} width="16" height="16" viewBox="0 0 24 24" fill="white">
+              <polygon points="5,3 19,12 5,21" />
+            </svg>
+          </div>
+        </div>
+      )}
 
-  // ✅ Ref for the external pagination container
-  const paginationRef = useRef(null);
+      {/* Mute toggle — visible when playing */}
+      {playing && (
+        <button
+          onClick={toggleMute}
+          style={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            width: 26,
+            height: 26,
+            borderRadius: "50%",
+            background: "rgba(0,0,0,0.45)",
+            backdropFilter: "blur(4px)",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          {muted ? (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
+              <path d="M16.5 12A4.5 4.5 0 0 0 14 8.07V15.93A4.5 4.5 0 0 0 16.5 12Z" />
+              <path d="M3 9v6h4l5 5V4L7 9H3z" />
+            </svg>
+          ) : (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
+            </svg>
+          )}
+        </button>
+      )}
+    </div>
+  )
+}
+
+// direction:  1 = LEFT → RIGHT (row scrolls rightward)
+//            -1 = RIGHT → LEFT (row scrolls leftward)
+function ScrollingRow({ videos, direction = 1 }) {
+  const trackRef = useRef(null)
+  const posRef = useRef(0)
+  const velRef = useRef(0)
+  const dragRef = useRef({ active: false, startX: 0, startPos: 0 })
+  const scrollRef = useRef({ lastY: 0, lastTime: Date.now() })
+  const hoveredRef = useRef(false)
+  const rafRef = useRef(null)
+  // Each card: 135px + 20px margin = 155px
+  const CARD_W = 155
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      setReels(REELS_DATA);
-      setLoading(false);
-    }, 400);
-    return () => clearTimeout(t);
-  }, []);
+    const setWidth = videos.length * CARD_W
+    let lastTime = performance.now()
+
+    const tick = (now) => {
+      const dt = Math.min(now - lastTime, 50)
+      lastTime = now
+
+      if (!dragRef.current.active) {
+        if (hoveredRef.current) {
+          // Smoothly brake to a stop on hover
+          velRef.current *= 0.85
+        } else {
+          // direction  1 → velocity is positive → translateX grows → row moves RIGHT
+          // direction -1 → velocity is negative → translateX shrinks → row moves LEFT
+          const baseSpeed = direction === 1 ? 1.5 : -1.5
+          velRef.current += (baseSpeed - velRef.current) * 0.05
+        }
+        posRef.current += velRef.current * (dt / 16)
+      } else {
+        velRef.current *= 0.92
+        posRef.current += velRef.current * (dt / 16)
+      }
+
+      // Wrap within one set width so the loop is seamless
+      posRef.current = ((posRef.current % setWidth) + setWidth) % setWidth
+
+      // Apply transform: for direction 1 we shift right (+), for -1 we shift left (-)
+      trackRef.current.style.transform =
+        direction === 1
+          ? `translateX(${posRef.current}px)`
+          : `translateX(${-posRef.current}px)`
+
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [direction, videos.length])
+
+  // Page-scroll nudges the rows
+  useEffect(() => {
+    const onScroll = () => {
+      const now = Date.now()
+      const dy = window.scrollY - scrollRef.current.lastY
+      const dt = now - scrollRef.current.lastTime || 1
+      const sv = (dy / dt) * 16
+      // Scroll down nudges Row A rightward (+), Row B leftward (-)
+      velRef.current += sv * (direction === 1 ? 0.8 : -0.8)
+      scrollRef.current = { lastY: window.scrollY, lastTime: now }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [direction])
+
+  const onPointerDown = (e) => {
+    dragRef.current = { active: true, startX: e.clientX, startPos: posRef.current }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  const onPointerMove = (e) => {
+    if (!dragRef.current.active) return
+    const dx = e.clientX - dragRef.current.startX
+    const newPos = dragRef.current.startPos + dx * (direction === 1 ? 1 : -1)
+    velRef.current = newPos - posRef.current
+    posRef.current = newPos
+  }
+
+  const onPointerUp = () => {
+    dragRef.current.active = false
+  }
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap');
-
-        .reels-section * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
-
-        /* ✅ Clip the swiper but allow vertical overflow for cards hover effect */
-        .reels-section .swiper {
-          overflow: hidden;
-          padding-bottom: 48px !important;
-        }
-        .reels-section .swiper-wrapper {
-          align-items: stretch;
-        }
-        .reels-section .swiper-slide {
-          height: auto;
-        }
-
-        /* ✅ Pagination dots — rendered OUTSIDE swiper via ref */
-        .reels-pagination-wrap {
-          display: flex;
-          justify-content: center;
-          gap: 6px;
-          margin-top: 16px;
-        }
-        .reels-pagination-wrap .swiper-pagination-bullet {
-          display: inline-block;
-          width: 8px; height: 8px;
-          border-radius: 50%;
-          background: #c2cfe0;
-          opacity: 1;
-          cursor: pointer;
-          transition: background .3s, transform .3s;
-        }
-        .reels-pagination-wrap .swiper-pagination-bullet-active {
-          background: #1a6fc4;
-          transform: scale(1.5);
-        }
-
-        @keyframes reel-load-shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-        .reel-load-skeleton {
-          border-radius: 16px;
-          aspect-ratio: 9 / 16;
-          background: linear-gradient(90deg,#e2e8f0 25%,#cbd5e1 50%,#e2e8f0 75%);
-          background-size: 200% 100%;
-          animation: reel-load-shimmer 1.5s infinite;
-        }
-      `}</style>
-
-      <section className="reels-section tj-project-section-4 section-gap">
-        <div className="container-fluid">
-
-          <div className="row">
-            <div className="col-12">
-              <div className="sec-heading style-4 text-center">
-                <span className="sub-title wow fadeInUp" data-wow-delay=".3s">
-                  <i className="tji-box"></i> Reels &amp; Shorts
-                </span>
-                <h2 className="sec-title title-anim">
-                  Real Stories, Real Impact.
-                </h2>
-              </div>
-            </div>
+    <div
+      style={{
+        overflow: "hidden",
+        width: "100%",
+        paddingTop: 10,
+        paddingBottom: 10,
+        cursor: "grab",
+        touchAction: "pan-y",
+      }}
+      onMouseEnter={() => { hoveredRef.current = true }}
+      onMouseLeave={() => { hoveredRef.current = false }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
+    >
+      <div
+        ref={trackRef}
+        style={{ display: "flex", width: "max-content", willChange: "transform" }}
+      >
+        {/* 4 duplicate sets for a seamless infinite loop */}
+        {[0, 1, 2, 3].map((copy) => (
+          <div key={copy} style={{ display: "flex" }}>
+            {videos.map((v, idx) => (
+              <ReelCard key={idx} {...v} />
+            ))}
           </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
-          <div className="row">
-            <div className="col-12">
-              <div className="project-wrapper wow fadeInUp" data-wow-delay=".5s">
+export function ReelsSection() {
+  return (
+    <section style={{ width: "100%", paddingTop: 80, paddingBottom: 80, overflow: "hidden" }}>
 
-                {loading && (
-                  <div style={{ display: "flex", gap: 20, overflow: "hidden" }}>
-                    {[...Array(4)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="reel-load-skeleton"
-                        style={{ minWidth: 180, flex: "0 0 180px" }}
-                      />
-                    ))}
-                  </div>
-                )}
+      {/* Heading */}
+      <div className="sec-heading style-4 text-center" style={{ marginBottom: 48 }}>
+        <span className="sub-title wow fadeInUp" data-wow-delay=".3s">
+          <i className="tji-box"></i> Reels &amp; Moments
+        </span>
+        <h2 className="sec-title title-anim">
+          Real Stories,{" "}
+          <br />
+          Real Vibes.
+        </h2>
+      </div>
 
-                {!loading && reels.length === 0 && (
-                  <p style={{ textAlign: "center", color: "#888", padding: "40px 0" }}>
-                    No reels available yet.
-                  </p>
-                )}
+      {/* Scrolling rows */}
+      <div style={{ position: "relative" }}>
+        {/* Row A: LEFT → RIGHT */}
+        <ScrollingRow videos={VIDEOS_ROW_A} direction={1} />
+        {/* Row B: RIGHT → LEFT */}
+        <ScrollingRow videos={VIDEOS_ROW_B} direction={-1} />
 
-                {!loading && reels.length > 0 && (
-                  <>
-                    <Swiper
-                      slidesPerView={1.2}
-                      spaceBetween={14}
-                      loop={true}
-                      speed={1200}
-                      autoplay={{ delay: 6000, disableOnInteraction: false }}
-                      pagination={{
-                        // ✅ Pass the DOM element directly via ref — most reliable approach
-                        el: paginationRef.current,
-                        clickable: true,
-                      }}
-                      breakpoints={{
-                        480:  { slidesPerView: 2,   spaceBetween: 16 },
-                        768:  { slidesPerView: 3,   spaceBetween: 20 },
-                        992:  { slidesPerView: 4,   spaceBetween: 22 },
-                        1200: { slidesPerView: 4,   spaceBetween: 24 },
-                        1400: { slidesPerView: 4,   spaceBetween: 24 },
-                      }}
-                      modules={[Pagination, Autoplay]}
-                      className="project-slider-3"
-                      // ✅ onSwiper callback ensures pagination attaches after mount
-                      onSwiper={(swiper) => {
-                        if (paginationRef.current) {
-                          swiper.params.pagination.el = paginationRef.current;
-                          swiper.pagination.init();
-                          swiper.pagination.render();
-                          swiper.pagination.update();
-                        }
-                      }}
-                    >
-                      {reels.map((reel, idx) => (
-                        <SwiperSlide key={idx}>
-                          <ReelCard reel={reel} />
-                        </SwiperSlide>
-                      ))}
-                    </Swiper>
+        {/* Edge fades */}
+        <div
+          style={{
+            position: "absolute",
+            inset: "0 auto 0 0",
+            width: "12%",
+            background: "linear-gradient(to right, var(--background, #fff), transparent)",
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: "0 0 0 auto",
+            width: "12%",
+            background: "linear-gradient(to left, var(--background, #fff), transparent)",
+            pointerEvents: "none",
+          }}
+        />
+      </div>
 
-                    {/* ✅ Pagination container lives OUTSIDE <Swiper> — always in DOM when Swiper mounts */}
-                    <div ref={paginationRef} className="reels-pagination-wrap" />
-                  </>
-                )}
+      {/* Instagram CTA */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, marginTop: 48 }}>
+        <p style={{ margin: 0, fontSize: 15, color: "var(--color-text-secondary, #666)", textAlign: "center" }}>
+          Watch more behind-the-scenes, tips &amp; live moments
+        </p>
+        <a
+          href="https://www.instagram.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "12px 28px",
+            borderRadius: 50,
+            background: "linear-gradient(135deg, #f9ce34, #ee2a7b, #6228d7)",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 14,
+            textDecoration: "none",
+            letterSpacing: "0.03em",
+            boxShadow: "0 4px 20px rgba(238,42,123,0.35)",
+            transition: "opacity 0.2s, transform 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = "0.88"
+            e.currentTarget.style.transform = "translateY(-2px)"
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = "1"
+            e.currentTarget.style.transform = "translateY(0)"
+          }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <circle cx="12" cy="12" r="4" />
+            <circle cx="17.5" cy="6.5" r="1" fill="white" stroke="none" />
+          </svg>
+          Follow us on Instagram
+        </a>
+      </div>
 
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-    </>
-  );
-};
-
-export default ReelsSection;
+    </section>
+  )
+}

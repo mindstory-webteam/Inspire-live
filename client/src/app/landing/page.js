@@ -46,6 +46,9 @@ import { ReelsSection } from "@/components/ReelsSection"
 // ✅ Correct — matches the named export exactly
 // ✅ Matches the actual filename: VideoReelsCarousel.js
 import { VideoReelsCarousel } from "@/components/VideoReelsCarousel"
+import Contact3 from "@/components/landing/ContactForm";
+import ServicesSection from "@/components/landing/ServicesSection";
+import TestimonialsSection from "@/components/landing/TestimonialsSection";
 
 export default function Home2() {
 	return (
@@ -60,37 +63,15 @@ export default function Home2() {
 					<main>
 						<div className="top-space-15"></div>
 						
-						<Hero10 />
-						{/* <About3 type={2} /> */}
+
+                        <Contact3 />
+                        <ServicesSection />
+                        <TestimonialsSection />
 						
-						
-						<About9 />
-						<ArticleSection type={2} />
-						
-						
-						<Services10 />
-						
-						<Funfact2 />
-						{/* <Portfolios2 /> */}
-						{/* <Portfolios4 /> */}
-						<Events4 />
 						
 
-						<Process />
-						{/* <ReelsSection /> */}
-
-
-						<VideoReelsCarousel />
-						
-						<Team1 />
-
-						{/* <Testimonials2 /> */}
-							<Testimonials4 />
-						
-
+					<Cta/>
 					
-						<Blogs2 />
-						<Cta/>
 
 					</main>
 					<Footer />

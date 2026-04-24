@@ -1,0 +1,305 @@
+"use client";
+import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
+
+export default function TestimonialsSection() {
+  var [testimonials, setTestimonials] = useState([]);
+  var [loading, setLoading]           = useState(true);
+  var [error, setError]               = useState(null);
+  var [active, setActive]             = useState(0);
+  var autoRef                         = useRef(null);
+
+  useEffect(function() {
+    fetch("/api/testimonials")
+      .then(function(r) { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
+      .then(function(d) {
+        var list = Array.isArray(d) ? d : d.testimonials ?? d.data ?? [];
+        setTestimonials(list.filter(function(t) {
+          return t.isActive !== false && t.isPublished !== false;
+        }));
+      })
+      .catch(function(e) { setError(e.message); })
+      .finally(function() { setLoading(false); });
+  }, []);
+
+  useEffect(function() {
+    if (testimonials.length < 2) return;
+    autoRef.current = setInterval(function() {
+      setActive(function(p) { return (p + 1) % testimonials.length; });
+    }, 5000);
+    return function() { clearInterval(autoRef.current); };
+  }, [testimonials.length]);
+
+  function goTo(i) { setActive(i); clearInterval(autoRef.current); }
+  function prev()  { goTo((active - 1 + testimonials.length) % testimonials.length); }
+  function next()  { goTo((active + 1) % testimonials.length); }
+
+  var avg = testimonials.length
+    ? (testimonials.reduce(function(s, t) { return s + (t.rating || 5); }, 0) / testimonials.length).toFixed(1)
+    : "5.0";
+
+  return (
+    <>
+      <section className="tm-wrap">
+        <div className="tm-container">
+
+          {/* ── Header ── */}
+          <div className="tm-header">
+            <div className="tm-header-left">
+              <span className="tm-eyebrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                CLIENT FEEDBACK
+              </span>
+              <h2 className="tm-title">What Our Students Say</h2>
+            </div>
+
+            {/* Rating pill */}
+            {!loading && testimonials.length > 0 && (
+              <div className="tm-rating-pill">
+                <span className="tm-stars-row">{"★★★★★"}</span>
+                <span className="tm-avg">{avg}</span>
+                <span className="tm-of">/ out of {testimonials.length}</span>
+              </div>
+            )}
+          </div>
+
+          {/* ── Body ── */}
+          {loading ? (
+            <SkeletonCard />
+          ) : error ? (
+            <div className="tm-state">
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="#6b8caa" strokeWidth="1.5"/>
+                <path d="M12 7v6M12 17h.01" stroke="#6b8caa" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <p>{error}</p>
+            </div>
+          ) : testimonials.length === 0 ? (
+            <p className="tm-empty">No testimonials available yet.</p>
+          ) : (
+            <>
+              <div className="tm-carousel">
+                <button className="tm-arrow" onClick={prev} aria-label="Previous">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+
+                <div className="tm-track-outer">
+                  <div className="tm-track" style={{ transform: "translateX(-" + (active * 100) + "%)" }}>
+                    {testimonials.map(function(t, i) {
+                      return <TmCard key={t._id || i} t={t} />;
+                    })}
+                  </div>
+                </div>
+
+                <button className="tm-arrow" onClick={next} aria-label="Next">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Dots */}
+              <div className="tm-dots">
+                {testimonials.map(function(_, i) {
+                  return (
+                    <button key={i}
+                      onClick={function() { goTo(i); }}
+                      className={"tm-dot" + (i === active ? " tm-dot-on" : "")}
+                      aria-label={"Slide " + (i + 1)} />
+                  );
+                })}
+              </div>
+
+              {/* Avatar thumbs — only when more than 3 */}
+              {testimonials.length > 3 && (
+                <div className="tm-thumbs">
+                  {testimonials.slice(0, 6).map(function(t, i) {
+                    return (
+                      <button key={t._id || i}
+                        onClick={function() { goTo(i); }}
+                        className={"tm-thumb" + (i === active ? " tm-thumb-on" : "")}>
+                        <Avatar t={t} size={42} />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+        </div>
+      </section>
+
+      <style>{`
+        /* ── Layout ── */
+        .tm-wrap      { background: #edf0f4; padding: 80px 24px 88px; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .tm-container { max-width: 1160px; margin: 0 auto; }
+
+        /* ── Header ── */
+        .tm-header {
+          display: flex; align-items: flex-end; justify-content: space-between;
+          gap: 20px; margin-bottom: 44px; flex-wrap: wrap;
+        }
+        .tm-header-left { display: flex; flex-direction: column; gap: 10px; }
+        .tm-eyebrow {
+          display: inline-flex; align-items: center; gap: 7px;
+          font-size: 11.5px; font-weight: 700; letter-spacing: .15em;
+          text-transform: uppercase; color: #1a3c6e;
+        }
+        .tm-title {
+          font-size: clamp(28px, 4vw, 46px); font-weight: 800;
+          color: #0b2640; margin: 0; line-height: 1.1; letter-spacing: -.025em;
+        }
+
+        /* ── Rating pill ── */
+        .tm-rating-pill {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: #fff; border: 1.5px solid #dce3ef; border-radius: 50px;
+          padding: 9px 20px; box-shadow: 0 2px 10px rgba(11,38,64,.07); flex-shrink: 0;
+        }
+        .tm-stars-row { color: #f59e0b; font-size: 15px; letter-spacing: 1px; }
+        .tm-avg { font-size: 17px; font-weight: 800; color: #0b2640; }
+        .tm-of  { font-size: 13px; color: #6b8caa; }
+
+        /* ── Carousel ── */
+        .tm-carousel    { display: flex; align-items: center; gap: 14px; }
+        .tm-track-outer { flex: 1; overflow: hidden; border-radius: 16px; }
+        .tm-track       { display: flex; transition: transform .5s cubic-bezier(.4,0,.2,1); }
+
+        /* ── Arrows ── */
+        .tm-arrow {
+          flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
+          border: 1.5px solid #dce3ef; background: #fff; color: #1a3c6e;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: background .2s, border-color .2s, transform .15s;
+          box-shadow: 0 2px 8px rgba(11,38,64,.07);
+        }
+        .tm-arrow svg { width: 18px; height: 18px; }
+        .tm-arrow:hover { background: #0d2f4a; border-color: #0d2f4a; color: #fff; transform: scale(1.06); }
+
+        /* ── Card ── */
+        .tm-card {
+          min-width: 100%; background: #fff; border-radius: 16px;
+          padding: 40px 44px; border: 1.5px solid #dce3ef;
+          box-shadow: 0 4px 28px rgba(11,38,64,.08);
+          box-sizing: border-box; position: relative; overflow: hidden;
+        }
+        .tm-card::before {
+          content: '"'; position: absolute; top: 12px; right: 30px;
+          font-size: 110px; line-height: 1; color: #0b2640; opacity: .04;
+          font-family: Georgia, serif; pointer-events: none;
+        }
+        .tm-card-stars { margin-bottom: 18px; display: flex; gap: 3px; }
+        .tm-star   { color: #f59e0b; font-size: 16px; }
+        .tm-star-e { color: #d1d5db; }
+        .tm-quote  { font-size: clamp(14.5px, 1.8vw, 17px); color: #1a2a3a; line-height: 1.75; margin: 0 0 26px; font-style: italic; }
+        .tm-author { display: flex; align-items: center; gap: 14px; }
+        .tm-avatar {
+          flex-shrink: 0; border-radius: 50%; overflow: hidden; position: relative;
+          background: linear-gradient(135deg, #c5d5ee, #a8c0e5);
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 800; color: #1a3c6e;
+        }
+        .tm-info    { flex: 1; }
+        .tm-name    { font-size: 15px; font-weight: 700; color: #0b2640; margin: 0 0 3px; }
+        .tm-role    { font-size: 12.5px; color: #6b8caa; margin: 0; }
+        .tm-country { font-size: 12px; color: #e8a020; font-weight: 600; margin-top: 3px; }
+        .tm-logo    { margin-left: auto; }
+        .tm-logo img { max-height: 34px; width: auto; object-fit: contain; opacity: .65; }
+
+        /* ── Dots ── */
+        .tm-dots { display: flex; justify-content: center; gap: 8px; margin-top: 26px; }
+        .tm-dot  { width: 8px; height: 8px; border-radius: 50%; border: none; background: #cdd5e0; cursor: pointer; padding: 0; transition: background .2s, width .3s; }
+        .tm-dot-on { background: #0d2f4a; width: 22px; border-radius: 4px; }
+
+        /* ── Thumbs ── */
+        .tm-thumbs   { display: flex; justify-content: center; gap: 10px; margin-top: 28px; }
+        .tm-thumb    { padding: 0; background: none; border: 2.5px solid transparent; border-radius: 50%; cursor: pointer; transition: border-color .2s, transform .15s; }
+        .tm-thumb-on { border-color: #0d2f4a; transform: scale(1.12); }
+
+        /* ── States ── */
+        .tm-state { text-align: center; padding: 56px 20px; color: #6b8caa; }
+        .tm-state svg { margin: 0 auto 14px; display: block; }
+        .tm-empty { text-align: center; color: #6b8caa; padding: 56px 20px; font-size: 15px; }
+
+        /* ── Skeleton ── */
+        .tm-sk { background: #fff; border-radius: 16px; padding: 40px 44px; border: 1.5px solid #dce3ef; }
+        .tm-sk-line {
+          height: 13px; border-radius: 4px; margin-bottom: 13px;
+          background: linear-gradient(90deg, #e4e8f0 25%, #d4dae6 50%, #e4e8f0 75%);
+          background-size: 200% 100%; animation: tm-sh 1.4s infinite;
+        }
+        @keyframes tm-sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+        @media (max-width: 640px) {
+          .tm-wrap  { padding: 56px 16px 64px; }
+          .tm-card  { padding: 26px 20px; }
+          .tm-arrow { display: none; }
+          .tm-card::before { display: none; }
+        }
+      `}</style>
+    </>
+  );
+}
+
+function Stars({ rating }) {
+  return [1, 2, 3, 4, 5].map(function(n) {
+    return <span key={n} className={"tm-star" + (n > rating ? " tm-star-e" : "")}>★</span>;
+  });
+}
+
+function Avatar({ t, size }) {
+  var src      = t.img || t.photo || t.avatar || null;
+  var initials = (t.name || "U").split(" ").map(function(w) { return w[0]; }).slice(0, 2).join("").toUpperCase();
+  return (
+    <div className="tm-avatar" style={{ width: size, height: size, fontSize: size * 0.36 }}>
+      {src
+        ? <Image src={src} alt={t.name || "Reviewer"} fill sizes={size + "px"} />
+        : initials
+      }
+    </div>
+  );
+}
+
+function TmCard({ t }) {
+  var logo = t.logoImg || t.companyLogo || null;
+  return (
+    <div className="tm-card">
+      <div className="tm-card-stars"><Stars rating={t.rating || 5} /></div>
+      <p className="tm-quote">{t.review || t.message || t.content || ""}</p>
+      <div className="tm-author">
+        <Avatar t={t} size={50} />
+        <div className="tm-info">
+          <p className="tm-name">{t.name}</p>
+          {(t.role || t.designation) &&
+            <p className="tm-role">{t.role || t.designation}{t.company ? " · " + t.company : ""}</p>
+          }
+          {t.country && <p className="tm-country">{t.country}</p>}
+        </div>
+        {logo && <div className="tm-logo"><img src={logo} alt={t.company || "logo"} /></div>}
+      </div>
+    </div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="tm-sk">
+      <div className="tm-sk-line" style={{ width: "90px", marginBottom: "22px" }} />
+      <div className="tm-sk-line" style={{ width: "100%" }} />
+      <div className="tm-sk-line" style={{ width: "75%" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 26 }}>
+        <div style={{ width: 50, height: 50, borderRadius: "50%", background: "#e4e8f0", flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <div className="tm-sk-line" style={{ width: 130 }} />
+          <div className="tm-sk-line" style={{ width: 90 }} />
+        </div>
+      </div>
+    </div>
+  );
+}
