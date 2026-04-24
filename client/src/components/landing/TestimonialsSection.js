@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 
 export default function TestimonialsSection() {
   var [testimonials, setTestimonials] = useState([]);
@@ -14,10 +13,7 @@ export default function TestimonialsSection() {
       .then(function(r) { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then(function(d) {
         var list = Array.isArray(d) ? d : d.testimonials ?? d.data ?? [];
-        // filter by isActive (schema field)
-        setTestimonials(list.filter(function(t) {
-          return t.isActive !== false;
-        }));
+        setTestimonials(list.filter(function(t) { return t.isActive !== false; }));
       })
       .catch(function(e) { setError(e.message); })
       .finally(function() { setLoading(false); });
@@ -35,7 +31,6 @@ export default function TestimonialsSection() {
   function prev()  { goTo((active - 1 + testimonials.length) % testimonials.length); }
   function next()  { goTo((active + 1) % testimonials.length); }
 
-  // Average rating using schema field: rating
   var avg = testimonials.length
     ? (testimonials.reduce(function(s, t) { return s + (t.rating || 5); }, 0) / testimonials.length).toFixed(1)
     : "5.0";
@@ -58,7 +53,6 @@ export default function TestimonialsSection() {
               <h2 className="tm-title">What Our Students Say</h2>
             </div>
 
-            {/* Rating pill */}
             {!loading && testimonials.length > 0 && (
               <div className="tm-rating-pill">
                 <span className="tm-stars-row">{"★★★★★"}</span>
@@ -105,25 +99,21 @@ export default function TestimonialsSection() {
                 </button>
               </div>
 
-              {/* Dots */}
               <div className="tm-dots">
                 {testimonials.map(function(_, i) {
                   return (
-                    <button key={i}
-                      onClick={function() { goTo(i); }}
+                    <button key={i} onClick={function() { goTo(i); }}
                       className={"tm-dot" + (i === active ? " tm-dot-on" : "")}
                       aria-label={"Slide " + (i + 1)} />
                   );
                 })}
               </div>
 
-              {/* Avatar thumbs — only when more than 3 */}
               {testimonials.length > 3 && (
                 <div className="tm-thumbs">
                   {testimonials.slice(0, 6).map(function(t, i) {
                     return (
-                      <button key={t._id || i}
-                        onClick={function() { goTo(i); }}
+                      <button key={t._id || i} onClick={function() { goTo(i); }}
                         className={"tm-thumb" + (i === active ? " tm-thumb-on" : "")}>
                         <Avatar t={t} size={42} />
                       </button>
@@ -156,7 +146,6 @@ export default function TestimonialsSection() {
           color: #0b2640; margin: 0; line-height: 1.1; letter-spacing: -.025em;
         }
 
-        /* Rating pill */
         .tm-rating-pill {
           display: inline-flex; align-items: center; gap: 8px;
           background: #fff; border: 1.5px solid #dce3ef; border-radius: 50px;
@@ -166,12 +155,10 @@ export default function TestimonialsSection() {
         .tm-avg { font-size: 17px; font-weight: 800; color: #0b2640; }
         .tm-of  { font-size: 13px; color: #6b8caa; }
 
-        /* Carousel */
         .tm-carousel    { display: flex; align-items: center; gap: 14px; }
         .tm-track-outer { flex: 1; overflow: hidden; border-radius: 16px; }
         .tm-track       { display: flex; transition: transform .5s cubic-bezier(.4,0,.2,1); }
 
-        /* Arrows */
         .tm-arrow {
           flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
           border: 1.5px solid #dce3ef; background: #fff; color: #1a3c6e;
@@ -182,19 +169,16 @@ export default function TestimonialsSection() {
         .tm-arrow svg { width: 18px; height: 18px; }
         .tm-arrow:hover { background: #0d2f4a; border-color: #0d2f4a; color: #fff; transform: scale(1.06); }
 
-        /* Card — two-column layout matching screenshot */
+        /* Card */
         .tm-card {
           min-width: 100%; background: #fff; border-radius: 16px;
-          border: 1.5px solid #dce3ef;
-          box-shadow: 0 4px 28px rgba(11,38,64,.08);
+          border: 1.5px solid #dce3ef; box-shadow: 0 4px 28px rgba(11,38,64,.08);
           box-sizing: border-box; overflow: hidden;
           display: grid; grid-template-columns: 1fr auto;
         }
 
-        /* Left — quote side */
         .tm-card-left {
-          padding: 40px 44px;
-          position: relative;
+          padding: 40px 44px; position: relative;
           border-right: 1.5px solid #dce3ef;
         }
         .tm-card-left::before {
@@ -203,72 +187,71 @@ export default function TestimonialsSection() {
           font-family: Georgia, serif; pointer-events: none;
         }
 
-        /* Right — author/logo side */
         .tm-card-right {
-          padding: 32px 28px;
-          display: flex; flex-direction: column;
+          padding: 32px 28px; display: flex; flex-direction: column;
           align-items: center; justify-content: center;
-          gap: 18px; min-width: 200px;
-          background: #fafbff;
+          gap: 18px; min-width: 200px; background: #fafbff;
         }
 
         .tm-card-stars { margin-bottom: 16px; display: flex; gap: 3px; }
         .tm-star   { color: #f59e0b; font-size: 16px; }
         .tm-star-e { color: #d1d5db; }
 
-        /* desc2 — the testimonial text */
         .tm-quote {
           font-size: clamp(14.5px, 1.8vw, 17px); color: #1a2a3a;
           line-height: 1.75; margin: 0 0 28px; font-style: italic;
         }
 
-        /* Author row inside left panel */
         .tm-author { display: flex; align-items: center; gap: 14px; }
+
+        /* Avatar — plain img version */
         .tm-avatar {
-          flex-shrink: 0; border-radius: 50%; overflow: hidden; position: relative;
+          flex-shrink: 0; border-radius: 50%; overflow: hidden;
           background: linear-gradient(135deg, #c5d5ee, #a8c0e5);
           display: flex; align-items: center; justify-content: center;
           font-weight: 800; color: #1a3c6e;
         }
+        /* The img inside avatar fills it completely */
+        .tm-avatar img {
+          width: 100%; height: 100%;
+          object-fit: cover; display: block; border-radius: 50%;
+        }
+
         .tm-info     { flex: 1; }
-        /* authorName */
         .tm-name     { font-size: 15px; font-weight: 700; color: #0b2640; margin: 0 0 3px; }
-        /* authorDesig */
         .tm-role     { font-size: 12.5px; color: #6b8caa; margin: 0; }
 
-        /* Right panel — logo (logoImg or logoImgLight) */
+        /* Right panel */
         .tm-right-logo {
           width: 72px; height: 72px; border-radius: 50%;
           overflow: hidden; border: 2px solid #dce3ef;
           background: #fff; display: flex; align-items: center; justify-content: center;
         }
-        .tm-right-logo img { width: 100%; height: 100%; object-fit: cover; }
+        /* Plain img inside right logo */
+        .tm-right-logo img {
+          width: 100%; height: 100%;
+          object-fit: cover; display: block;
+        }
 
-        /* Right panel — rating stars */
-        .tm-right-stars { display: flex; gap: 3px; }
+        .tm-right-stars  { display: flex; gap: 3px; }
         .tm-right-star   { color: #f59e0b; font-size: 18px; }
         .tm-right-star-e { color: #d1d5db; }
 
-        /* Right panel — name (shown again on right) */
-        .tm-right-name { font-size: 13px; font-weight: 700; color: #0b2640; text-align: center; }
+        .tm-right-name  { font-size: 13px; font-weight: 700; color: #0b2640; text-align: center; }
         .tm-right-desig { font-size: 11.5px; color: #6b8caa; text-align: center; margin-top: 2px; }
 
-        /* Dots */
         .tm-dots { display: flex; justify-content: center; gap: 8px; margin-top: 26px; }
         .tm-dot  { width: 8px; height: 8px; border-radius: 50%; border: none; background: #cdd5e0; cursor: pointer; padding: 0; transition: background .2s, width .3s; }
         .tm-dot-on { background: #0d2f4a; width: 22px; border-radius: 4px; }
 
-        /* Thumbs */
         .tm-thumbs   { display: flex; justify-content: center; gap: 10px; margin-top: 28px; }
         .tm-thumb    { padding: 0; background: none; border: 2.5px solid transparent; border-radius: 50%; cursor: pointer; transition: border-color .2s, transform .15s; }
         .tm-thumb-on { border-color: #0d2f4a; transform: scale(1.12); }
 
-        /* States */
         .tm-state { text-align: center; padding: 56px 20px; color: #6b8caa; }
         .tm-state svg { margin: 0 auto 14px; display: block; }
         .tm-empty { text-align: center; color: #6b8caa; padding: 56px 20px; font-size: 15px; }
 
-        /* Skeleton */
         .tm-sk { background: #fff; border-radius: 16px; padding: 40px 44px; border: 1.5px solid #dce3ef; }
         .tm-sk-line {
           height: 13px; border-radius: 4px; margin-bottom: 13px;
@@ -293,82 +276,81 @@ export default function TestimonialsSection() {
 /* ── Stars ── */
 function Stars({ rating, cls }) {
   return [1, 2, 3, 4, 5].map(function(n) {
+    var base = cls || "tm-star";
     return (
-      <span key={n} className={(cls || "tm-star") + (n > rating ? " " + (cls ? cls + "-e" : "tm-star-e") : "")}>★</span>
+      <span key={n} className={base + (n > rating ? " " + base + "-e" : "")}>★</span>
     );
   });
 }
 
-/* ── Avatar — uses schema field: img ── */
+/* ── Avatar — plain <img>, no Next.js Image ── */
 function Avatar({ t, size }) {
+  var [failed, setFailed] = useState(false);
   // schema field: img (Cloudinary URL)
   var src      = t.img || null;
-  // schema field: authorName
   var initials = (t.authorName || "U").split(" ").map(function(w) { return w[0]; }).slice(0, 2).join("").toUpperCase();
+  var showImg  = src && !failed;
+
   return (
     <div className="tm-avatar" style={{ width: size, height: size, fontSize: size * 0.36 }}>
-      {src
-        ? <Image src={src} alt={t.authorName || "Reviewer"} fill sizes={size + "px"} />
+      {showImg
+        ? <img
+            src={src}
+            alt={t.authorName || "Reviewer"}
+            onError={function() { setFailed(true); }}
+          />
         : initials
       }
     </div>
   );
 }
 
-/* ── TmCard — all field names from Testimonial schema ── */
+/* ── TmCard ── */
 function TmCard({ t }) {
-  // schema fields:
-  // t.authorName   — author's full name
-  // t.authorDesig  — designation / role
-  // t.desc2        — the testimonial text
-  // t.img          — author photo (Cloudinary URL)
-  // t.logoImg      — company logo (dark variant)
-  // t.logoImgLight — company logo (light variant)
-  // t.rating       — 1-5 number
-
-  var logoSrc = t.logoImg || t.logoImgLight || null;
+  var [logoFailed, setLogoFailed] = useState(false);
+  // schema fields: logoImg (dark), logoImgLight (light)
+  var logoSrc  = t.logoImg || t.logoImgLight || null;
+  var showLogo = logoSrc && !logoFailed;
 
   return (
     <div className="tm-card">
 
-      {/* ── LEFT — quote + author ── */}
+      {/* LEFT — quote + author */}
       <div className="tm-card-left">
-        {/* Stars */}
         <div className="tm-card-stars">
           <Stars rating={t.rating || 5} cls="tm-star" />
         </div>
-
-        {/* desc2 — testimonial body text */}
+        {/* schema field: desc2 */}
         <p className="tm-quote">{t.desc2 || ""}</p>
-
-        {/* Author row */}
         <div className="tm-author">
           <Avatar t={t} size={50} />
           <div className="tm-info">
-            {/* authorName */}
+            {/* schema field: authorName */}
             <p className="tm-name">{t.authorName || ""}</p>
-            {/* authorDesig */}
+            {/* schema field: authorDesig */}
             {t.authorDesig && <p className="tm-role">{t.authorDesig}</p>}
           </div>
         </div>
       </div>
 
-      {/* ── RIGHT — logo + stars ── */}
+      {/* RIGHT — logo/avatar + stars + name */}
       <div className="tm-card-right">
-        {/* Stars again (right panel) */}
         <div className="tm-right-stars">
           <Stars rating={t.rating || 5} cls="tm-right-star" />
         </div>
 
-        {/* Logo or avatar fallback */}
+        {/* Logo (plain img) or avatar fallback */}
         <div className="tm-right-logo">
-          {logoSrc
-            ? <img src={logoSrc} alt={t.authorName || "logo"} />
-            : <Avatar t={t} size={72} />
+          {showLogo
+            ? <img
+                src={logoSrc}
+                alt={t.authorName || "logo"}
+                onError={function() { setLogoFailed(true); }}
+              />
+            : <Avatar t={t} size={68} />
           }
         </div>
 
-        {/* Name + desig repeated on right (matches screenshot) */}
         <div>
           <p className="tm-right-name">{t.authorName || ""}</p>
           {t.authorDesig && <p className="tm-right-desig">{t.authorDesig}</p>}
