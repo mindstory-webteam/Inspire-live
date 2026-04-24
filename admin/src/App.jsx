@@ -59,7 +59,7 @@ export default function App() {
             <Route path="team"              element={<AdminTeamPage />} />
             <Route path="ourresourceperson" element={<OurResourcePerson />} />
             <Route path="testimonials"      element={<TestimonialsAdmin />} />
-              <Route path="contactinfo"      element={<ContactinfoAdmin />} />
+            <Route path="contactinfo"      element={<ContactinfoAdmin />} />
             <Route path="newsletter" element={<NewsletterPage />} />
           </Route>
         </Routes>
