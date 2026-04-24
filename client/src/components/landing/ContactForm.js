@@ -3,18 +3,16 @@ import { useState, useRef } from "react";
 import contactApi from "@/utils/contactApi";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 
-var EMPTY_FORM = { fullName: "", email: "", phone: "", service: "", message: "" };
-var SERVICE_OPTIONS = ["PhD India", "PhD Abroad", "Study Abroad", "Research Support", "Other"];
+var EMPTY_FORM = { fullName: "", email: "", phone: "", subject: "", message: "" };
 
 var PERSON_IMAGE = "/landing/p-2.png";
 
-/* ── Replace with your actual floating image paths ── */
 var FLOAT_IMAGES = [
-  { src: "/new-imges/about-images/img-1.png",          alt: "Academic",     top: "8%",  left: "-30px", size: 90,  delay: "0s",    dur: "6s"   },
-  { src: "/new-imges/home-about/home-about-img-2.png",  alt: "Research",     top: "35%", left: "5%",    size: 75,  delay: "1.2s",  dur: "5.5s" },
-  { src: "/new-imges/ceo/a-3.png",                      alt: "Team",         top: "62%", left: "-20px", size: 82,  delay: "0.6s",  dur: "7s"   },
-  { src: "/new-imges/contact-us/contact-us-img3.jpeg",  alt: "Consultation", top: "18%", right: "0px",  size: 70,  delay: "1.8s",  dur: "6.5s" },
-  { src: "/new-imges/about-images/img-1.png",           alt: "Global",       top: "78%", right: "-10px",size: 65,  delay: "0.4s",  dur: "5s"   },
+  { src: "/new-imges/about-images/img-1.png",          alt: "Academic",     top: "8%",  left: "-30px", size: 90, delay: "0s",   dur: "6s"   },
+  { src: "/new-imges/home-about/home-about-img-2.png",  alt: "Research",     top: "35%", left: "5%",    size: 75, delay: "1.2s", dur: "5.5s" },
+  { src: "/new-imges/ceo/a-3.png",                      alt: "Team",         top: "62%", left: "-20px", size: 82, delay: "0.6s", dur: "7s"   },
+  { src: "/new-imges/contact-us/contact-us-img3.jpeg",  alt: "Consultation", top: "18%", right: "0px",  size: 70, delay: "1.8s", dur: "6.5s" },
+  { src: "/new-imges/about-images/img-1.png",           alt: "Global",       top: "78%", right: "-10px",size: 65, delay: "0.4s", dur: "5s"   },
 ];
 
 export default function Contact3() {
@@ -40,7 +38,7 @@ export default function Contact3() {
         fullName: form.fullName.trim(),
         email:    form.email.trim(),
         phone:    form.phone.trim(),
-        service:  form.service,
+        subject:  form.subject.trim(),
         message:  form.message.trim(),
       })
       .then(function(res) {
@@ -59,25 +57,18 @@ export default function Contact3() {
   return (
     <>
       <section className="c3-wrap">
-
-        {/* Decorative blobs */}
         <div className="c3-blob c3-blob-1" />
         <div className="c3-blob c3-blob-2" />
 
         <div className="c3-container">
 
-          {/* ════ LEFT — Person image + floating images ════ */}
+          {/* ════ LEFT — Person + floating images ════ */}
           <div className="c3-person-col">
             <div className="c3-person-wrap">
-
-              {/* Floating images — drift left to right */}
               {FLOAT_IMAGES.map(function(img, i) {
                 var style = {
-                  top:              img.top,
-                  width:            img.size + "px",
-                  height:           img.size + "px",
-                  animationDelay:   img.delay,
-                  animationDuration:img.dur,
+                  top: img.top, width: img.size + "px", height: img.size + "px",
+                  animationDelay: img.delay, animationDuration: img.dur,
                 };
                 if (img.left  !== undefined) style.left  = img.left;
                 if (img.right !== undefined) style.right = img.right;
@@ -87,8 +78,6 @@ export default function Contact3() {
                   </div>
                 );
               })}
-
-              {/* Main person cutout */}
               <img src={PERSON_IMAGE} alt="Contact" className="c3-person-img" />
             </div>
           </div>
@@ -128,6 +117,8 @@ export default function Contact3() {
               )}
 
               <form onSubmit={handleSubmit} noValidate>
+
+                {/* Row 1 — Full Name + Email */}
                 <div className="c3-grid2">
                   <div className="c3-field">
                     <label className="c3-label">Full Name <span className="c3-req">*</span></label>
@@ -141,6 +132,7 @@ export default function Contact3() {
                   </div>
                 </div>
 
+                {/* Row 2 — Phone + Subject (text input, was dropdown) */}
                 <div className="c3-grid2">
                   <div className="c3-field">
                     <label className="c3-label">Phone number</label>
@@ -148,22 +140,13 @@ export default function Contact3() {
                       value={form.phone} onChange={handleChange} placeholder="Phone number" />
                   </div>
                   <div className="c3-field">
-                    <label className="c3-label">Choose a option</label>
-                    <div className="c3-sel-wrap">
-                      <select className="c3-input" name="service"
-                        value={form.service} onChange={handleChange}>
-                        <option value="">Choose a Service</option>
-                        {SERVICE_OPTIONS.map(function(s) {
-                          return <option key={s} value={s}>{s}</option>;
-                        })}
-                      </select>
-                      <svg className="c3-chev" viewBox="0 0 12 8" fill="none">
-                        <path d="M1 1l5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                      </svg>
-                    </div>
+                    <label className="c3-label">Subject</label>
+                    <input className="c3-input" type="text" name="subject"
+                      value={form.subject} onChange={handleChange} placeholder="Enter subject" />
                   </div>
                 </div>
 
+                {/* Row 3 — Message */}
                 <div className="c3-field c3-mb20">
                   <label className="c3-label">Message here... <span className="c3-req">*</span></label>
                   <textarea className="c3-input c3-ta" name="message"
@@ -178,8 +161,8 @@ export default function Contact3() {
                   />
                   {isLoading && <span className="c3-spinner" />}
                 </div>
-              </form>
 
+              </form>
             </div>
           </div>
 
@@ -195,11 +178,7 @@ export default function Contact3() {
           overflow: hidden;
           min-height: 660px;
         }
-
-        .c3-blob {
-          position: absolute; border-radius: 50%;
-          filter: blur(70px); pointer-events: none; opacity: .35;
-        }
+        .c3-blob { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; opacity: .35; }
         .c3-blob-1 { width: 320px; height: 320px; background: #aad8f0; top: -80px; right: 35%; }
         .c3-blob-2 { width: 220px; height: 220px; background: #5aa8cc; bottom: 0; right: 15%; }
 
@@ -209,16 +188,8 @@ export default function Contact3() {
           gap: 0; align-items: flex-end; position: relative; z-index: 1;
         }
 
-        /* ════ Person column ════ */
-        .c3-person-col {
-          display: flex; align-items: flex-end; justify-content: center;
-        }
-        .c3-person-wrap {
-          position: relative;
-          display: inline-block;
-          width: 100%;
-          max-width: 480px;
-        }
+        .c3-person-col { display: flex; align-items: flex-end; justify-content: center; }
+        .c3-person-wrap { position: relative; display: inline-block; width: 100%; max-width: 480px; }
         .c3-person-img {
           display: block; width: 100%; height: auto;
           object-fit: contain; object-position: bottom;
@@ -226,26 +197,13 @@ export default function Contact3() {
           position: relative; z-index: 2;
         }
 
-        /* ════ Floating images ════ */
         .c3-fimg {
-          position: absolute;
-          z-index: 3;
-          border-radius: 50%;
-          overflow: hidden;
+          position: absolute; z-index: 3; border-radius: 50%; overflow: hidden;
           border: 3px solid rgba(255,255,255,.85);
           box-shadow: 0 8px 28px rgba(11,38,64,.22);
-          /* left-to-right drift + gentle vertical float */
           animation: c3-drift linear infinite;
         }
-        .c3-fimg img {
-          width: 100%; height: 100%;
-          object-fit: cover; display: block;
-        }
-
-        /*
-          Drift: starts left of position, moves right, back left
-          Also a subtle vertical bob layered via translateY
-        */
+        .c3-fimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
         @keyframes c3-drift {
           0%   { transform: translateX(-14px) translateY(0px)   rotate(-2deg); }
           25%  { transform: translateX(8px)   translateY(-8px)  rotate(1deg);  }
@@ -254,25 +212,19 @@ export default function Contact3() {
           100% { transform: translateX(-14px) translateY(0px)   rotate(-2deg); }
         }
 
-        /* ════ Form card ════ */
         .c3-card-col { display: flex; align-items: center; padding: 40px 0 40px 16px; }
-
         .c3-card {
-          background: rgba(255,255,255,.22);
-          border: 1.5px solid rgba(255,255,255,.45);
-          border-radius: 22px;
-          padding: 34px 34px 38px;
-          width: 100%;
+          background: rgba(255,255,255,.22); border: 1.5px solid rgba(255,255,255,.45);
+          border-radius: 22px; padding: 34px 34px 38px; width: 100%;
           box-shadow: 0 8px 32px rgba(26,80,120,.12);
         }
 
         .c3-eyebrow-wrap { margin-bottom: 10px; }
         .c3-eyebrow {
           display: inline-flex; align-items: center; gap: 6px;
-          border: 1.5px dashed #1a4f72;
-          color: #1a4f72; font-size: 11px; font-weight: 700;
-          letter-spacing: .13em; text-transform: uppercase;
-          padding: 5px 13px; border-radius: 6px;
+          border: 1.5px dashed #1a4f72; color: #1a4f72;
+          font-size: 11px; font-weight: 700; letter-spacing: .13em;
+          text-transform: uppercase; padding: 5px 13px; border-radius: 6px;
         }
         .c3-title {
           font-size: clamp(22px, 3.2vw, 34px); font-weight: 800;
@@ -305,14 +257,7 @@ export default function Contact3() {
         .c3-input:focus { box-shadow: 0 0 0 2.5px rgba(26,80,120,.25), 0 1px 4px rgba(26,80,120,.08); }
         .c3-ta { min-height: 130px; resize: vertical; padding-top: 12px; }
 
-        .c3-sel-wrap { position: relative; }
-        .c3-sel-wrap .c3-input { padding-right: 36px; cursor: pointer; }
-        .c3-chev {
-          position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-          width: 10px; height: 7px; color: #6b8caa; pointer-events: none;
-        }
-
-        .c3-btn-wrap { display: inline-flex; align-items: center; gap: 10px; }
+        .c3-btn-wrap    { display: inline-flex; align-items: center; gap: 10px; }
         .c3-btn-loading { opacity: .65; pointer-events: none; }
 
         .c3-spinner {
