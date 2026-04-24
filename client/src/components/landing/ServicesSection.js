@@ -2,10 +2,13 @@
 import { useEffect, useState } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 
+var INITIAL_COUNT = 3;
+
 export default function ServicesSection() {
   var [services, setServices] = useState([]);
   var [loading, setLoading]   = useState(true);
   var [error, setError]       = useState(null);
+  var [showAll, setShowAll]   = useState(false);
 
   useEffect(function() {
     fetch("/api/services")
@@ -19,6 +22,10 @@ export default function ServicesSection() {
       .catch(function(e) { setError(e.message); })
       .finally(function() { setLoading(false); });
   }, []);
+
+  /* Slice to 3 unless expanded */
+  var visible      = showAll ? services : services.slice(0, INITIAL_COUNT);
+  var hasMore      = services.length > INITIAL_COUNT;
 
   return (
     <>
@@ -45,7 +52,7 @@ export default function ServicesSection() {
           {/* ── Content ── */}
           {loading ? (
             <div className="srv-grid">
-              {[0,1,2,3,4,5].map(function(i) {
+              {[0,1,2].map(function(i) {
                 return (
                   <div key={i} className="srv-sk-card">
                     <div className="srv-sk-img" />
@@ -67,11 +74,49 @@ export default function ServicesSection() {
           ) : services.length === 0 ? (
             <p className="srv-empty">No services available at the moment.</p>
           ) : (
-            <div className="srv-grid">
-              {services.map(function(s, i) {
-                return <ServiceCard key={s._id || i} service={s} index={i} />;
-              })}
-            </div>
+            <>
+              <div className="srv-grid">
+                {visible.map(function(s, i) {
+                  return <ServiceCard key={s._id || i} service={s} index={i} />;
+                })}
+              </div>
+
+              {/* Show More / Show Less button — only if more than 3 */}
+              {hasMore && (
+                <div className="srv-toggle-row">
+                  <button
+                    className="srv-toggle-btn"
+                    onClick={function() { setShowAll(function(prev) { return !prev; }); }}
+                  >
+                    {showAll ? (
+                      <>
+                        Show Less
+                        <span className="srv-toggle-icon srv-toggle-up">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 15l-6-6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        Show More
+                        <span className="srv-toggle-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </span>
+                      </>
+                    )}
+                  </button>
+                  <span className="srv-toggle-count">
+                    {showAll
+                      ? "Showing all " + services.length + " services"
+                      : (services.length - INITIAL_COUNT) + " more services available"
+                    }
+                  </span>
+                </div>
+              )}
+            </>
           )}
 
         </div>
@@ -97,7 +142,7 @@ export default function ServicesSection() {
         }
 
         /* Grid */
-        .srv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+        .srv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 
         /* Card */
         .srv-card {
@@ -109,19 +154,14 @@ export default function ServicesSection() {
         .srv-card:hover { transform: translateY(-5px); box-shadow: 0 12px 36px rgba(11,38,64,.12); border-color: #1a3c6e; }
         @keyframes srv-in { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
 
-        /* Image area — uses plain <img> not Next Image */
+        /* Image */
         .srv-img-wrap {
           position: relative; width: 100%; height: 196px;
           overflow: hidden; background: #e5eaf4; flex-shrink: 0;
         }
-        .srv-hero-img {
-          width: 100%; height: 100%;
-          object-fit: cover; display: block;
-          transition: transform .4s ease;
-        }
+        .srv-hero-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
         .srv-card:hover .srv-hero-img { transform: scale(1.05); }
 
-        /* Placeholder — shown when no image */
         .srv-placeholder {
           width: 100%; height: 100%; display: flex; align-items: center;
           justify-content: center; flex-direction: column; gap: 10px;
@@ -129,7 +169,6 @@ export default function ServicesSection() {
         }
         .srv-placeholder svg { width: 44px; height: 44px; color: #1a3c6e; opacity: .3; }
 
-        /* Icon overlay (shown over heroImage, bottom-right) */
         .srv-icon-overlay {
           position: absolute; bottom: 12px; right: 12px;
           width: 44px; height: 44px; border-radius: 10px;
@@ -139,7 +178,6 @@ export default function ServicesSection() {
         }
         .srv-icon-overlay img { width: 28px; height: 28px; object-fit: contain; }
 
-        /* Icon badge in placeholder (center) */
         .srv-icon-badge {
           width: 60px; height: 60px; border-radius: 14px;
           background: #fff; box-shadow: 0 4px 16px rgba(11,38,64,.12);
@@ -147,14 +185,13 @@ export default function ServicesSection() {
         }
         .srv-icon-badge img { width: 38px; height: 38px; object-fit: contain; }
 
-        /* Category badge */
         .srv-badge {
           position: absolute; top: 12px; left: 12px; background: #e8a020; color: #fff;
           font-size: 10.5px; font-weight: 700; letter-spacing: .07em;
           padding: 4px 10px; border-radius: 20px; text-transform: uppercase;
         }
 
-        /* Card body */
+        /* Body */
         .srv-body     { padding: 22px 22px 26px; display: flex; flex-direction: column; flex: 1; }
         .srv-num      { font-size: 11px; font-weight: 700; color: #e8a020; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
         .srv-name     { font-size: 18px; font-weight: 800; color: #0b2640; margin: 0 0 4px; line-height: 1.25; }
@@ -162,12 +199,34 @@ export default function ServicesSection() {
         .srv-desc     { font-size: 13.5px; color: #5a7080; line-height: 1.65; margin: 0 0 14px; flex: 1;
                         display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        /* Feature chips */
         .srv-features  { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
         .srv-feat-chip {
           font-size: 11px; font-weight: 600; color: #1a3c6e;
           background: #eef2fb; border: 1px solid #d0dbf0;
           border-radius: 20px; padding: 3px 10px; white-space: nowrap;
+        }
+
+        /* ── Show More / Less row ── */
+        .srv-toggle-row {
+          display: flex; align-items: center; justify-content: center;
+          gap: 14px; margin-top: 36px; flex-wrap: wrap;
+        }
+        .srv-toggle-btn {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: #0d2f4a; color: #fff; border: none; border-radius: 50px;
+          padding: 13px 28px; font-size: 15px; font-weight: 700;
+          cursor: pointer; font-family: inherit; letter-spacing: .01em;
+          transition: background .2s, transform .15s;
+        }
+        .srv-toggle-btn:hover { background: #1a4f72; transform: translateY(-1px); }
+        .srv-toggle-icon {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 26px; height: 26px; background: #3a7ca5; border-radius: 50%;
+          flex-shrink: 0; transition: background .2s;
+        }
+        .srv-toggle-btn:hover .srv-toggle-icon { background: #e8a020; }
+        .srv-toggle-count {
+          font-size: 13px; color: #6b8caa; font-weight: 500;
         }
 
         /* Skeleton */
@@ -187,7 +246,10 @@ export default function ServicesSection() {
         .srv-state svg { margin: 0 auto 14px; display: block; }
         .srv-empty { text-align: center; color: #6b8caa; padding: 56px 20px; font-size: 15px; }
 
-        @media (max-width: 640px) {
+        @media (max-width: 900px) {
+          .srv-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 580px) {
           .srv-wrap { padding: 56px 16px 64px; }
           .srv-grid { grid-template-columns: 1fr; }
         }
@@ -196,11 +258,6 @@ export default function ServicesSection() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────
-   ServiceCard
-   Uses plain <img> tags — no Next.js Image component.
-   This avoids remotePatterns / domain config issues entirely.
-───────────────────────────────────────────────────────── */
 function ServiceCard({ service, index }) {
   var [imgFailed, setImgFailed] = useState(false);
 
@@ -211,25 +268,15 @@ function ServiceCard({ service, index }) {
   var subtitle = service.subtitle || "";
   var desc     = service.shortDescription || service.description1 || service.description || "";
   var features = Array.isArray(service.keyFeatures) ? service.keyFeatures.slice(0, 3) : [];
-
-  /* Show placeholder if: no URL, or URL failed to load */
   var showImage = heroSrc && !imgFailed;
 
   return (
     <article className="srv-card" style={{ animationDelay: index * 70 + "ms" }}>
-
-      {/* ── Image area ── */}
       <div className="srv-img-wrap">
         {showImage ? (
           <>
-            {/* Plain <img> — works with any domain, no Next.js config needed */}
-            <img
-              className="srv-hero-img"
-              src={heroSrc}
-              alt={title}
-              onError={function() { setImgFailed(true); }}
-            />
-            {/* Icon badge overlaid on image */}
+            <img className="srv-hero-img" src={heroSrc} alt={title}
+              onError={function() { setImgFailed(true); }} />
             {iconSrc && (
               <div className="srv-icon-overlay">
                 <img src={iconSrc} alt={title + " icon"} onError={function(e){ e.target.style.display="none"; }} />
@@ -237,7 +284,6 @@ function ServiceCard({ service, index }) {
             )}
           </>
         ) : (
-          /* Placeholder — icon badge or generic SVG */
           <div className="srv-placeholder">
             {iconSrc ? (
               <div className="srv-icon-badge">
@@ -251,11 +297,9 @@ function ServiceCard({ service, index }) {
             )}
           </div>
         )}
-
         {service.category && <span className="srv-badge">{service.category}</span>}
       </div>
 
-      {/* ── Body ── */}
       <div className="srv-body">
         <span className="srv-num">{String(index + 1).padStart(2, "0")}</span>
         <h3 className="srv-name">{title}</h3>
@@ -270,7 +314,6 @@ function ServiceCard({ service, index }) {
         )}
         {slug && <ButtonPrimary text="Learn More" url={"/services/" + slug} />}
       </div>
-
     </article>
   );
 }
