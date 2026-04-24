@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 
 export default function ServicesSection() {
@@ -13,7 +12,6 @@ export default function ServicesSection() {
       .then(function(r) { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then(function(d) {
         var list = Array.isArray(d) ? d : d.services ?? d.data ?? [];
-        // only show active + not hidden
         setServices(list.filter(function(s) {
           return s.isActive !== false && s.isHidden !== true;
         }));
@@ -83,7 +81,6 @@ export default function ServicesSection() {
         .srv-wrap      { background: #edf0f4; padding: 80px 24px 88px; font-family: 'Segoe UI', system-ui, sans-serif; }
         .srv-container { max-width: 1160px; margin: 0 auto; }
 
-        /* Header */
         .srv-header {
           display: flex; align-items: flex-end; justify-content: space-between;
           gap: 20px; margin-bottom: 44px; flex-wrap: wrap;
@@ -112,30 +109,27 @@ export default function ServicesSection() {
         .srv-card:hover { transform: translateY(-5px); box-shadow: 0 12px 36px rgba(11,38,64,.12); border-color: #1a3c6e; }
         @keyframes srv-in { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
 
-        /* Hero image area */
-        .srv-img {
+        /* Image area — uses plain <img> not Next Image */
+        .srv-img-wrap {
           position: relative; width: 100%; height: 196px;
           overflow: hidden; background: #e5eaf4; flex-shrink: 0;
         }
-        .srv-img img { object-fit: cover; transition: transform .4s ease; }
-        .srv-card:hover .srv-img img { transform: scale(1.05); }
+        .srv-hero-img {
+          width: 100%; height: 100%;
+          object-fit: cover; display: block;
+          transition: transform .4s ease;
+        }
+        .srv-card:hover .srv-hero-img { transform: scale(1.05); }
 
-        /* Placeholder when no heroImage */
+        /* Placeholder — shown when no image */
         .srv-placeholder {
-          width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-          background: linear-gradient(135deg, #dce6f7, #e8eff9); flex-direction: column; gap: 10px;
+          width: 100%; height: 100%; display: flex; align-items: center;
+          justify-content: center; flex-direction: column; gap: 10px;
+          background: linear-gradient(135deg, #dce6f7, #e8eff9);
         }
         .srv-placeholder svg { width: 44px; height: 44px; color: #1a3c6e; opacity: .3; }
 
-        /* Icon badge (shown when icon exists but no heroImage) */
-        .srv-icon-badge {
-          width: 56px; height: 56px; border-radius: 14px;
-          background: #fff; box-shadow: 0 4px 16px rgba(11,38,64,.12);
-          display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
-        .srv-icon-badge img { width: 36px; height: 36px; object-fit: contain; }
-
-        /* Floating icon overlay on heroImage */
+        /* Icon overlay (shown over heroImage, bottom-right) */
         .srv-icon-overlay {
           position: absolute; bottom: 12px; right: 12px;
           width: 44px; height: 44px; border-radius: 10px;
@@ -145,6 +139,14 @@ export default function ServicesSection() {
         }
         .srv-icon-overlay img { width: 28px; height: 28px; object-fit: contain; }
 
+        /* Icon badge in placeholder (center) */
+        .srv-icon-badge {
+          width: 60px; height: 60px; border-radius: 14px;
+          background: #fff; box-shadow: 0 4px 16px rgba(11,38,64,.12);
+          display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .srv-icon-badge img { width: 38px; height: 38px; object-fit: contain; }
+
         /* Category badge */
         .srv-badge {
           position: absolute; top: 12px; left: 12px; background: #e8a020; color: #fff;
@@ -153,15 +155,15 @@ export default function ServicesSection() {
         }
 
         /* Card body */
-        .srv-body    { padding: 22px 22px 26px; display: flex; flex-direction: column; flex: 1; }
-        .srv-num     { font-size: 11px; font-weight: 700; color: #e8a020; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
-        .srv-name    { font-size: 18px; font-weight: 800; color: #0b2640; margin: 0 0 4px; line-height: 1.25; }
-        .srv-subtitle{ font-size: 12.5px; color: #3a7ca5; font-weight: 600; margin: 0 0 8px; }
-        .srv-desc    { font-size: 13.5px; color: #5a7080; line-height: 1.65; margin: 0 0 14px; flex: 1;
-                       display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .srv-body     { padding: 22px 22px 26px; display: flex; flex-direction: column; flex: 1; }
+        .srv-num      { font-size: 11px; font-weight: 700; color: #e8a020; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+        .srv-name     { font-size: 18px; font-weight: 800; color: #0b2640; margin: 0 0 4px; line-height: 1.25; }
+        .srv-subtitle { font-size: 12.5px; color: #3a7ca5; font-weight: 600; margin: 0 0 8px; }
+        .srv-desc     { font-size: 13.5px; color: #5a7080; line-height: 1.65; margin: 0 0 14px; flex: 1;
+                        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        /* Key features chips */
-        .srv-features { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+        /* Feature chips */
+        .srv-features  { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
         .srv-feat-chip {
           font-size: 11px; font-weight: 600; color: #1a3c6e;
           background: #eef2fb; border: 1px solid #d0dbf0;
@@ -194,52 +196,52 @@ export default function ServicesSection() {
   );
 }
 
-/* ─────────────────────────────────────────
-   ServiceCard — uses ALL schema fields
-───────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────
+   ServiceCard
+   Uses plain <img> tags — no Next.js Image component.
+   This avoids remotePatterns / domain config issues entirely.
+───────────────────────────────────────────────────────── */
 function ServiceCard({ service, index }) {
+  var [imgFailed, setImgFailed] = useState(false);
+
   var slug     = service.slug || service._id;
-
-  // Images — heroImage first, fall back to detailImage1, then detailImage2
-  var heroSrc  = service.heroImage    || service.detailImage1 || service.detailImage2 || null;
-  var iconSrc  = service.icon         || null;
-
-  // Text
-  var title    = service.title        || service.name        || "";
-  var subtitle = service.subtitle     || "";
+  var heroSrc  = service.heroImage || service.detailImage1 || service.detailImage2 || null;
+  var iconSrc  = service.icon || null;
+  var title    = service.title || service.name || "";
+  var subtitle = service.subtitle || "";
   var desc     = service.shortDescription || service.description1 || service.description || "";
+  var features = Array.isArray(service.keyFeatures) ? service.keyFeatures.slice(0, 3) : [];
 
-  // Key features — show max 3 chips to keep cards uniform
-  var features = Array.isArray(service.keyFeatures)
-    ? service.keyFeatures.slice(0, 3)
-    : [];
+  /* Show placeholder if: no URL, or URL failed to load */
+  var showImage = heroSrc && !imgFailed;
 
   return (
     <article className="srv-card" style={{ animationDelay: index * 70 + "ms" }}>
 
-      {/* ── Image / placeholder area ── */}
-      <div className="srv-img">
-        {heroSrc ? (
+      {/* ── Image area ── */}
+      <div className="srv-img-wrap">
+        {showImage ? (
           <>
-            <Image
+            {/* Plain <img> — works with any domain, no Next.js config needed */}
+            <img
+              className="srv-hero-img"
               src={heroSrc}
               alt={title}
-              fill
-              sizes="(max-width:640px)100vw,360px"
+              onError={function() { setImgFailed(true); }}
             />
-            {/* Icon overlay on top of hero image */}
+            {/* Icon badge overlaid on image */}
             {iconSrc && (
               <div className="srv-icon-overlay">
-                <img src={iconSrc} alt={title + " icon"} />
+                <img src={iconSrc} alt={title + " icon"} onError={function(e){ e.target.style.display="none"; }} />
               </div>
             )}
           </>
         ) : (
-          /* No heroImage — show placeholder + icon badge if available */
+          /* Placeholder — icon badge or generic SVG */
           <div className="srv-placeholder">
             {iconSrc ? (
               <div className="srv-icon-badge">
-                <img src={iconSrc} alt={title + " icon"} />
+                <img src={iconSrc} alt={title + " icon"} onError={function(e){ e.target.style.display="none"; }} />
               </div>
             ) : (
               <svg viewBox="0 0 24 24" fill="none">
@@ -250,27 +252,15 @@ function ServiceCard({ service, index }) {
           </div>
         )}
 
-        {/* Category badge */}
-        {service.category && (
-          <span className="srv-badge">{service.category}</span>
-        )}
+        {service.category && <span className="srv-badge">{service.category}</span>}
       </div>
 
-      {/* ── Card body ── */}
+      {/* ── Body ── */}
       <div className="srv-body">
-        {/* Number */}
         <span className="srv-num">{String(index + 1).padStart(2, "0")}</span>
-
-        {/* Title */}
         <h3 className="srv-name">{title}</h3>
-
-        {/* Subtitle */}
         {subtitle && <p className="srv-subtitle">{subtitle}</p>}
-
-        {/* Short description */}
-        {desc && <p className="srv-desc">{desc}</p>}
-
-        {/* Key features as chips */}
+        {desc     && <p className="srv-desc">{desc}</p>}
         {features.length > 0 && (
           <div className="srv-features">
             {features.map(function(f, i) {
@@ -278,12 +268,9 @@ function ServiceCard({ service, index }) {
             })}
           </div>
         )}
-
-        {/* Learn More button */}
-        {slug && (
-          <ButtonPrimary text="Learn More" url={"/services/" + slug} />
-        )}
+        {slug && <ButtonPrimary text="Learn More" url={"/services/" + slug} />}
       </div>
+
     </article>
   );
 }
