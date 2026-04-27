@@ -3,12 +3,12 @@ import { useState, useRef } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import contactApi from "@/utils/contactApi";
 
-var EMPTY_FORM = { fullName: "", email: "", phone: "", message: "", subject: "" };
+var EMPTY_FORM = { fullName: "", email: "", phone: "", subject: "", message: "" };
 
 var Contact3 = function () {
-  var formState   = useState(EMPTY_FORM);
-  var form        = formState[0];
-  var setForm     = formState[1];
+  var formState  = useState(EMPTY_FORM);
+  var form       = formState[0];
+  var setForm    = formState[1];
 
   var statusState = useState("idle");
   var status      = statusState[0];
@@ -50,7 +50,7 @@ var Contact3 = function () {
         fullName: form.fullName.trim(),
         email:    form.email.trim(),
         phone:    form.phone.trim(),
-         subject:  form.subject.trim(),
+        subject:  form.subject.trim(),
         message:  form.message.trim(),
       })
       .then(function (res) {
@@ -147,19 +147,8 @@ var Contact3 = function () {
                       />
                     </div>
                   </div>
-                  <div className="col-sm-12">
-  <div className="form-input">
-    <input
-      type="text"
-      name="subject"
-      value={form.subject}
-      onChange={handleChange}
-      placeholder="Subject"
-    />
-  </div>
-</div>
 
-                  <div className="col-sm-12">
+                  <div className="col-sm-6">
                     <div className="form-input">
                       <input
                         type="tel"
@@ -167,6 +156,18 @@ var Contact3 = function () {
                         value={form.phone}
                         onChange={handleChange}
                         placeholder="Phone number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-sm-6">
+                    <div className="form-input">
+                      <input
+                        type="text"
+                        name="subject"
+                        value={form.subject}
+                        onChange={handleChange}
+                        placeholder="Subject"
                       />
                     </div>
                   </div>

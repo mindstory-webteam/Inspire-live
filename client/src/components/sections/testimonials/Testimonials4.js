@@ -1,22 +1,11 @@
 "use client";
 import TestimonialsCard2 from "@/components/shared/cards/TestimonialsCard2";
-import ReactNiceSelect from "@/components/shared/Inputs/ReactNiceSelect";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import { Autoplay, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useEffect, useRef, useState } from "react";
 import contactApi from "@/utils/contactApi";
 import { getTestimonialsClient } from "@/utils/testimonialApi";
-
-// ── Service options ───────────────────────────────────────────────────────────
-const SERVICE_OPTIONS = [
-  { value: "",             optionName: "Choose a Service" },
-	{ value: "PhD India",        optionName: "PhD India" },
-	{ value: "PhD Abroad",       optionName: "PhD Abroad" },
-	{ value: "Study Abroad",     optionName: "Study Abroad" },
-	{ value: "Research Support", optionName: "Research Support" },
-	{ value: "Other",            optionName: "Other" },
-];
 
 const EMPTY_FORM = { fullName: "", email: "", phone: "", subject: "", message: "" };
 
@@ -42,9 +31,6 @@ const Testimonials4 = () => {
   const handleChange = (e) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleServiceChange = (option) =>
-    setForm(prev => ({ ...prev, service: option?.value || "" }));
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (submitting.current) return;
@@ -62,11 +48,10 @@ const Testimonials4 = () => {
     try {
       const res = await contactApi.submit({
         fullName: form.fullName.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
+        email:    form.email.trim(),
+        phone:    form.phone.trim(),
         subject:  form.subject.trim(),
-       
-        message: form.message.trim(),
+        message:  form.message.trim(),
       });
 
       if (res.data?.success) {
@@ -154,7 +139,7 @@ const Testimonials4 = () => {
                         value={form.fullName}
                         onChange={handleChange}
                         placeholder="Full Name*"
-                        style={{ color: "black ", backgroundColor: "#fff" }}
+                        style={{ color: "black", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
@@ -168,7 +153,7 @@ const Testimonials4 = () => {
                         value={form.email}
                         onChange={handleChange}
                         placeholder="Email Address*"
-                        style={{ color: "black ", backgroundColor: "#fff" }}
+                        style={{ color: "black", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
@@ -182,24 +167,24 @@ const Testimonials4 = () => {
                         value={form.phone}
                         onChange={handleChange}
                         placeholder="Phone number"
-                        style={{ color: "black ", backgroundColor: "#fff" }}
+                        style={{ color: "black", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
 
-                 <div className="col-sm-6">
-  <div className="form-input">
-    <label className="cf-label">Subject</label>
-    <input
-      type="text"
-      name="subject"
-      value={form.subject}
-      onChange={handleChange}
-      placeholder="Subject"
-      style={{ color: "black", backgroundColor: "#fff" }}
-    />
-  </div>
-</div>
+                  <div className="col-sm-6">
+                    <div className="form-input">
+                      <label className="cf-label">Subject</label>
+                      <input
+                        type="text"
+                        name="subject"
+                        value={form.subject}
+                        onChange={handleChange}
+                        placeholder="Subject"
+                        style={{ color: "black", backgroundColor: "#fff" }}
+                      />
+                    </div>
+                  </div>
 
                   <div className="col-sm-12">
                     <div className="form-input message-input">
@@ -210,7 +195,7 @@ const Testimonials4 = () => {
                         value={form.message}
                         onChange={handleChange}
                         placeholder="Type message*"
-                        style={{ color: "black ", backgroundColor: "#fff"}}
+                        style={{ color: "black", backgroundColor: "#fff" }}
                       />
                     </div>
                   </div>
