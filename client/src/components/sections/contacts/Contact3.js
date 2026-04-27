@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import contactApi from "@/utils/contactApi";
 
-var EMPTY_FORM = { fullName: "", email: "", phone: "", message: "" };
+var EMPTY_FORM = { fullName: "", email: "", phone: "", message: "", subject: "" };
 
 var Contact3 = function () {
   var formState   = useState(EMPTY_FORM);
@@ -50,6 +50,7 @@ var Contact3 = function () {
         fullName: form.fullName.trim(),
         email:    form.email.trim(),
         phone:    form.phone.trim(),
+         subject:  form.subject.trim(),
         message:  form.message.trim(),
       })
       .then(function (res) {
@@ -146,6 +147,17 @@ var Contact3 = function () {
                       />
                     </div>
                   </div>
+                  <div className="col-sm-12">
+  <div className="form-input">
+    <input
+      type="text"
+      name="subject"
+      value={form.subject}
+      onChange={handleChange}
+      placeholder="Subject"
+    />
+  </div>
+</div>
 
                   <div className="col-sm-12">
                     <div className="form-input">

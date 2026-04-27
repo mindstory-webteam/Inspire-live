@@ -10,7 +10,7 @@ const Contact = require('../models/Contact');
  */
 const submitContact = async (req, res) => {
   try {
-    const { fullName, email, phone, service, message } = req.body;
+    const { fullName, email, phone, subject, message } = req.body;
 
     if (!fullName || !email || !message) {
       return res.status(400).json({
@@ -22,8 +22,8 @@ const submitContact = async (req, res) => {
     const contact = await Contact.create({
       fullName,
       email,
-      phone:     phone   || '',
-      service:   service || '',
+      phone:    phone   || '',
+      subject:  subject || '',
       message,
       ipAddress: req.ip || '',
     });
@@ -69,7 +69,7 @@ const getAllContacts = async (req, res) => {
         { fullName: { $regex: search, $options: 'i' } },
         { email:    { $regex: search, $options: 'i' } },
         { message:  { $regex: search, $options: 'i' } },
-        { service:  { $regex: search, $options: 'i' } },
+        { subject:  { $regex: search, $options: 'i' } },
       ];
     }
 

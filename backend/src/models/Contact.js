@@ -19,11 +19,11 @@ const contactSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
-    service: {
-      type: String,
-      default: '',
-      trim: true,
-    },
+    subject: {
+  type: String,
+  default: '',
+  trim: true,
+},
     message: {
       type: String,
       required: [true, 'Message is required'],
