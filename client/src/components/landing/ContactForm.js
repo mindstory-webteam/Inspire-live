@@ -8,10 +8,10 @@ var EMPTY_FORM = { fullName: "", email: "", phone: "", subject: "", message: "" 
 var PERSON_IMAGE = "/enquiry-form/p-2.webp";
 
 var FLOAT_IMAGES = [
-  { src: "/enquiry-form/f-2.webp",          alt: "Academic",     top: "8%",  left: "-30px", size: 90, delay: "0s",   dur: "6s"   },
-  { src: "/enquiry-form/f-3.webp",  alt: "Research",     top: "35%", left: "5%",    size: 75, delay: "1.2s", dur: "5.5s" },
-  { src: "/enquiry-form/f-5.webp",                      alt: "Team",         top: "62%", left: "-20px", size: 82, delay: "0.6s", dur: "7s"   },
-  { src: "/enquiry-form/f-2.webp",  alt: "Consultation", top: "18%", right: "0px",  size: 70, delay: "1.8s", dur: "6.5s" },
+  { src: "/enquiry-form/f-1.webp",          alt: "Academic",     top: "8%",  left: "-30px", size: 90, delay: "0s",   dur: "6s"   },
+  { src: "/enquiry-form/f-2.webp",  alt: "Research",     top: "35%", left: "5%",    size: 75, delay: "1.2s", dur: "5.5s" },
+  { src: "/enquiry-form/f-4.webp",                      alt: "Team",         top: "62%", left: "-20px", size: 82, delay: "0.6s", dur: "7s"   },
+  { src: "/enquiry-form/f-3.webp",  alt: "Consultation", top: "18%", right: "0px",  size: 70, delay: "1.8s", dur: "6.5s" },
  
 ];
 
