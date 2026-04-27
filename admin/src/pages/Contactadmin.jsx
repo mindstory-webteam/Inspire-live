@@ -176,6 +176,16 @@ function ContactDetail({ contact, onStatusChange, onClose }) {
             ? <a href={`tel:${contact.phone}`} style={{ fontSize: 14, color: '#374151', fontWeight: 600, textDecoration: 'none' }}>{contact.phone}</a>
             : <span style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>Not provided</span>}
         </div>
+
+        {/* ── SUBJECT (new) ── */}
+        <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', gridColumn: '1 / -1' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <MessageSquare size={11} /> Subject
+          </div>
+          {contact.subject
+            ? <span style={{ fontSize: 14, color: '#374151', fontWeight: 600 }}>{contact.subject}</span>
+            : <span style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>Not provided</span>}
+        </div>
       </div>
 
       {/* Message */}
@@ -188,7 +198,7 @@ function ContactDetail({ contact, onStatusChange, onClose }) {
 
       {/* Quick reply */}
       <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 10 }}>
-        <a href={`mailto:${contact.email}?subject=Re: Your enquiry`}
+        <a href={`mailto:${contact.email}?subject=Re: ${encodeURIComponent(contact.subject || 'Your enquiry')}`}
           style={{ ...B('primary'), textDecoration: 'none', flex: 1, justifyContent: 'center' }}>
           <Mail size={14} /> Reply via Email
         </a>
@@ -373,7 +383,8 @@ export default function ContactAdmin() {
                     <input type="checkbox" checked={bulkIds.length === contacts.length && contacts.length > 0}
                       onChange={toggleAllBulk} style={{ cursor: 'pointer' }} />
                   </th>
-                  {['Sender', 'Message Preview', 'Status', 'Received', 'Actions'].map(h => (
+                  {/* ── UPDATED header ── */}
+                  {['Sender', 'Subject / Message', 'Status', 'Received', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -398,11 +409,19 @@ export default function ContactAdmin() {
                         </div>
                       </div>
                     </td>
+
+                    {/* ── UPDATED message cell with subject ── */}
                     <td style={{ padding: '12px 14px', maxWidth: 260 }}>
+                      {c.subject && (
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#1a598a', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {c.subject}
+                        </div>
+                      )}
                       <div style={{ fontSize: 13, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {c.message}
                       </div>
                     </td>
+
                     <td style={{ padding: '12px 14px' }}>
                       <StatusBadge status={c.status} />
                     </td>

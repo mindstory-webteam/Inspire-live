@@ -18,7 +18,7 @@ const SERVICE_OPTIONS = [
 	{ value: "Other",            optionName: "Other" },
 ];
 
-const EMPTY_FORM = { fullName: "", email: "", phone: "", service: "", message: "" };
+const EMPTY_FORM = { fullName: "", email: "", phone: "", subject: "", message: "" };
 
 // ─────────────────────────────────────────────────────────────────────────────
 const Testimonials4 = () => {
@@ -64,7 +64,8 @@ const Testimonials4 = () => {
         fullName: form.fullName.trim(),
         email: form.email.trim(),
         phone: form.phone.trim(),
-        service: form.service,
+        subject:  form.subject.trim(),
+       
         message: form.message.trim(),
       });
 
@@ -186,21 +187,19 @@ const Testimonials4 = () => {
                     </div>
                   </div>
 
-                  <div className="col-sm-6">
-                    <div className="form-input">
-                      <div className="tj-nice-select-box">
-                        <div className="tj-select">
-                          <label className="cf-label">Choose a option</label>
-                          <ReactNiceSelect
-                            selectedIndex={0}
-                            options={SERVICE_OPTIONS}
-                            getSelectedOption={handleServiceChange}
-                            style={{ color: "black ", backgroundColor: "#fff" }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                 <div className="col-sm-6">
+  <div className="form-input">
+    <label className="cf-label">Subject</label>
+    <input
+      type="text"
+      name="subject"
+      value={form.subject}
+      onChange={handleChange}
+      placeholder="Subject"
+      style={{ color: "black", backgroundColor: "#fff" }}
+    />
+  </div>
+</div>
 
                   <div className="col-sm-12">
                     <div className="form-input message-input">
