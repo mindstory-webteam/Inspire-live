@@ -2,7 +2,7 @@
  * controllers/testimonialController.js
  */
 const Testimonial = require('../models/Testimonial');
-const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
+const { deleteFromCloudinary } = require('../middleware/upload');
 
 // Verify model loaded correctly on startup
 console.log('✅ Testimonial model loaded:', !!Testimonial);

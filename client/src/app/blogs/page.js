@@ -45,7 +45,7 @@ function BlogCard(props) {
 
   var href = '/blogs/' + (blog.slug || blog._id);
 
-  var base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+  var base = (process.env.NEXT_PUBLIC_API_URL || 'https://inspireeducationservice.com/api').replace(/\/api\/?$/, '');
   var imgSrc = blog.img
     ? blog.img.startsWith('http')
       ? blog.img
@@ -137,7 +137,11 @@ export default function BlogsGridPrimary() {
   return (
     <>
       <style>{`
+<<<<<<< Updated upstream
        
+=======
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+>>>>>>> Stashed changes
 
         /* ─── CSS tokens from SCSS vars ─── */
         :root {
@@ -289,7 +293,11 @@ export default function BlogsGridPrimary() {
 
         /* ── Title ── */
         .bc-title {
+<<<<<<< Updated upstream
          
+=======
+          font-family: inherit;
+>>>>>>> Stashed changes
           font-size: 1.2rem;
           font-weight: 700;
           color: var(--td);
@@ -392,7 +400,11 @@ export default function BlogsGridPrimary() {
           text-align: center;
         }
         .bg-error-title {
+<<<<<<< Updated upstream
         
+=======
+          font-family: inherit;
+>>>>>>> Stashed changes
           color: #7b2020;
           font-size: 1.2rem;
           margin-bottom: 8px;

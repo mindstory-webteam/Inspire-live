@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 // ✅ Vite uses import.meta.env — NOT process.env
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE = import.meta.env.VITE_API_URL || "https://inspireeducationservice.com/api";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function getAuthHeaders() {

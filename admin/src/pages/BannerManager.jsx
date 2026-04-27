@@ -4,7 +4,7 @@ import {
   Edit2, Eye, EyeOff, ToggleLeft, ToggleRight, Upload, X, Save,
 } from 'lucide-react';
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE = import.meta.env.VITE_API_URL || 'https://inspireeducationservice.com/api';
 const token = () => localStorage.getItem('adminToken') || localStorage.getItem('token');
 const authHeaders = () => ({ Authorization: `Bearer ${token()}` });
 
@@ -182,7 +182,7 @@ function SlideForm({ initial = emptySlide(), onSave, onCancel, loading }) {
 }
 
 function SlideCard({ slide, onEdit, onDelete, onToggleActive, index }) {
-  const mediaBase = 'http://localhost:5000';
+  const mediaBase = 'https://inspireeducationservice.com';
   const src = slide.mediaUrl?.startsWith('http') ? slide.mediaUrl : `${mediaBase}${slide.mediaUrl}`;
 
   return (

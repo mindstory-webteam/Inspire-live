@@ -1,6 +1,6 @@
 const Event = require('../models/Event');
 // Uses your existing upload middleware — update path if needed (e.g. '../middleware/upload')
-const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
+const { deleteFromCloudinary } = require('../middleware/upload');
 
 // ─── Public Controllers ──────────────────────────────────────────────────────
 
@@ -110,7 +110,7 @@ const createEvent = async (req, res) => {
     // Handle uploaded image
     if (req.file) {
       eventData.eventImage = {
-        url: req.file.path,
+        url: 'https://inspireeducationservice.com/uploads/' + req.file.filename,
         publicId: req.file.filename,
       };
     }
@@ -173,7 +173,7 @@ const updateEvent = async (req, res) => {
         }
       }
       updateData.eventImage = {
-        url: req.file.path,
+        url: 'https://inspireeducationservice.com/uploads/' + req.file.filename,
         publicId: req.file.filename,
       };
     }

@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import Link from "next/link";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
 
 const JobIcon = ({ image, iconName, title, size = 80 }) => {
   const [imgFailed, setImgFailed] = useState(false);

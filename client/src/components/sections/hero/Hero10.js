@@ -2,7 +2,7 @@
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import { useEffect, useRef, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
 const SLIDE_DURATION = 5000;
 
 const Hero10 = () => {
@@ -31,7 +31,7 @@ const Hero10 = () => {
   const resolveUrl = (url) => {
     if (!url) return "";
     if (url.startsWith("http")) return url;
-    const base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace("/api", "");
+    const base = (process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com").replace("/api", "");
     return `${base}${url}`;
   };
 

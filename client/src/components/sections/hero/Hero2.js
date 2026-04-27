@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { EffectFade, Navigation, Thumbs } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
 
 const Hero2 = () => {
   const [heroSlides, setHeroSlides] = useState([]);
@@ -39,7 +39,7 @@ const Hero2 = () => {
   const resolveUrl = (url) => {
     if (!url) return "";
     if (url.startsWith("http")) return url;
-    const serverBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace("/api", "");
+    const serverBase = (process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com").replace("/api", "");
     return `${serverBase}${url}`;
   };
 
