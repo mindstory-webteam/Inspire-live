@@ -178,14 +178,15 @@ function ContactDetail({ contact, onStatusChange, onClose }) {
         </div>
 
         {/* ── SUBJECT (new) ── */}
-        <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', gridColumn: '1 / -1' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
-            <MessageSquare size={11} /> Subject
-          </div>
-          {contact.subject
-            ? <span style={{ fontSize: 14, color: '#374151', fontWeight: 600 }}>{contact.subject}</span>
-            : <span style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>Not provided</span>}
-        </div>
+        {/* ── SUBJECT ── */}
+<div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', gridColumn: '1 / -1' }}>
+  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+    <MessageSquare size={11} /> Subject
+  </div>
+  <span style={{ fontSize: 14, color: contact.subject ? '#374151' : '#9ca3af', fontWeight: contact.subject ? 600 : 400, fontStyle: contact.subject ? 'normal' : 'italic' }}>
+    {contact.subject || 'Not provided'}
+  </span>
+</div>
       </div>
 
       {/* Message */}
