@@ -1,38 +1,164 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import contactApi from "@/utils/contactApi";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 
 var EMPTY_FORM = { fullName: "", email: "", phone: "", subject: "", message: "" };
 
-var PERSON_IMAGE = "/enquiry-form/p-2.webp";
-
 var FLOAT_IMAGES = [
-  { src: "/enquiry-form/f-1.webp",          alt: "Academic",     top: "8%",  left: "-30px", size: 90, delay: "0s",   dur: "6s"   },
-  { src: "/enquiry-form/f-2.webp",  alt: "Research",     top: "35%", left: "5%",    size: 75, delay: "1.2s", dur: "5.5s" },
-  { src: "/enquiry-form/f-4.webp",                      alt: "Team",         top: "62%", left: "-20px", size: 82, delay: "0.6s", dur: "7s"   },
-  { src: "/enquiry-form/f-3.webp",  alt: "Consultation", top: "18%", right: "0px",  size: 70, delay: "1.8s", dur: "6.5s" },
- 
+  { src: "/enquiry-form/f-1.webp", alt: "Academic",     top: "8%",  left: "-30px", size: 90, delay: "0s",   dur: "6s"   },
+  { src: "/enquiry-form/f-2.webp", alt: "Research",     top: "35%", left: "5%",    size: 75, delay: "1.2s", dur: "5.5s" },
+  { src: "/enquiry-form/f-4.webp", alt: "Team",         top: "62%", left: "-20px", size: 82, delay: "0.6s", dur: "7s"   },
+  { src: "/enquiry-form/f-3.webp", alt: "Consultation", top: "18%", right: "0px",  size: 70, delay: "1.8s", dur: "6.5s" },
 ];
 
+/* ── Animated SVG Character ── */
+function AnimatedCharacter({ charState }) {
+  var isThinking = charState === "thinking";
+  var isTyping   = charState === "typing";
+  var isHappy    = charState === "happy";
+
+  return (
+    <svg
+      viewBox="0 0 160 290"
+      xmlns="http://www.w3.org/2000/svg"
+      className={
+        "c3-char-svg" +
+        (isThinking ? " c3-char-thinking" : "") +
+        (isHappy    ? " c3-char-happy"    : "")
+      }
+    >
+      {/* Shadow */}
+      <ellipse cx="80" cy="283" rx="40" ry="6" fill="rgba(0,0,0,.15)" />
+
+      {/* Body group — bobs up/down */}
+      <g className="c3-char-body">
+
+        {/* Legs */}
+        <rect x="58" y="200" width="19" height="65" rx="9.5" fill="#2c5f8a" />
+        <rect x="83" y="200" width="19" height="65" rx="9.5" fill="#2c5f8a" />
+        {/* Feet */}
+        <ellipse cx="67"  cy="265" rx="14" ry="7" fill="#1a3d5c" />
+        <ellipse cx="92"  cy="265" rx="14" ry="7" fill="#1a3d5c" />
+
+        {/* Torso */}
+        <rect x="46" y="118" width="68" height="92" rx="20" fill="#4a9fd4" />
+        {/* Shirt collar V */}
+        <path d="M73 118 L80 132 L87 118" fill="white" opacity=".9" />
+        {/* Button strip */}
+        <rect x="77" y="133" width="6" height="55" rx="2" fill="rgba(255,255,255,.18)" />
+
+        {/* Left arm (idle) */}
+        <rect x="30" y="122" width="16" height="52" rx="8" fill="#4a9fd4" />
+        <ellipse cx="38" cy="174" rx="9" ry="9" fill="#f5c5a3" />
+
+        {/* Right arm — waves when happy */}
+        <g
+          className={"c3-arm-right" + (isHappy ? " c3-arm-wave" : "")}
+          style={{ transformOrigin: "112px 122px" }}
+        >
+          <rect x="114" y="122" width="16" height="52" rx="8" fill="#4a9fd4" />
+          <ellipse cx="122" cy="174" rx="9" ry="9" fill="#f5c5a3" />
+        </g>
+
+        {/* Neck */}
+        <rect x="71" y="103" width="18" height="20" rx="7" fill="#f5c5a3" />
+
+        {/* Head */}
+        <ellipse cx="80" cy="84" rx="35" ry="37" fill="#f5c5a3" />
+
+        {/* Hair */}
+        <path d="M45 74 Q47 43 80 41 Q113 43 115 74 Q106 56 80 56 Q54 56 45 74Z" fill="#3d2b1f" />
+        <path d="M45 74 Q43 61 47 53" stroke="#3d2b1f" strokeWidth="9" fill="none" strokeLinecap="round" />
+
+        {/* Ears */}
+        <ellipse cx="45"  cy="84" rx="7" ry="9" fill="#f0b899" />
+        <ellipse cx="115" cy="84" rx="7" ry="9" fill="#f0b899" />
+
+        {/* Eyebrows — arch up when thinking */}
+        <path
+          d="M59 71 Q67 67 75 71"
+          stroke="#3d2b1f" strokeWidth="2.5" fill="none" strokeLinecap="round"
+          className={"c3-brow" + (isThinking ? " c3-brow-up" : "")}
+          style={{ transformOrigin: "67px 69px" }}
+        />
+        <path
+          d="M85 71 Q93 67 101 71"
+          stroke="#3d2b1f" strokeWidth="2.5" fill="none" strokeLinecap="round"
+          className={"c3-brow" + (isThinking ? " c3-brow-up" : "")}
+          style={{ transformOrigin: "93px 69px" }}
+        />
+
+        {/* Eye whites */}
+        <ellipse cx="67" cy="82" rx="8.5" ry="9" fill="white" />
+        <ellipse cx="93" cy="82" rx="8.5" ry="9" fill="white" />
+
+        {/* Pupils — blink */}
+        <g className="c3-eye c3-eye1">
+          <ellipse cx="68" cy="83" rx="5" ry="5.5" fill="#2c1810" />
+          <circle  cx="70" cy="81" r="1.5" fill="white" />
+        </g>
+        <g className="c3-eye c3-eye2">
+          <ellipse cx="94" cy="83" rx="5" ry="5.5" fill="#2c1810" />
+          <circle  cx="96" cy="81" r="1.5" fill="white" />
+        </g>
+
+        {/* Cheeks */}
+        <ellipse cx="56"  cy="95" rx="9" ry="5.5" fill="rgba(255,140,110,.28)" />
+        <ellipse cx="104" cy="95" rx="9" ry="5.5" fill="rgba(255,140,110,.28)" />
+
+        {/* Mouth — neutral / smile / open */}
+        <path
+          d="M72 100 Q80 105 88 100"
+          stroke="#c0785a" strokeWidth="2.5" fill="none" strokeLinecap="round"
+          style={{ opacity: (!isTyping && !isHappy) ? 1 : 0, transition: "opacity .25s" }}
+        />
+        <path
+          d="M69 98 Q80 110 91 98"
+          stroke="#c0785a" strokeWidth="2.5" fill="none" strokeLinecap="round"
+          style={{ opacity: isHappy ? 1 : 0, transition: "opacity .25s" }}
+        />
+        <ellipse
+          cx="80" cy="101" rx="7" ry="5"
+          fill="#b06040"
+          style={{ opacity: isTyping ? 1 : 0, transition: "opacity .25s" }}
+        />
+      </g>
+
+      {/* Thinking bubble */}
+      <g style={{ opacity: isThinking ? 1 : 0, transition: "opacity .4s" }}>
+        <circle cx="102" cy="38" r="3.5" fill="rgba(255,255,255,.82)" />
+        <circle cx="110" cy="28" r="5.5" fill="rgba(255,255,255,.88)" />
+        <circle cx="122" cy="18" r="9"   fill="rgba(255,255,255,.93)" />
+        <text x="122" y="22" textAnchor="middle" fontSize="10" fill="#3d96c2" fontFamily="sans-serif">...</text>
+      </g>
+    </svg>
+  );
+}
+
 export default function Contact3() {
-  var [form, setForm]     = useState(EMPTY_FORM);
-  var [status, setStatus] = useState("idle");
-  var [errMsg, setErrMsg] = useState("");
-  var submitting          = useRef(false);
+  var [form, setForm]       = useState(EMPTY_FORM);
+  var [status, setStatus]   = useState("idle");
+  var [errMsg, setErrMsg]   = useState("");
+  var [charState, setChar]  = useState("idle");
+  var submitting            = useRef(false);
 
   function handleChange(e) {
     var n = e.target.name, v = e.target.value;
     setForm(function(p) { var x = Object.assign({}, p); x[n] = v; return x; });
+    setChar("typing");
   }
+
+  var handleFocus = useCallback(function() { setChar("thinking"); }, []);
+  var handleBlur  = useCallback(function() { setChar("idle"); }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
     if (submitting.current) return;
     if (!form.fullName.trim() || !form.email.trim() || !form.message.trim()) {
-      setErrMsg("Please fill in all required fields."); setStatus("error"); return;
+      setErrMsg("Please fill in all required fields."); setStatus("error"); setChar("idle"); return;
     }
-    submitting.current = true; setStatus("loading"); setErrMsg("");
+    submitting.current = true; setStatus("loading"); setErrMsg(""); setChar("thinking");
     contactApi
       .submit({
         fullName: form.fullName.trim(),
@@ -42,17 +168,24 @@ export default function Contact3() {
         message:  form.message.trim(),
       })
       .then(function(res) {
-        if (res.data && res.data.success) { setStatus("success"); setForm(EMPTY_FORM); }
-        else { setErrMsg((res.data && res.data.message) || "Something went wrong."); setStatus("error"); }
+        if (res.data && res.data.success) {
+          setStatus("success"); setForm(EMPTY_FORM); setChar("happy");
+          setTimeout(function() { setChar("idle"); }, 4000);
+        } else {
+          setErrMsg((res.data && res.data.message) || "Something went wrong."); setStatus("error"); setChar("idle");
+        }
       })
       .catch(function(err) {
         setErrMsg((err.response && err.response.data && err.response.data.message) || "Network error.");
-        setStatus("error");
+        setStatus("error"); setChar("idle");
       })
       .finally(function() { submitting.current = false; });
   }
 
   var isLoading = status === "loading";
+
+  /* Shared input event props */
+  var inputEvents = { onFocus: handleFocus, onBlur: handleBlur, onChange: handleChange };
 
   return (
     <>
@@ -62,7 +195,7 @@ export default function Contact3() {
 
         <div className="c3-container">
 
-          {/* ════ LEFT — Person + floating images ════ */}
+          {/* ════ LEFT — Animated character + floating images ════ */}
           <div className="c3-person-col">
             <div className="c3-person-wrap">
               {FLOAT_IMAGES.map(function(img, i) {
@@ -78,7 +211,9 @@ export default function Contact3() {
                   </div>
                 );
               })}
-              <img src={PERSON_IMAGE} alt="Contact" className="c3-person-img" />
+
+              {/* ── Animated SVG character (replaces static PERSON_IMAGE) ── */}
+              <AnimatedCharacter charState={charState} />
             </div>
           </div>
 
@@ -118,39 +253,39 @@ export default function Contact3() {
 
               <form onSubmit={handleSubmit} noValidate>
 
-                {/* Row 1 — Full Name + Email */}
+                {/* Row 1 */}
                 <div className="c3-grid2">
                   <div className="c3-field">
                     <label className="c3-label">Full Name <span className="c3-req">*</span></label>
                     <input className="c3-input" type="text" name="fullName"
-                      value={form.fullName} onChange={handleChange} placeholder="Full Name*" />
+                      value={form.fullName} placeholder="Full Name*" {...inputEvents} />
                   </div>
                   <div className="c3-field">
                     <label className="c3-label">Email Address <span className="c3-req">*</span></label>
                     <input className="c3-input" type="email" name="email"
-                      value={form.email} onChange={handleChange} placeholder="Email Address*" />
+                      value={form.email} placeholder="Email Address*" {...inputEvents} />
                   </div>
                 </div>
 
-                {/* Row 2 — Phone + Subject (text input, was dropdown) */}
+                {/* Row 2 */}
                 <div className="c3-grid2">
                   <div className="c3-field">
                     <label className="c3-label">Phone number</label>
                     <input className="c3-input" type="tel" name="phone"
-                      value={form.phone} onChange={handleChange} placeholder="Phone number" />
+                      value={form.phone} placeholder="Phone number" {...inputEvents} />
                   </div>
                   <div className="c3-field">
                     <label className="c3-label">Subject</label>
                     <input className="c3-input" type="text" name="subject"
-                      value={form.subject} onChange={handleChange} placeholder="Enter subject" />
+                      value={form.subject} placeholder="Enter subject" {...inputEvents} />
                   </div>
                 </div>
 
-                {/* Row 3 — Message */}
+                {/* Row 3 */}
                 <div className="c3-field c3-mb20">
                   <label className="c3-label">Message here... <span className="c3-req">*</span></label>
                   <textarea className="c3-input c3-ta" name="message"
-                    value={form.message} onChange={handleChange} placeholder="Type message*" />
+                    value={form.message} placeholder="Type message*" {...inputEvents} />
                 </div>
 
                 <div className={"c3-btn-wrap" + (isLoading ? " c3-btn-loading" : "")}>
@@ -170,6 +305,7 @@ export default function Contact3() {
       </section>
 
       <style>{`
+        /* ── existing styles (unchanged) ── */
         .c3-wrap {
           position: relative;
           background: linear-gradient(160deg, #90cee8 0%, #7dc0e0 40%, #6ab4d8 100%);
@@ -190,12 +326,6 @@ export default function Contact3() {
 
         .c3-person-col { display: flex; align-items: flex-end; justify-content: center; }
         .c3-person-wrap { position: relative; display: inline-block; width: 100%; max-width: 480px; }
-        .c3-person-img {
-          display: block; width: 100%; height: auto;
-          object-fit: contain; object-position: bottom;
-          filter: drop-shadow(0 16px 36px rgba(0,0,0,.18));
-          position: relative; z-index: 2;
-        }
 
         .c3-fimg {
           position: absolute; z-index: 3; border-radius: 50%; overflow: hidden;
@@ -267,6 +397,71 @@ export default function Contact3() {
         }
         @keyframes c3-spin { to { transform: rotate(360deg); } }
 
+        /* ── NEW: Animated character styles ── */
+        .c3-char-svg {
+          display: block;
+          width: 100%;
+          max-width: 300px;
+          height: auto;
+          margin: 0 auto;
+          position: relative;
+          z-index: 2;
+          filter: drop-shadow(0 16px 36px rgba(0,0,0,.18));
+          transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+        }
+        .c3-char-svg.c3-char-thinking {
+          transform: rotate(-4deg) translateX(-6px);
+        }
+        .c3-char-svg.c3-char-happy {
+          transform: translateY(-10px) scale(1.04);
+        }
+
+        /* Body bob */
+        .c3-char-body {
+          animation: c3-char-bob 3.2s ease-in-out infinite;
+        }
+        @keyframes c3-char-bob {
+          0%,100% { transform: translateY(0); }
+          50%      { transform: translateY(-7px); }
+        }
+
+        /* Eye blink */
+        .c3-eye { animation: c3-blink 4.5s ease-in-out infinite; }
+        .c3-eye2 { animation: c3-blink 4.5s ease-in-out 1.8s infinite; }
+        @keyframes c3-blink {
+          0%,88%,100% { transform: scaleY(1); }
+          92%          { transform: scaleY(0.08); }
+        }
+
+        /* Eyebrow raise on thinking */
+        .c3-brow {
+          transition: transform .3s ease;
+        }
+        .c3-brow.c3-brow-up {
+          transform: translateY(-4px);
+        }
+
+        /* Arm idle sway */
+        .c3-arm-right {
+          animation: c3-arm-idle 3.2s ease-in-out infinite;
+        }
+        @keyframes c3-arm-idle {
+          0%,100% { transform: rotate(0deg); }
+          50%      { transform: rotate(7deg); }
+        }
+
+        /* Arm wave on happy */
+        .c3-arm-right.c3-arm-wave {
+          animation: c3-arm-wave .7s ease-in-out 4;
+        }
+        @keyframes c3-arm-wave {
+          0%   { transform: rotate(0deg);   }
+          25%  { transform: rotate(-35deg); }
+          75%  { transform: rotate(25deg);  }
+          100% { transform: rotate(0deg);   }
+        }
+
+        /* Responsive */
         @media (max-width: 900px) {
           .c3-container  { grid-template-columns: 1fr; }
           .c3-person-col { display: none; }
