@@ -17,7 +17,7 @@ const OurResourcePerson = ({ type }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  const limit = type === 2 ? 8 : 5;
+  const limit = type === 2 ? 8 : 8;
 
   const {
     currentItems,
