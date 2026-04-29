@@ -1,7 +1,9 @@
 const Team = require('../models/Team');
 
-// ✅ Correct filename — matches your project's uploadMiddleware.js
 const { deleteFromCloudinary, getPublicIdFromUrl, isCloudinaryUrl } = require('../middleware/upload');
+
+// Fields we never want from user input
+const PROTECTED_FIELDS = ['createdAt', 'updatedAt', '_id', '__v'];
 
 // ─── Public: GET all active team members ──────────────────────────────────────
 exports.getTeamMembers = async (req, res) => {
@@ -38,10 +40,14 @@ exports.adminGetTeamMembers = async (req, res) => {
 // ─── Admin: CREATE team member ─────────────────────────────────────────────────
 exports.createTeamMember = async (req, res) => {
   try {
+    // Strip any timestamp / mongoose internal fields sent from the frontend
+    PROTECTED_FIELDS.forEach((f) => delete req.body[f]);
+
     const { name, desig, email, facebook, instagram, twitter, linkedin, order, isActive } = req.body;
 
-    // 'https://inspireeducationservice.com/uploads/' + req.file.filename = Cloudinary secure URL (set by teamUpload from uploadMiddleware.js)
-    const img = req.file ? 'https://inspireeducationservice.com/uploads/' + req.file.filename : (req.body.img || '/images/team/team-1.webp');
+    const img = req.file
+      ? 'https://inspireeducationservice.com/uploads/' + req.file.filename
+      : (req.body.img || '/images/team/team-1.webp');
 
     const member = await Team.create({
       name, desig, img, email,
@@ -59,6 +65,9 @@ exports.createTeamMember = async (req, res) => {
 // ─── Admin: UPDATE team member ─────────────────────────────────────────────────
 exports.updateTeamMember = async (req, res) => {
   try {
+    // Strip any timestamp / mongoose internal fields sent from the frontend
+    PROTECTED_FIELDS.forEach((f) => delete req.body[f]);
+
     const member = await Team.findById(req.params.id);
     if (!member)
       return res.status(404).json({ success: false, message: 'Team member not found' });
