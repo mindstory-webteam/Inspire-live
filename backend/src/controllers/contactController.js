@@ -1,4 +1,7 @@
 const Contact = require('../models/Contact');
+const axios = require('axios');
+
+const PRIVYR_WEBHOOK = process.env.PRIVYR_WEBHOOK_URL;
 
 const submitContact = async (req, res) => {
   try {
@@ -6,7 +9,21 @@ const submitContact = async (req, res) => {
     if (!fullName || !email || !message) {
       return res.status(400).json({ success: false, message: 'Full name, email, and message are required.' });
     }
+
     const contact = await Contact.create({ fullName, email, phone: phone || '', subject: subject || '', message, ipAddress: req.ip || '' });
+
+    if (PRIVYR_WEBHOOK) {
+      axios.post(PRIVYR_WEBHOOK, {
+        name:         fullName,
+        email:        email,
+        phone:        phone || '',
+        display_name: fullName.split(' ')[0],
+        other_fields: { Subject: subject || '', Message: message },
+      }).catch((err) => {
+        console.error('Privyr forward error:', err?.response?.data || err.message);
+      });
+    }
+
     res.status(201).json({ success: true, message: 'Thank you! Your message has been received. We will be in touch soon.', data: { id: contact._id } });
   } catch (error) {
     console.error('submitContact error:', error);
@@ -108,68 +125,3 @@ const bulkDelete = async (req, res) => {
 };
 
 module.exports = { submitContact, getAllContacts, getStats, getContactById, updateStatus, deleteContact, bulkDelete };
-
-
-
-const Contact = require('../models/Contact');
-const axios = require('axios'); // or use fetch if Node 18+
-
-const PRIVYR_WEBHOOK = process.env.PRIVYR_WEBHOOK_URL;
-// e.g. https://www.privyr.com/api/v1/incoming-leads/string_1/string_2
-
-const submitContact = async (req, res) => {
-  try {
-    const { fullName, email, phone, subject, message } = req.body;
-
-    if (!fullName || !email || !message) {
-      return res.status(400).json({
-        success: false,
-        message: 'Full name, email, and message are required.',
-      });
-    }
-
-    // 1️⃣  Save to MongoDB (your existing logic)
-    const contact = await Contact.create({
-      fullName,
-      email,
-      phone:     phone   || '',
-      subject:   subject || '',
-      message,
-      ipAddress: req.ip  || '',
-    });
-
-    // 2️⃣  Forward to Privyr (fire-and-forget — don't block the response)
-    if (PRIVYR_WEBHOOK) {
-      axios
-        .post(PRIVYR_WEBHOOK, {
-          name:         fullName,
-          email:        email,
-          phone:        phone || '',
-          display_name: fullName.split(' ')[0],
-          other_fields: {
-            Subject: subject || '',
-            Message: message,
-          },
-        })
-        .catch((err) => {
-          // Log but never let Privyr failure break the user's submission
-          console.error('Privyr forward error:', err?.response?.data || err.message);
-        });
-    }
-
-    // 3️⃣  Respond to the frontend immediately
-    return res.status(201).json({
-      success: true,
-      message: 'Thank you! Your message has been received. We will be in touch soon.',
-      data: { id: contact._id },
-    });
-
-  } catch (error) {
-    console.error('submitContact error:', error);
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map((e) => e.message);
-      return res.status(400).json({ success: false, message: messages.join(', ') });
-    }
-    res.status(500).json({ success: false, message: 'Server error. Please try again.' });
-  }
-};
