@@ -109,9 +109,10 @@ export default function AdminTeamPage() {
 
     const fd = new FormData();
     // Append all form fields EXCEPT img (img is sent via file input)
-    Object.entries(form).forEach(([k, v]) => {
-      if (k !== "img") fd.append(k, v);
-    });
+   const SKIP = ["img", "createdAt", "updatedAt", "_id", "__v"];
+Object.entries(form).forEach(([k, v]) => {
+  if (!SKIP.includes(k)) fd.append(k, v);
+});
     if (fileRef.current?.files[0]) fd.append("img", fileRef.current.files[0]);
 
     try {
