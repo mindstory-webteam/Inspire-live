@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import contactApi from "@/utils/contactApi";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 
@@ -12,7 +13,6 @@ var FLOAT_IMAGES = [
   { src: "/enquiry-form/f-2.webp",  alt: "Research",     top: "35%", left: "5%",    size: 75, delay: "1.2s", dur: "5.5s" },
   { src: "/enquiry-form/f-4.webp",                      alt: "Team",         top: "62%", left: "-20px", size: 82, delay: "0.6s", dur: "7s"   },
   { src: "/enquiry-form/f-3.webp",  alt: "Consultation", top: "18%", right: "0px",  size: 70, delay: "1.8s", dur: "6.5s" },
- 
 ];
 
 export default function Contact3() {
@@ -20,6 +20,7 @@ export default function Contact3() {
   var [status, setStatus] = useState("idle");
   var [errMsg, setErrMsg] = useState("");
   var submitting          = useRef(false);
+  var router              = useRouter();
 
   function handleChange(e) {
     var n = e.target.name, v = e.target.value;
@@ -40,11 +41,17 @@ export default function Contact3() {
         phone:    form.phone.trim(),
         subject:  form.subject.trim(),
         message:  form.message.trim(),
-        source:   'Enquiry Form',  
+        source:   'Enquiry Form',
       })
       .then(function(res) {
-        if (res.data && res.data.success) { setStatus("success"); setForm(EMPTY_FORM); }
-        else { setErrMsg((res.data && res.data.message) || "Something went wrong."); setStatus("error"); }
+        if (res.data && res.data.success) {
+          setForm(EMPTY_FORM);
+          // ✅ Redirect to the thank-you page
+          router.push("/thank-you");
+        } else {
+          setErrMsg((res.data && res.data.message) || "Something went wrong.");
+          setStatus("error");
+        }
       })
       .catch(function(err) {
         setErrMsg((err.response && err.response.data && err.response.data.message) || "Network error.");
@@ -98,15 +105,6 @@ export default function Contact3() {
               </div>
               <h2 className="c3-title">Drop us a Line Here.</h2>
 
-              {status === "success" && (
-                <div className="c3-alert c3-ok">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="12" fill="#22c55e"/>
-                    <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Message sent! We&apos;ll be in touch soon.
-                </div>
-              )}
               {status === "error" && (
                 <div className="c3-alert c3-err">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -133,7 +131,7 @@ export default function Contact3() {
                   </div>
                 </div>
 
-                {/* Row 2 — Phone + Subject (text input, was dropdown) */}
+                {/* Row 2 — Phone + Subject */}
                 <div className="c3-grid2">
                   <div className="c3-field">
                     <label className="c3-label">Phone number</label>
@@ -237,7 +235,6 @@ export default function Contact3() {
           border-radius: 9px; padding: 11px 14px; margin-bottom: 16px;
           font-size: 13px; font-weight: 600;
         }
-        .c3-ok  { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
         .c3-err { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
 
         .c3-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
