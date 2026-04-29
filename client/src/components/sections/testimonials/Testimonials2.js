@@ -59,7 +59,7 @@ const Testimonials2 = ({ type }) => {
                 <div className="rating-box wow fadeInUp" data-wow-delay=".3s">
                   <h2 className="title">4.9</h2>
                   <div className="rating-area"><Ratings1 /></div>
-                  <span className="rating-text">(80+ Clients Reviews)</span>
+                  <span className="rating-text">(208 Reviews)</span>
                 </div>
               </div>
             </div>
