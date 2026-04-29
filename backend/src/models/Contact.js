@@ -20,13 +20,18 @@ const contactSchema = new mongoose.Schema(
       default: '',
     },
     subject: {
-  type: String,
-  default: '',
-  trim: true,
-},
+      type: String,
+      default: '',
+      trim: true,
+    },
     message: {
       type: String,
       required: [true, 'Message is required'],
+      trim: true,
+    },
+    source: {
+      type: String,
+      default: 'Unknown',
       trim: true,
     },
     status: {

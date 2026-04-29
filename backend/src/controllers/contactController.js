@@ -5,12 +5,20 @@ const PRIVYR_WEBHOOK = process.env.PRIVYR_WEBHOOK_URL;
 
 const submitContact = async (req, res) => {
   try {
-    const { fullName, email, phone, subject, message } = req.body;
+    const { fullName, email, phone, subject, message, source } = req.body;
     if (!fullName || !email || !message) {
       return res.status(400).json({ success: false, message: 'Full name, email, and message are required.' });
     }
 
-    const contact = await Contact.create({ fullName, email, phone: phone || '', subject: subject || '', message, ipAddress: req.ip || '' });
+    const contact = await Contact.create({
+      fullName,
+      email,
+      phone:     phone   || '',
+      subject:   subject || '',
+      message,
+      source:    source  || 'Unknown',
+      ipAddress: req.ip  || '',
+    });
 
     if (PRIVYR_WEBHOOK) {
       axios.post(PRIVYR_WEBHOOK, {
@@ -18,7 +26,11 @@ const submitContact = async (req, res) => {
         email:        email,
         phone:        phone || '',
         display_name: fullName.split(' ')[0],
-        other_fields: { Subject: subject || '', Message: message },
+        other_fields: {
+          Subject: subject || '',
+          Message: message,
+          Source:  source  || 'Unknown',
+        },
       }).catch((err) => {
         console.error('Privyr forward error:', err?.response?.data || err.message);
       });
