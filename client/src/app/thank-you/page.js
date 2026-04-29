@@ -178,7 +178,7 @@ export default function ThankYouPage() {
           opacity: 0; animation: ty-fade-up .5s ease .8s forwards;
         }
         .ty-heading {
-          font-family: 'Playfair Display', serif;
+         font-family: "Mona Sans","Mona Sans Fallback";
           font-size: clamp(36px, 6vw, 52px);
           font-weight: 800; color: #0b2640;
           line-height: 1.05; margin-bottom: 16px;
