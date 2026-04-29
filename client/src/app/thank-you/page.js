@@ -80,7 +80,7 @@ export default function ThankYouPage() {
           padding: 40px 20px;
           position: relative;
           overflow: hidden;
-          font-family: 'DM Sans', sans-serif;
+          font-family: "Mona Sans","Mona Sans Fallback";
           opacity: 0;
           transition: opacity .5s ease;
         }
