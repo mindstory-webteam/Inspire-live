@@ -58,9 +58,7 @@ export default function ThankYouPage() {
             <Link href="/" className="ty-btn-primary">
               Back to Home
             </Link>
-            <Link href="/#contact" className="ty-btn-ghost">
-              Send Another
-            </Link>
+           
           </div>
 
           <p className="ty-redirect">
