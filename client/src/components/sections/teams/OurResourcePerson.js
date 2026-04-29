@@ -1,8 +1,6 @@
 "use client";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 import TeamCard from "@/components/shared/cards/TeamCard";
-import Paginations from "@/components/shared/others/Paginations";
-import usePagination from "@/hooks/usePagination";
 import { fetchResourceMembersClient } from "@/utils/resourcepersonApi";
 import { useEffect, useState } from "react";
 
@@ -16,23 +14,6 @@ const OurResourcePerson = ({ type }) => {
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
   }, []);
-
-  const limit = type === 2 ? 8 : 8;
-
-  const {
-    currentItems,
-    currentpage,
-    setCurrentpage,
-    paginationItems,
-    currentPaginationItems,
-    totalPages,
-    handleCurrentPage,
-    firstItem,
-    lastItem,
-  } = usePagination(items, limit);
-
-  const totalItems = items?.length;
-  const totalItemsToShow = currentItems?.length;
 
   return (
     <section
@@ -89,8 +70,8 @@ const OurResourcePerson = ({ type }) => {
 
         {!loading && (
           <div className="row leftSwipeWrap">
-            {currentItems?.length ? (
-              currentItems.map((item, idx) => (
+            {items?.length ? (
+              items.map((item, idx) => (
                 <div key={idx} className="col-lg-3 col-sm-6">
                   <TeamCard teamMember={item} />
                 </div>
@@ -114,24 +95,6 @@ const OurResourcePerson = ({ type }) => {
           >
             <ButtonPrimary text={"More member"} url={"/team"} />
           </div>
-        )}
-
-        {type === 2 && totalItemsToShow < totalItems ? (
-          <Paginations
-            paginationDetails={{
-              currentItems,
-              currentpage,
-              setCurrentpage,
-              paginationItems,
-              currentPaginationItems,
-              totalPages,
-              handleCurrentPage,
-              firstItem,
-              lastItem,
-            }}
-          />
-        ) : (
-          ""
         )}
       </div>
     </section>
