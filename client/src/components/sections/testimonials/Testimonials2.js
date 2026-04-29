@@ -51,7 +51,7 @@ const Testimonials2 = ({ type }) => {
                 <div className="sec-heading style-2">
                   <h2 className={`sec-title ${type === 2 ? "title-anim" : "text-anim"}`}>
                     Hear from Our{" "}
-                    <span style={{ color: "white" }}>Customer.</span>
+                    <span style={{ color: "white" }}>Student.</span>
                   </h2>
                 </div>
               </div>
