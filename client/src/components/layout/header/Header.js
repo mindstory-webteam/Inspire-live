@@ -101,7 +101,7 @@ const Header = ({
 										
 										 <>
     <div className="header-button">
-      <ButtonPrimary text={"Student Login"} url={"https://learn.inspireeducationservice.com"} iconName="fas fa-book-open" />
+      <ButtonPrimary text={"Student Login"} url={"https://learn.inspireeducationservice.com"}  />
     </div>
     {/* <div className="header-button">
       <ButtonPrimary text={"Learning"} url={"https://learn.inspireeducationservice.com"}  hideIcon={true}   className={"learning-btn"}
