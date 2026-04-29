@@ -221,7 +221,7 @@ const Testimonials4 = () => {
               data-wow-delay=".5s"
             >
               <h3 className="tes-title">
-                Client Feedback <span>(4.9 / out of 200)</span>
+                Client Feedback <span>(4.9 / out of 208)</span>
               </h3>
 
               {displayTestimonials.length > 0 ? (
