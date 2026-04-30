@@ -6,7 +6,7 @@ import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
 
 var EMPTY_FORM = { fullName: "", email: "", phone: "", subject: "", message: "" };
 
-var PERSON_IMAGE = "/enquiry-form/p-2.webp";
+var PERSON_IMAGE = "/enquiry-form/p-3.webp";
 
 var FLOAT_IMAGES = [
   { src: "/enquiry-form/f-1.webp",          alt: "Academic",     top: "8%",  left: "-30px", size: 90, delay: "0s",   dur: "6s"   },
