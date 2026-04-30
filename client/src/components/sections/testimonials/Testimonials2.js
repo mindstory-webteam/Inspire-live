@@ -47,7 +47,7 @@ const Testimonials2 = ({ type }) => {
           <div className={`col-lg-6 ${type === 2 ? "order-lg-2" : ""}`}>
             <div className="testimonial-img-area wow fadeInUp" data-wow-delay=".3s">
               <div className="testimonial-img">
-                <img data-speed=".8" src="/new-imges/about-images/review-img.png" alt="" />
+                <img data-speed=".8" src="/new-imges/about-images/image-1.webp" alt="" />
                 <div className="sec-heading style-2">
                   <h2 className={`sec-title ${type === 2 ? "title-anim" : "text-anim"}`}>
                     Hear from Our{" "}
