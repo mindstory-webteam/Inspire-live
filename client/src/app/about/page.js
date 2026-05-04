@@ -17,6 +17,9 @@ import OurResourcePerson from "@/components/sections/teams/OurResourcePerson";
 export const metadata = {
   title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
   description: "Get in touch with the inspirePhD team for research support.",
+    alternates: {
+    canonical: "/about",
+  },
 };
 
 export default function About() {
