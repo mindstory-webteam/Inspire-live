@@ -41,6 +41,9 @@ export const metadata = {
   description: "inspirePhD - Research and Publication Support Services",
 
   metadataBase: new URL("https://inspireeducationservice.com"),
+   alternates: {
+    canonical: "/",
+  },
 
   icons: {
     icon: "/new-imges/logo/inspire_icon.jpg.jpeg",
