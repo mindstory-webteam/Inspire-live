@@ -16,6 +16,7 @@ import "./assets/css/meanmenu.css";
 import "./assets/css/nice-select2.css";
 import "./assets/css/odometer-theme-default.css";
 import "./globals.scss";
+import { headers } from "next/headers";
 
 const bodyFont = Mona_Sans({
   variable: "--tj-ff-body",
