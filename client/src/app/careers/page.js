@@ -7,6 +7,15 @@ import BackToTop from "@/components/shared/others/BackToTop";
 import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
+// ✅ Add this
+export const metadata = {
+  title: "Careers | inspire",
+  description: "Explore career opportunities at inspire. Join our team and grow with us.",
+  alternates: {
+    canonical: "https://inspireeducationservice.com/careers",
+  },
+};
+
 export default function Careers() {
   return (
     <div>

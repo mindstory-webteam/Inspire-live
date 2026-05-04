@@ -58,7 +58,7 @@ export async function generateMetadata({ params }) {
   const description = career.shortDescription
     || career.description?.slice(0, 160)
     || `Join inspirePhD as ${title}. Apply now for this exciting opportunity.`;
-  const pageUrl     = `https://inspirephd.com/careers/${career.slug || id}`;
+  const pageUrl = `https://inspireeducationservice.com/careers/${career.slug || id}`;
   const ogImage     = career.image || "https://inspirephd.com/og-default.jpg";
 
   return {

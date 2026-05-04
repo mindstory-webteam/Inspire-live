@@ -92,8 +92,11 @@ function BlogCard(props) {
 
 
 export const metadata = {
-  title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
+  title: "Blogs",       // ✅ Renders as "Contact Us | inspirePhD"
   description: "Get in touch with the inspirePhD team for research support.",
+   alternates: {
+    canonical: "/blogs",
+  },
 };
 
 export default function BlogsGridPrimary() {
