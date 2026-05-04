@@ -13,6 +13,12 @@ import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 import CeoSection from "@/components/sections/about/Ceosection";
 import OurResourcePerson from "@/components/sections/teams/OurResourcePerson";
 
+
+export const metadata = {
+  title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Get in touch with the inspirePhD team for research support.",
+};
+
 export default function About() {
 	return (
 		<div>

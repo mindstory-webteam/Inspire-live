@@ -7,13 +7,13 @@ import BackToTop from "@/components/shared/others/BackToTop";
 import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 import { notFound } from "next/navigation";
+// app/careers/[id]/page.jsx
 
 const API_BASE =
   process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   "https://inspireeducationservice.com/api";
 
-// Reserved words that should never be treated as career IDs
 const RESERVED_SLUGS = ["new", "create", "edit", "delete", "undefined", "null", "favicon.ico"];
 
 async function getAllCareers() {
@@ -36,13 +36,103 @@ async function getCareer(id) {
   }
 }
 
+// ✅ Dynamic metadata generation
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+
+  // Return default metadata for reserved slugs
+  if (!id || RESERVED_SLUGS.includes(id.toLowerCase())) {
+    return {
+      title: "Career Not Found",
+      description: "The career listing you are looking for does not exist.",
+    };
+  }
+
+  const career = await getCareer(id);
+
+  // Fallback metadata if career not found
+  if (!career) {
+    return {
+      title: "Career Not Found",
+      description: "The career listing you are looking for does not exist.",
+    };
+  }
+
+  // ✅ Build rich metadata from career data
+  const title       = career.title || "Career Opportunity";
+  const description = career.shortDescription
+    || career.description?.slice(0, 160)   // trim to 160 chars for SEO
+    || `Join inspirePhD as ${title}. Apply now for this exciting opportunity.`;
+  const pageUrl     = `https://inspirephd.com/careers/${career.slug || id}`;
+  const ogImage     = career.image || "https://inspirephd.com/og-default.jpg";
+
+  return {
+    title,                    // ✅ "Senior Researcher | inspirePhD" via layout template
+    description,
+    keywords: [
+      "PhD careers",
+      "research jobs",
+      "academic jobs",
+      title,
+      career.location || "",
+      career.department || "",
+    ].filter(Boolean),
+
+    // ✅ Open Graph (Facebook, LinkedIn, WhatsApp previews)
+    openGraph: {
+      title:       `${title} | inspirePhD`,
+      description,
+      url:         pageUrl,
+      siteName:    "inspirePhD",
+      type:        "article",
+      publishedTime: career.createdAt,
+      modifiedTime:  career.updatedAt,
+      images: [
+        {
+          url:    ogImage,
+          width:  1200,
+          height: 630,
+          alt:    title,
+        },
+      ],
+    },
+
+    // ✅ Twitter Card
+    twitter: {
+      card:        "summary_large_image",
+      title:       `${title} | inspirePhD`,
+      description,
+      images:      [ogImage],
+    },
+
+    // ✅ Canonical URL (avoids duplicate content issues)
+    alternates: {
+      canonical: pageUrl,
+    },
+
+    // ✅ Robots (index this page)
+    robots: {
+      index:  true,
+      follow: true,
+    },
+  };
+}
+
+// ── Page Component (unchanged) ──────────────────────────────────────────────
+import Footer from "@/components/layout/footer/Footer";
+import Header from "@/components/layout/header/Header";
+import CareerDetails1 from "@/components/sections/careers/CareerDetails1";
+import Cta from "@/components/sections/cta/Cta";
+import HeroInner from "@/components/sections/hero/HeroInner";
+import BackToTop from "@/components/shared/others/BackToTop";
+import HeaderSpace from "@/components/shared/others/HeaderSpace";
+import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
+import { notFound } from "next/navigation";
+
 export default async function CareerDetails({ params }) {
   const { id } = await params;
 
-  // Guard: block reserved/invalid IDs immediately
-  if (!id || RESERVED_SLUGS.includes(id.toLowerCase())) {
-    notFound();
-  }
+  if (!id || RESERVED_SLUGS.includes(id.toLowerCase())) notFound();
 
   const [career, allCareers] = await Promise.all([
     getCareer(id),

@@ -10,22 +10,7 @@ import Footer from '@/components/layout/footer/Footer';
 import Cta from '@/components/sections/cta/Cta';
 import ClientWrapper from '@/components/shared/wrappers/ClientWrapper';
 
-/*
-  Theme tokens from SCSS variables:
-  --color-primary      : #1a598a   (theme.primary)
-  --color-dark         : #0c1e21   (theme.dark / heading.primary)
-  --color-dark-2       : #18292c   (theme.dark-2)
-  --color-dark-3       : #015599   (theme.dark-3)
-  --color-bg           : #9ed3fb   (theme.bg)
-  --color-bg-2         : #fff      (theme.bg-2)
-  --color-bg-3         : #202e30   (theme.bg-3)
-  --color-body         : #1a425c   (text.body)
-  --color-body-3       : #67787a   (text.body-3)
-  --color-body-4       : #18292c   (text.body-4)
-  --color-grey-1       : #ecf0f0   (grey.1)
-  --color-grey-2       : #a9b8b8   (grey.2)
-  --color-border-5     : #1e8a8a26 (border.5)
-*/
+
 
 var PER_PAGE = 6;
 
@@ -51,6 +36,10 @@ function BlogCard(props) {
       ? blog.img
       : base + (blog.img.startsWith('/') ? blog.img : '/' + blog.img)
     : null;
+
+
+
+    
 
   return (
     <div className="bc-card">
@@ -99,6 +88,13 @@ function BlogCard(props) {
     </div>
   );
 }
+
+
+
+export const metadata = {
+  title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Get in touch with the inspirePhD team for research support.",
+};
 
 export default function BlogsGridPrimary() {
   var blogsState      = useState([]);

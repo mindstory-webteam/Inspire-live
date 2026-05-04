@@ -50,6 +50,13 @@ import Contact3 from "@/components/landing/ContactForm";
 import ServicesSection from "@/components/landing/ServicesSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 
+
+
+export const metadata = {
+  title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Get in touch with the inspirePhD team for research support.",
+};
+
 export default function Home2() {
 	return (
 		<div>

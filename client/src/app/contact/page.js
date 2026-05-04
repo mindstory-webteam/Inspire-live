@@ -7,7 +7,16 @@ import HeroInner from "@/components/sections/hero/HeroInner";
 import BackToTop from "@/components/shared/others/BackToTop";
 import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
+
+
+
+
+export const metadata = {
+  title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Get in touch with the inspirePhD team for research support.",
+};
 export default function Contact() {
+
 	return (
 		<div>
 			<BackToTop />
