@@ -16,7 +16,6 @@ import "./assets/css/meanmenu.css";
 import "./assets/css/nice-select2.css";
 import "./assets/css/odometer-theme-default.css";
 import "./globals.scss";
-import { headers } from "next/headers";
 
 const bodyFont = Mona_Sans({
   variable: "--tj-ff-body",
@@ -34,32 +33,21 @@ const headingFont = Mona_Sans({
   display: "swap",
 });
 
-export async function generateMetadata() {
-  const headersList = headers();
+export const metadata = {
+  title: {
+    default: "inspirePhD - Research and Publication Support Services",
+    template: "%s | inspirePhD",
+  },
+  description: "inspirePhD - Research and Publication Support Services",
 
-  // get current pathname from middleware
-  const pathname = headersList.get("x-pathname") || "/";
+  metadataBase: new URL("https://inspireeducationservice.com"),
 
-  return {
-    title: {
-      default: "inspirePhD - Research and Publication Support Services",
-      template: "%s | inspirePhD",
-    },
-    description: "inspirePhD - Research and Publication Support Services",
-
-    metadataBase: new URL("https://inspireeducationservice.com"),
-
-    alternates: {
-      canonical: pathname, // ✅ AUTO canonical for ALL pages
-    },
-
-    icons: {
-      icon: "/new-imges/logo/inspire_icon.jpg.jpeg",
-      shortcut: "/favicon.ico",
-      apple: "/apple-touch-icon.png",
-    },
-  };
-}
+  icons: {
+    icon: "/new-imges/logo/inspire_icon.jpg.jpeg",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+};
 
 export default function RootLayout({ children }) {
   return (
