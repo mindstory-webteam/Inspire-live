@@ -13,8 +13,16 @@ import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 export const metadata = {
-  title: "Services - InspirePhD",
+  title: "Services | inspire",
   description: "Explore our comprehensive PhD guidance and support services.",
+  alternates: {
+    canonical: "https://inspireeducationservice.com/services",
+  },
+  openGraph: {
+    title: "Services | inspire",
+    description: "Explore our comprehensive PhD guidance and support services.",
+    url: "https://inspireeducationservice.com/services",
+  },
 };
 
 export default function Services() {

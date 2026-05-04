@@ -30,12 +30,34 @@ import { getAllServices, getServiceBySlug } from "@/libs/services";
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const service = await getServiceBySlug(slug);
+
   if (!service) return { title: "Service Not Found" };
+
+  const title = service.title || "Service";
+  const description = service.description1
+    ? service.description1.replace(/<[^>]*>/g, '').slice(0, 155).trimEnd() + '...'
+    : service.title;
+  const pageUrl = `https://inspireeducationservice.com/services/${slug}`;
+  const ogImage = service.image?.url || service.image || "https://inspireeducationservice.com/og-default.jpg";
+
   return {
-    title: `${service.title} - InspirePhD`,
-    description: service.description1
-      ? service.description1.slice(0, 160)
-      : service.title,
+    title: `${title} | inspire`,
+    description,
+    alternates: {
+      canonical: pageUrl,
+    },
+    openGraph: {
+      title: `${title} | inspire`,
+      description,
+      url: pageUrl,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | inspire`,
+      description,
+    },
+    robots: { index: true, follow: true },
   };
 }
 

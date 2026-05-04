@@ -10,10 +10,10 @@ import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 
 export const metadata = {
-  title: "Privacy Policy",       // ✅ Renders as "Contact Us | inspirePhD"
+  title: "Team",       // ✅ Renders as "Contact Us | inspirePhD"
   description: "Get in touch with the inspirePhD team for research support.",
      alternates: {
-    canonical: "/privacy-policy",
+    canonical: "/team",
   },
 };
 export default function Team() {
