@@ -12,8 +12,11 @@ import PrivacyPolicyPrimary from "@/components/sections/registration/PrivacyPoli
 
 
 export const metadata = {
-  title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
+  title: "Privacy Policy",       // ✅ Renders as "Contact Us | inspirePhD"
   description: "Get in touch with the inspirePhD team for research support.",
+     alternates: {
+    canonical: "/privacy-policy",
+  },
 };
 export default function TermsAndConditions() {
 	return (
