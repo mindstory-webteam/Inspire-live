@@ -13,9 +13,8 @@ const MobileMenu = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 				onClick={handleClick}
 			></div>
 			<div
-				className={`hamburger-area d-lg-none ${
-					isMobileMenuOpen ? "opened" : ""
-				}`}
+				className={`hamburger-area d-lg-none ${isMobileMenuOpen ? "opened" : ""
+					}`}
 			>
 				<div className="hamburger_bg"></div>
 				<div className="hamburger_wrapper">
@@ -39,19 +38,19 @@ const MobileMenu = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 								<div className="contact-item">
 									<span className="subtitle">Phone</span>
 									<Link className="contact-link" href="tel:8089091313">
-										808-909-1313
+										+91 9947 945 945
 									</Link>
 								</div>
 								<div className="contact-item">
 									<span className="subtitle">Email</span>
 									<Link className="contact-link" href="mailto:info@bexon.com">
-										info@bexon.com
+										research@inspireeducationservice.com
 									</Link>
 								</div>
 								<div className="contact-item">
 									<span className="subtitle">Location</span>
 									<span className="contact-link">
-										993 Renner Burg, West Rond, MT 94251-030
+										1st Floor, Nandanam Arcade Stadium Bypass Rd, Opp. Reliance Digital Selvapalayam, Palakkad, Kerala – 678013 India
 									</span>
 								</div>
 							</div>
@@ -62,18 +61,18 @@ const MobileMenu = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 						<div className="social-links style-3">
 							<ul>
 								<li>
-									<Link href="https://www.facebook.com/" target="_blank">
+									<Link href="https://www.facebook.com/inspireeducationservice/" target="_blank">
 										<i className="fa-brands fa-facebook-f"></i>
 									</Link>
 								</li>
 								<li>
-									<Link href="https://www.instagram.com/" target="_blank">
+									<Link href="https://www.instagram.com/inspireeducationservice/" target="_blank">
 										<i className="fa-brands fa-instagram"></i>
 									</Link>
 								</li>
 								<li>
-									<Link href="https://x.com/" target="_blank">
-										<i className="fa-brands fa-x-twitter"></i>
+									<Link href="https://www.youtube.com/channel/UCxdf2JpHcvAuGhVweQiy6GA?app=desktop" target="_blank">
+										<i className="fa-brands fa-youtube"></i>
 									</Link>
 								</li>
 								<li>
