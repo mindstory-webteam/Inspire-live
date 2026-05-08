@@ -1,56 +1,48 @@
+"use client";
 import Link from "next/link";
 import MobileNavbar from "./MobileNavbar";
 import { useState, useEffect } from "react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+const FALLBACK = {
+  phone:    { value: "+91 9947 945 945",                        href: "tel:+919947945945" },
+  email:    { value: "inspireeduservice001@gmail.com",           href: "mailto:inspireeduservice001@gmail.com" },
+  location: { value: "INSPIRE EDUCATION SERVICE, floor aazra arcade, near central excise office, mettupalayam, Palakkad - 678001" },
+};
+
 const MobileMenu = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
-  const [contactInfo, setContactInfo] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [info, setInfo] = useState(FALLBACK);
 
   useEffect(() => {
-    const fetchContactInfo = async () => {
-      try {
-        const res = await fetch("/api/contact-info");
-        const data = await res.json();
-        setContactInfo(Array.isArray(data) ? data : data.data ?? []);
-      } catch (err) {
-        console.error("Failed to fetch contact info:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetch(`${API_BASE}/contact-info`)
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res.success || !res.data?.length) return;
 
-    fetchContactInfo();
+        const map = {};
+        res.data.forEach((card) => {
+          map[card.type] = card;
+        });
+
+        setInfo({
+          phone: {
+            value: map.phone?.lines?.[0]?.value || FALLBACK.phone.value,
+            href:  map.phone?.lines?.[0]?.href  || FALLBACK.phone.href,
+          },
+          email: {
+            value: map.email?.lines?.[0]?.value || FALLBACK.email.value,
+            href:  map.email?.lines?.[0]?.href  || FALLBACK.email.href,
+          },
+          location: {
+            value: map.location?.lines?.[0]?.value || FALLBACK.location.value,
+          },
+        });
+      })
+      .catch(() => {/* keep fallback */});
   }, []);
 
-  const handleClick = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  // Helper: find a contact item by type
-  const getItem = (type) =>
-    contactInfo.find(
-      (item) => item.type?.toLowerCase() === type.toLowerCase() && item.isActive !== false
-    );
-
-  const phone    = getItem("phone");
-  const email    = getItem("email");
-  const location = getItem("location");
-
-  // Social items — adjust type names to match your DB seed
-  const socialTypes = ["facebook", "instagram", "youtube", "linkedin"];
-  const socials = socialTypes
-    .map((type) => getItem(type))
-    .filter(Boolean);
-
-  // Icon map for social platforms
-  const socialIconMap = {
-    facebook:  "fa-brands fa-facebook-f",
-    instagram: "fa-brands fa-instagram",
-    youtube:   "fa-brands fa-youtube",
-    linkedin:  "fa-brands fa-linkedin-in",
-    twitter:   "fa-brands fa-x-twitter",
-    tiktok:    "fa-brands fa-tiktok",
-  };
+  const handleClick = () => setIsMobileMenuOpen(false);
 
   return (
     <>
@@ -85,47 +77,28 @@ const MobileMenu = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             {/* ── Contact info ── */}
             <div className="hamburger-infos">
               <h5 className="hamburger-title">Contact Info</h5>
+              <div className="contact-info">
 
-              {loading ? (
-                <p style={{ fontSize: "0.85rem", opacity: 0.6 }}>Loading…</p>
-              ) : (
-                <div className="contact-info">
-
-                  {phone && (
-                    <div className="contact-item">
-                      <span className="subtitle">Phone</span>
-                      <Link
-                        className="contact-link"
-                        href={`tel:${phone.value}`}
-                      >
-                        {phone.label ?? phone.value}
-                      </Link>
-                    </div>
-                  )}
-
-                  {email && (
-                    <div className="contact-item">
-                      <span className="subtitle">Email</span>
-                      <Link
-                        className="contact-link"
-                        href={`mailto:${email.value}`}
-                      >
-                        {email.label ?? email.value}
-                      </Link>
-                    </div>
-                  )}
-
-                  {location && (
-                    <div className="contact-item">
-                      <span className="subtitle">Location</span>
-                      <span className="contact-link">
-                        {location.label ?? location.value}
-                      </span>
-                    </div>
-                  )}
-
+                <div className="contact-item">
+                  <span className="subtitle">Phone</span>
+                  <Link className="contact-link" href={info.phone.href}>
+                    {info.phone.value}
+                  </Link>
                 </div>
-              )}
+
+                <div className="contact-item">
+                  <span className="subtitle">Email</span>
+                  <Link className="contact-link" href={info.email.href}>
+                    {info.email.value}
+                  </Link>
+                </div>
+
+                <div className="contact-item">
+                  <span className="subtitle">Location</span>
+                  <span className="contact-link">{info.location.value}</span>
+                </div>
+
+              </div>
             </div>
           </div>
 
@@ -134,46 +107,26 @@ const MobileMenu = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             <h5 className="hamburger-title">Follow Us</h5>
             <div className="social-links style-3">
               <ul>
-                {loading ? (
-                  <li style={{ fontSize: "0.85rem", opacity: 0.6 }}>Loading…</li>
-                ) : socials.length > 0 ? (
-                  socials.map((item) => (
-                    <li key={item.type}>
-                      <Link href={item.value} target="_blank" rel="noreferrer">
-                        <i
-                          className={
-                            socialIconMap[item.type.toLowerCase()] ??
-                            "fa-brands fa-globe"
-                          }
-                        />
-                      </Link>
-                    </li>
-                  ))
-                ) : (
-                  // Fallback hardcoded socials if none returned from API
-                  <>
-                    <li>
-                      <Link href="https://www.facebook.com/inspireeducationservice/" target="_blank">
-                        <i className="fa-brands fa-facebook-f" />
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="https://www.instagram.com/inspireeducationservice/" target="_blank">
-                        <i className="fa-brands fa-instagram" />
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="https://www.youtube.com/channel/UCxdf2JpHcvAuGhVweQiy6GA" target="_blank">
-                        <i className="fa-brands fa-youtube" />
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="https://www.linkedin.com/" target="_blank">
-                        <i className="fa-brands fa-linkedin-in" />
-                      </Link>
-                    </li>
-                  </>
-                )}
+                <li>
+                  <Link href="https://www.facebook.com/inspireeducationservice/" target="_blank">
+                    <i className="fa-brands fa-facebook-f" />
+                  </Link>
+                </li>
+                <li>
+                  <Link href="https://www.instagram.com/inspireeducationservice/" target="_blank">
+                    <i className="fa-brands fa-instagram" />
+                  </Link>
+                </li>
+                <li>
+                  <Link href="https://www.youtube.com/channel/UCxdf2JpHcvAuGhVweQiy6GA?app=desktop" target="_blank">
+                    <i className="fa-brands fa-youtube" />
+                  </Link>
+                </li>
+                <li>
+                  <Link href="https://www.linkedin.com/" target="_blank">
+                    <i className="fa-brands fa-linkedin-in" />
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
