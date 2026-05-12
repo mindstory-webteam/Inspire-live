@@ -15,8 +15,8 @@ import OurResourcePerson from "@/components/sections/teams/OurResourcePerson";
 
 
 export const metadata = {
-  title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
-  description: "Get in touch with the inspirePhD team for research support.",
+  title: "About Us | Inspire Education Service ",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Learn about Inspire Education Service founded in Palakkad, Kerala by Ahammed Farzin. India's No.1 PhD guidance platform, serving 1000+ scholars across 17+ countries.",
     alternates: {
     canonical: "/about",
   },

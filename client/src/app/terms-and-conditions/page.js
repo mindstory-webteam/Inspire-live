@@ -10,8 +10,8 @@ import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 
 export const metadata = {
-  title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
-  description: "Get in touch with the inspirePhD team for research support.",
+  title: "Terms & Conditions | Inspire Education Service",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Read the Terms and Conditions of Inspire Education Service. These terms govern the use of our PhD guidance, research assistance, and academic support services offered across Kerala and beyond.",
 };
 
 export default function TermsAndConditions() {

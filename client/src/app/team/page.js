@@ -10,8 +10,8 @@ import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 
 export const metadata = {
-  title: "Team",       // ✅ Renders as "Contact Us | inspirePhD"
-  description: "Get in touch with the inspirePhD team for research support.",
+  title: "Meet Our Team at Inspire Education Service",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Meet the PhD mentors, research experts, and academic counsellors behind Inspire Education Service.",
      alternates: {
     canonical: "/team",
   },

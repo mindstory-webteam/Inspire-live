@@ -35,10 +35,10 @@ const headingFont = Mona_Sans({
 
 export const metadata = {
   title: {
-    default: "inspirePhD - Research and Publication Support Services",
-    template: "%s | inspirePhD",
+    default: "Best PhD Guidance in Kerala | Inspire Education",
+    template: "%s ",
   },
-  description: "inspirePhD - Research and Publication Support Services",
+  description: "Get expert PhD assistance in Kerala from Inspire Education for thesis writing, journal publication, synopsis, data analysis & admission support. Contact Us Now!",
 
   metadataBase: new URL("https://inspireeducationservice.com"),
    alternates: {

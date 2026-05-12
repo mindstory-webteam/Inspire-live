@@ -9,8 +9,8 @@ import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 // ✅ Add this
 export const metadata = {
-  title: "Careers | inspire",
-  description: "Explore career opportunities at inspire. Join our team and grow with us.",
+  title: "Careers at Inspire Education Service",
+  description: "Looking for a career in academic research guidance? Join Inspire Education, view open positions and grow your career in doctoral education support.",
   alternates: {
     canonical: "https://inspireeducationservice.com/careers",
   },

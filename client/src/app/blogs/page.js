@@ -92,8 +92,8 @@ function BlogCard(props) {
 
 
 export const metadata = {
-  title: "Blogs",       // ✅ Renders as "Contact Us | inspirePhD"
-  description: "Get in touch with the inspirePhD team for research support.",
+  title: "PhD Research Blogs | Inspire Edcucation",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Read expert articles on PhD guidance, research methodology, journal publication, thesis writing tips, and PhD admission in Kerala. ",
    alternates: {
     canonical: "/blogs",
   },

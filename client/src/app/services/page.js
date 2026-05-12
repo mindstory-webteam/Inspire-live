@@ -13,8 +13,8 @@ import HeaderSpace from "@/components/shared/others/HeaderSpace";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 export const metadata = {
-  title: "Services | inspire",
-  description: "Explore our comprehensive PhD guidance and support services.",
+  title: "PhD Assistance Services in Kerala | Inspire Education",
+  description: "Best PhD assistance services in Kerala - topic selection, synopsis writing, thesis writing, plagiarism check, SPSS/data analysis, journal publication, and viva preparation.",
   alternates: {
     canonical: "https://inspireeducationservice.com/services",
   },

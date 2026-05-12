@@ -12,8 +12,8 @@ import PrivacyPolicyPrimary from "@/components/sections/registration/PrivacyPoli
 
 
 export const metadata = {
-  title: "Privacy Policy",       // ✅ Renders as "Contact Us | inspirePhD"
-  description: "Get in touch with the inspirePhD team for research support.",
+  title: "Privacy Policy | Inspire Education Service",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Read the Privacy Policy of Inspire Education Service. Understand how we collect, use, and protect your personal data when you use our PhD guidance and assistance services in Kerala.",
      alternates: {
     canonical: "/privacy-policy",
   },

@@ -10,8 +10,8 @@ import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 
 export const metadata = {
-  title: "Events",       // ✅ Renders as "Contact Us | inspirePhD"
-  description: "Get in touch with the inspirePhD team for research support.",
+  title: "PhD Webinars & Events in Kerala | Inspire Education Service",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "PhD guidance webinars, workshops, and live events in Kerala. Get expert insights on research methodology, journal publication, thesis writing, and PhD admission support.",
      alternates: {
     canonical: "/events",
   },

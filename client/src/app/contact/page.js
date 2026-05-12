@@ -12,8 +12,8 @@ import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 
 export const metadata = {
-  title: "Contact Us",       // ✅ Renders as "Contact Us | inspirePhD"
-  description: "Get in touch with the inspirePhD team for research support.",
+  title: "Contact Now | Inspire Education Service",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "Get in touch with Inspire Education Service for PhD guidance and assistance in Kerala. Call or WhatsApp +91 9947 945 945, email research@inspireeducationservice.com",
       alternates: {
     canonical: "/contact",
   },

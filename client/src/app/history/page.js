@@ -11,8 +11,8 @@ import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 
 
 export const metadata = {
-  title: "History",       // ✅ Renders as "Contact Us | inspirePhD"
-  description: "Get in touch with the inspirePhD team for research support.",
+  title: "Our History | How Inspire Became Kerala's Leading PhD Guidance Centre",       // ✅ Renders as "Contact Us | inspirePhD"
+  description: "From a small initiative in Palakkad, Kerala to India's No.1 PhD assistance platform - discover the journey of Inspire Education Service",
      alternates: {
     canonical: "/history",
   },
