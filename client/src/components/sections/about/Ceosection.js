@@ -40,7 +40,7 @@ const CeoSection = ({ type }) => {
 										borderRadius: 20,
 										letterSpacing: 0.5,
 									}}>
-										Chief Executive Officer
+										Founder & Chairman
 									</span>
 								</div>
 							</div>
