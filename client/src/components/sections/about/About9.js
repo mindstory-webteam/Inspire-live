@@ -52,7 +52,7 @@ const About9 = () => {
 											Through structured learning and guided activities, students can study in a way similar to schools and colleges while building deeper understanding and practical skills. Our approach helps learners gain extra academic experience, develop confidence, and prepare for future educational pathways.
 										</p>
 										<p className="desc wow fadeInUp" data-wow-delay=".6s">
-											At INSPIRE, we create opportunities for students to learn, connect, and grow in a global academic environment.
+											At INSPIRE, we create opportunities for students to learn, connect, and grow in a global academic environment. If you are looking for reliable PhD assistance in Kerala your search ends here. 
 										</p>
 									</div>
 								</div>

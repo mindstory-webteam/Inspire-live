@@ -85,7 +85,7 @@ export default function Home2() {
 						<Team1 />
 
 						{/* <Testimonials2 /> */}
-							<Testimonials4 />
+							{/* <Testimonials4 /> */}
 						
 
 					
