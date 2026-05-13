@@ -4,16 +4,20 @@ import { useEffect, useRef, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
 const SLIDE_DURATION = 5000;
+const MEDIA_HEIGHT = "520px"; // ← single source of truth for both image & video height
 
 const Hero10 = () => {
-  const [slides, setSlides]             = useState([]);
-  const [activeIndex, setActiveIndex]   = useState(0);
+  const [slides, setSlides]                 = useState([]);
+  const [activeIndex, setActiveIndex]       = useState(0);
+  const [nextIndex, setNextIndex]           = useState(null); // pending slide during crossfade
   const [contentVisible, setContentVisible] = useState(true);
+  const [mediaFading, setMediaFading]       = useState(false); // drives media crossfade
 
-  const videoRef    = useRef(null);
-  const timerRef    = useRef(null);
-  const progressRef = useRef(null);       // always kept up-to-date via callback ref
+  const videoRef       = useRef(null);
+  const timerRef       = useRef(null);
+  const progressRef    = useRef(null);
   const activeIndexRef = useRef(0);
+  const transitioning  = useRef(false);
 
   // ── Fetch slides ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -37,42 +41,54 @@ const Hero10 = () => {
 
   const isVideoSlide = (slide) => {
     if (!slide) return false;
-    if (slide.type === "video") return true;
-    if (slide.mediaType === "video") return true;
-    const url = slide.mediaUrl || "";
-    return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url);
+    if (slide.type === "video" || slide.mediaType === "video") return true;
+    return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(slide.mediaUrl || "");
   };
 
-  // ── Navigate — always fade out then update index ──────────────────────────
-  const goTo = (idx) => {
-    const total = slides.length;
-    if (!total) return;
-    const next = ((idx % total) + total) % total;
-    clearTimeout(timerRef.current);
-
-    setContentVisible(false);
-
-    setTimeout(() => {
-      activeIndexRef.current = next;
-      setActiveIndex(next);
-      setTimeout(() => setContentVisible(true), 50);
-    }, 300);
-  };
-
-  const goNext = () => goTo(activeIndexRef.current + 1);
-  const goPrev = () => goTo(activeIndexRef.current - 1);
-
-  // ── Progress bar — reads from progressRef which is kept live ─────────────
+  // ── Progress bar ──────────────────────────────────────────────────────────
   const startProgress = (duration) => {
     const el = progressRef.current;
     if (!el) return;
     el.style.transition = "none";
     el.style.width = "0%";
-    void el.offsetWidth;                           // force reflow
+    void el.offsetWidth;
     el.style.transition = `width ${duration}ms linear`;
     el.style.width = "100%";
     timerRef.current = setTimeout(goNext, duration);
   };
+
+  // ── Navigate with crossfade — no flash ───────────────────────────────────
+  const goTo = (idx) => {
+    const total = slides.length;
+    if (!total || transitioning.current) return;
+    const next = ((idx % total) + total) % total;
+    if (next === activeIndexRef.current) return;
+
+    transitioning.current = true;
+    clearTimeout(timerRef.current);
+
+    // 1. Fade out content
+    setContentVisible(false);
+    // 2. Start media fade-out
+    setMediaFading(true);
+    // 3. After fade, swap slide
+    setNextIndex(next);
+
+    setTimeout(() => {
+      activeIndexRef.current = next;
+      setActiveIndex(next);
+      setNextIndex(null);
+      setMediaFading(false);
+
+      setTimeout(() => {
+        setContentVisible(true);
+        transitioning.current = false;
+      }, 50);
+    }, 350); // matches CSS transition duration
+  };
+
+  const goNext = () => goTo(activeIndexRef.current + 1);
+  const goPrev = () => goTo(activeIndexRef.current - 1);
 
   // ── On slide change ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -88,7 +104,6 @@ const Hero10 = () => {
         videoRef.current.play().catch(() => {});
       }
     } else {
-      // Small delay so the callback ref has time to attach to the new thumbnail
       const raf = requestAnimationFrame(() => startProgress(SLIDE_DURATION));
       return () => { cancelAnimationFrame(raf); clearTimeout(timerRef.current); };
     }
@@ -112,6 +127,14 @@ const Hero10 = () => {
   const mediaUrl    = active ? resolveUrl(active.mediaUrl) : "";
   const isVideo     = isVideoSlide(active);
 
+  // Shared style for both image & video so they're always the same size
+  const mediaStyle = {
+    width: "100%",
+    height: MEDIA_HEIGHT,
+    objectFit: "cover",
+    display: "block",
+  };
+
   return (
     <>
       <style>{`
@@ -126,6 +149,26 @@ const Hero10 = () => {
         .h10-content-fade.visible {
           opacity: 1;
           transform: translateY(0);
+        }
+        .h10-media-wrap {
+          position: relative;
+          width: 100%;
+          height: ${MEDIA_HEIGHT};
+          overflow: hidden;
+          background: #0c1e21;
+        }
+        .h10-media-wrap > .h10-media-item {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          transition: opacity 0.35s ease;
+        }
+        .h10-media-wrap > .h10-media-item.fade-out {
+          opacity: 0;
+        }
+        .h10-media-wrap > .h10-media-item.fade-in {
+          opacity: 1;
         }
       `}</style>
 
@@ -147,17 +190,16 @@ const Hero10 = () => {
 
             <div className="col-lg-8 col-xl-9">
               <div className="banner-content-2">
-
-               <p
-  className={`slider-subtitle h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
-  style={{
-    color: "#ffffff",
-    minHeight: "1.5em",
-    fontSize: "clamp(16px, 4vw, 30px)"
-  }}
->
-  {subtitle}
-</p>
+                <p
+                  className={`slider-subtitle h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
+                  style={{
+                    color: "#ffffff",
+                    minHeight: "1.5em",
+                    fontSize: "clamp(16px, 4vw, 30px)",
+                  }}
+                >
+                  {subtitle}
+                </p>
 
                 <h1
                   className={`banner-title text-anim h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
@@ -167,12 +209,9 @@ const Hero10 = () => {
                   <i className="tji-curve-arrow" />
                 </h1>
 
-                <div
-                  className={`banner-desc-area h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
-                >
+                <div className={`banner-desc-area h10-content-fade ${contentVisible ? "visible" : "hidden"}`}>
                   <ButtonPrimary text={buttonText} url={buttonUrl} />
                 </div>
-
               </div>
             </div>
           </div>
@@ -182,38 +221,40 @@ const Hero10 = () => {
         <div className="container-fluid gap-0">
           <div className="row">
             <div className="col-12">
-              <div className="h10-hero-banner zoom-on-scroll" style={{ position: "relative" }}>
-                <div className="h10-hero-banner-img h10-hero-banner-video">
+              <div className="h10-hero-banner zoom-on-scroll">
 
-                  {isVideo ? (
-                    <video
-                      ref={videoRef}
-                      key={mediaUrl}
-                      autoPlay muted playsInline
-                      data-wf-ignore="true"
-                      data-object-fit="cover"
-                      poster=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                      onLoadedMetadata={handleVideoLoaded}
-                      onEnded={goNext}
-                    >
-                      <source src={mediaUrl} type="video/mp4" />
-                      <source src={mediaUrl} type="video/webm" />
-                    </video>
-                  ) : (
-                    mediaUrl ? (
+                {/* Fixed-height wrapper — image & video fill it identically */}
+                <div className="h10-media-wrap">
+
+                  {/* Current slide — fades out during transition */}
+                  <div className={`h10-media-item ${mediaFading ? "fade-out" : "fade-in"}`}>
+                    {isVideo ? (
+                      <video
+                        ref={videoRef}
+                        key={mediaUrl}
+                        autoPlay muted playsInline
+                        data-wf-ignore="true"
+                        data-object-fit="cover"
+                        style={mediaStyle}
+                        onLoadedMetadata={handleVideoLoaded}
+                        onEnded={goNext}
+                      >
+                        <source src={mediaUrl} type="video/mp4" />
+                        <source src={mediaUrl} type="video/webm" />
+                      </video>
+                    ) : mediaUrl ? (
                       <img
                         key={mediaUrl}
                         src={mediaUrl}
                         alt={title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        style={mediaStyle}
                       />
                     ) : (
-                      <div style={{ width: "100%", height: "100%", background: "#0c1e21" }} />
-                    )
-                  )}
+                      <div style={{ ...mediaStyle, background: "#0c1e21" }} />
+                    )}
+                  </div>
 
-                  {/* ── Navigation (2+ slides only) ── */}
+                  {/* ── Navigation overlay (2+ slides only) ── */}
                   {slides.length > 1 && (
                     <div style={{
                       position: "absolute",
@@ -253,7 +294,8 @@ const Hero10 = () => {
                                 />
                               ) : (
                                 <div style={{
-                                  width: "100%", height: "68px",
+                                  width: "100%",
+                                  height: "68px",
                                   backgroundImage: `url('${thumbUrl}')`,
                                   backgroundSize: "cover",
                                   backgroundPosition: "center",
@@ -268,7 +310,7 @@ const Hero10 = () => {
                                 {String(idx + 1).padStart(2, "0")}
                               </div>
 
-                              {/* ── FIX: callback ref so progressRef always points to the live DOM node ── */}
+                              {/* Progress bar — callback ref keeps it live */}
                               {isActive && (
                                 <div style={{
                                   position: "absolute", bottom: 0, left: 0, right: 0,
@@ -285,10 +327,12 @@ const Hero10 = () => {
                         })}
                       </div>
 
-                      {/* Prev / Next */}
+                      {/* Prev / Next buttons */}
                       <div style={{ display: "flex", gap: "8px" }}>
-                        {[{ fn: goPrev, icon: "tji-arrow-left", label: "Previous" },
-                          { fn: goNext, icon: "tji-arrow-right", label: "Next" }].map(({ fn, icon, label }) => (
+                        {[
+                          { fn: goPrev, icon: "tji-arrow-left",  label: "Previous" },
+                          { fn: goNext, icon: "tji-arrow-right", label: "Next"     },
+                        ].map(({ fn, icon, label }) => (
                           <button
                             key={label}
                             onClick={fn}
