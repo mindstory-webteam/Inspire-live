@@ -47,6 +47,7 @@ import { ReelsSection } from "@/components/ReelsSection"
 // ✅ Matches the actual filename: VideoReelsCarousel.js
 import { VideoReelsCarousel } from "@/components/VideoReelsCarousel"
 import Faq5 from "@/components/sections/faq/Faq5";
+import Faq3 from "@/components/sections/faq/Faq3";
 
 export default function Home2() {
 	return (
@@ -87,7 +88,9 @@ export default function Home2() {
 
 						{/* <Testimonials2 /> */}
 							<Testimonials4 />
-							<Faq5/>
+
+
+							<Faq3/>
 						
 
 					
