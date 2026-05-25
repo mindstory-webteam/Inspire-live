@@ -68,6 +68,11 @@ const Contact2 = () => {
 					height: 100%;
 					min-height: 520px;
 				}
+					.tj-contact-section{
+					    margin-bottom: 100px;
+					
+					
+					}
 			`}</style>
 
 			<div className="container mb-10">
