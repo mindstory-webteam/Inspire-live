@@ -48,7 +48,7 @@ const Contact2 = () => {
 	};
 
 	return (
-		<section className="tj-contact-section section-gap section-gap-x mb-9">
+		<section className="tj-contact-section section-gap section-gap-x ">
 			<style>{`
 				#contact-form-2 input,
 				#contact-form-2 textarea {
@@ -70,7 +70,7 @@ const Contact2 = () => {
 				}
 			`}</style>
 
-			<div className="container">
+			<div className="container mb-10">
 				<div className="row align-items-stretch">
 
 					<div className="col-lg-6 mb-4 mb-lg-0">
