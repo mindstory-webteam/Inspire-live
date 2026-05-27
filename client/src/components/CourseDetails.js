@@ -4,107 +4,71 @@ import BootstrapWrapper from "@/components/shared/wrappers/BootstrapWrapper";
 import Image from "next/image";
 import Link from "next/link";
 
-// ─── FAQ Data ─────────────────────────────────────────────────────────────────
 const faqData = [
   {
-    question: "Who is eligible to apply for PhD guidance?",
+    question: "Who is eligible to apply for the PhD program?",
     answer:
-      "Any candidate who has completed a Master's degree (with 50% or above) in any discipline is eligible to apply for our PhD Guidance Program. For PhD Abroad, candidates additionally need English proficiency scores (IELTS/TOEFL). There is no upper age limit for any of our programs.",
+      "Any candidate with a Master's degree (50% or above) in any discipline is eligible. There is no upper age limit. Our counsellors will assess your profile and guide you to the most suitable university and research area.",
   },
   {
-    question: "How long does the PhD guidance program take?",
+    question: "How long does the PhD program take?",
     answer:
-      "The duration depends on the university and program. Typically, a PhD in India takes 3–5 years, while international PhD programs take 3–4 years. Our guidance and support continue throughout the entire duration — from enrolment to thesis submission and viva voce.",
+      "A PhD in India typically takes 3–5 years depending on the university and research domain. Our team supports you throughout — from synopsis submission to final thesis defence and viva voce.",
   },
   {
-    question: "What documents are required for the application?",
+    question: "What documents are required to apply?",
     answer:
-      "You will need your academic certificates (SSLC, Plus Two, Degree, Master's), a valid ID proof, passport-size photographs, and for PhD Abroad — a valid passport and English proficiency score certificate. Our team guides you through the complete documentation process step by step.",
+      "You will need your SSLC, Plus Two, Degree, and Master's certificates, a valid ID proof, and passport-size photographs. Our team will guide you through the complete documentation checklist after your initial counselling session.",
   },
   {
-    question: "Do you help with research paper publication?",
+    question: "Will I get support for research paper publication?",
     answer:
-      "Yes, we provide comprehensive support for research paper publication in Scopus, SCI, and UGC-listed journals. This includes manuscript writing and editing, journal selection, peer-review response, plagiarism correction, and follow-up until your paper is published.",
+      "Yes. We provide complete support for publishing in Scopus, SCI, and UGC-listed journals — including manuscript writing, journal selection, peer-review responses, plagiarism correction, and follow-up until acceptance.",
   },
   {
     question: "Is online guidance available?",
     answer:
-      "Absolutely. All our programs are available in both online and offline modes. Online sessions are conducted via video calls, with shared documents and dedicated communication channels for each scholar. You can be located anywhere in the world and still receive full guidance.",
+      "Yes. Our PhD guidance is available fully online. Sessions are conducted via video calls with shared documents, a dedicated mentor, and continuous support through our communication channels — no matter where you are located.",
   },
   {
-    question: "How do I apply and what is the fee?",
+    question: "What happens after I submit the application form?",
     answer:
-      "You can apply by filling out our Application Form online. Once submitted, our counselling team will contact you within 24 hours to discuss your profile, program options, and fee structure. Fees vary based on the program and level of support required — contact us for a personalized quote.",
+      "Our counselling team will contact you within 24 hours of form submission. We will schedule a free consultation to discuss your academic profile, research interests, program options, and the next steps to enrolment.",
   },
 ];
 
-// ─── Key Features ─────────────────────────────────────────────────────────────
 const keyFeatures = [
-  "PhD Guidance (India & Abroad)",
+  "Research Topic Identification & Gap Analysis",
   "Synopsis & Research Proposal Writing",
-  "Chapter-wise Thesis Support",
-  "Scopus / SCI / UGC Journal Publication",
+  "Chapter-wise Thesis Guidance",
+  "Scopus / SCI / UGC Journal Publication Support",
   "Statistical Analysis & Data Interpretation",
   "Plagiarism Check & Correction",
-  "Viva Voce & Defense Preparation",
-  "Post-Doctoral Fellowship Assistance",
+  "Viva Voce & Defence Preparation",
+  "University Liaison & Admission Support",
 ];
 
-// ─── Benefits ─────────────────────────────────────────────────────────────────
 const benefits = [
   {
     number: "01",
-    title: "End-to-End<br/>Research Support",
+    title: "Personalised<br/>Research Mentoring",
     description:
-      "From the moment you enrol, our dedicated mentors guide you through every phase of your research — topic identification, proposal writing, chapter development, publication, and viva preparation — ensuring a smooth and successful PhD journey.",
+      "Each scholar is assigned a dedicated subject expert who provides one-on-one mentoring throughout the entire PhD journey. Our mentors are active academics with proven publication records in their respective fields.",
   },
   {
     number: "02",
-    title: "Expert Mentor<br/>Assignment",
+    title: "Structured Milestone<br/>Based Guidance",
     description:
-      "Every scholar is assigned a subject-specific expert mentor with proven experience in their discipline. Our mentors are active researchers and academics who bring real-world insight and domain expertise to every guidance session.",
+      "We break down the PhD process into clear, achievable milestones — topic selection, synopsis, literature review, data collection, analysis, writing, and submission — so you always know exactly where you stand and what comes next.",
   },
   {
     number: "03",
-    title: "International<br/>University Access",
+    title: "Publication &<br/>Journal Support",
     description:
-      "For scholars seeking PhD opportunities abroad, we provide access to our global university network across the USA, UK, Canada, Australia, Germany, and more — with full support for admissions, scholarships, SOP writing, and visa documentation.",
+      "Our editorial team assists in preparing and submitting research papers to reputed international journals. We have successfully guided scholars to publish in Scopus, SCI, and UGC Care-listed journals across all major disciplines.",
   },
 ];
 
-// ─── Programs Overview ────────────────────────────────────────────────────────
-const programs = [
-  {
-    icon: "🎓",
-    title: "PhD Guidance Program",
-    desc: "Full doctoral support for Indian universities — from topic selection to thesis submission.",
-    duration: "3–5 Years",
-    mode: "Online / Offline",
-  },
-  {
-    icon: "✈️",
-    title: "PhD Abroad Program",
-    desc: "International doctoral admissions with scholarship, SOP, and visa support.",
-    duration: "3–4 Years",
-    mode: "International",
-  },
-  {
-    icon: "🔬",
-    title: "Post-Doctoral Fellowship",
-    desc: "High-impact research, Q1/Q2 journal publications, and academic career building.",
-    duration: "1–2 Years",
-    mode: "Online / Institute",
-  },
-  {
-    icon: "📄",
-    title: "Research Paper Publication",
-    desc: "Scopus, SCI & UGC journal publications with end-to-end editorial support.",
-    duration: "1–6 Months",
-    mode: "Online",
-  },
-];
-
-// ─── Component ────────────────────────────────────────────────────────────────
 const CourseDetails = () => {
   return (
     <section className="tj-service-area section-gap">
@@ -113,40 +77,40 @@ const CourseDetails = () => {
           <div className="col-12">
             <div className="post-details-wrapper">
 
-              {/* ── Hero Image ─────────────────────────────────────────────── */}
+              {/* Hero Image */}
               <div className="blog-images wow fadeInUp" data-wow-delay=".1s">
                 <Image
                   src="/new-imges/heroinner-image/about-inner.png"
-                  alt="Course Details — Inspire Education Service"
+                  alt="PhD Guidance Program — Inspire Education Service"
                   width={1170}
                   height={500}
                   style={{ height: "auto", width: "100%" }}
                 />
               </div>
 
-              {/* ── Main Title ─────────────────────────────────────────────── */}
+              {/* Title */}
               <h2 className="title title-anim">
-                India's No.1 PhD Guidance Platform — Explore Our Programs & Apply Today
+                PhD Guidance Program — Complete Doctoral Support from Enrolment to Degree
               </h2>
 
               <div className="blog-text">
 
-                {/* ── Intro Paragraphs ───────────────────────────────────── */}
+                {/* Intro */}
                 <p className="wow fadeInUp" data-wow-delay=".3s">
-                  Inspire Education Service is a premier research guidance institution dedicated to supporting
-                  doctoral scholars at every stage of their academic journey. With over 1,000 scholars guided
-                  across 17+ countries, we bring unmatched expertise, personalized mentoring, and a proven
-                  track record of success in PhD admissions, thesis writing, and research publication.
+                  The PhD Guidance Program at Inspire Education Service is a comprehensive, scholar-focused
+                  support system designed to help you complete your doctoral degree successfully. Whether you
+                  are just beginning your research journey or are midway through your PhD, our team of
+                  experienced research mentors, statisticians, and editorial experts are here to guide you
+                  at every step — from selecting a research topic to defending your thesis.
                 </p>
                 <p className="wow fadeInUp" data-wow-delay=".3s">
-                  Whether you are beginning your PhD journey in India, planning to pursue a doctorate abroad,
-                  or looking to publish your research in reputed international journals, our team of subject
-                  experts and research consultants are here to support you every step of the way. Our programs
-                  are designed to be flexible, accessible, and outcome-focused — tailored to your unique
-                  academic profile and career goals.
+                  With over 1,000 scholars guided across 17+ countries and partnerships with universities
+                  across India and abroad, we bring a structured, outcome-driven approach to PhD guidance.
+                  Our program is open to scholars from all disciplines — Science, Arts, Commerce,
+                  Engineering, Management, Education, Law, and Social Sciences.
                 </p>
 
-                {/* ── Key Features List ──────────────────────────────────── */}
+                {/* Features List */}
                 <ul className="wow fadeInUp" data-wow-delay=".3s">
                   {keyFeatures.map((feature, index) => (
                     <li key={index}>
@@ -156,7 +120,7 @@ const CourseDetails = () => {
                   ))}
                 </ul>
 
-                {/* ── Two Images ─────────────────────────────────────────── */}
+                {/* Dual Images */}
                 <div className="images-wrap">
                   <div className="row">
                     <div className="col-sm-6">
@@ -167,7 +131,7 @@ const CourseDetails = () => {
                       >
                         <Image
                           src="/new-imges/about-images/img-1.png"
-                          alt="PhD Guidance India"
+                          alt="PhD Research Guidance"
                           fill
                           sizes="(max-width: 576px) 100vw, 50vw"
                           style={{ objectFit: "cover", objectPosition: "center" }}
@@ -182,7 +146,7 @@ const CourseDetails = () => {
                       >
                         <Image
                           src="/new-imges/home-about/home-about-img-1.png"
-                          alt="PhD Abroad Guidance"
+                          alt="Doctoral Thesis Support"
                           fill
                           sizes="(max-width: 576px) 100vw, 50vw"
                           style={{ objectFit: "cover", objectPosition: "center" }}
@@ -192,62 +156,20 @@ const CourseDetails = () => {
                   </div>
                 </div>
 
-                {/* ── Programs Overview ──────────────────────────────────── */}
+                {/* Why Choose */}
                 <h3 className="wow fadeInUp" data-wow-delay=".3s">
-                  Our Programs at a Glance
+                  Why Choose Our PhD Guidance Program?
                 </h3>
                 <p className="wow fadeInUp" data-wow-delay=".3s">
-                  We offer four core programs designed to cover every stage of a researcher's academic career.
-                  Each program is built around personalized mentoring, structured milestones, and measurable
-                  outcomes — ensuring you get the most value from your investment in education.
+                  Unlike generic coaching centres, Inspire Education Service provides truly personalised,
+                  discipline-specific research mentoring. Our scholars benefit from the collective expertise
+                  of 50+ research professionals, a proven milestone-based guidance framework, and a strong
+                  record of successful PhD completions and journal publications. We work with you — not for
+                  you — ensuring that every part of your thesis reflects your own original contribution to
+                  knowledge.
                 </p>
 
-                {/* Programs Grid */}
-                <div
-                  className="row wow fadeInUp"
-                  data-wow-delay=".3s"
-                  style={{ marginBottom: 32 }}
-                >
-                  {programs.map((prog, i) => (
-                    <div key={i} className="col-md-6" style={{ marginBottom: 20 }}>
-                      <div style={{
-                        background: "#f4f7fb", borderRadius: 12,
-                        padding: "22px 24px", height: "100%",
-                        borderLeft: "4px solid #1a5276",
-                      }}>
-                        <div style={{ fontSize: 28, marginBottom: 8 }}>{prog.icon}</div>
-                        <h6 style={{ color: "#1a2e4a", fontWeight: 700, marginBottom: 6, fontSize: 16 }}>
-                          {prog.title}
-                        </h6>
-                        <p style={{ color: "#6b7280", fontSize: 13, lineHeight: 1.6, margin: "0 0 10px" }}>
-                          {prog.desc}
-                        </p>
-                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                          <span style={{ background: "#1a5276", color: "#fff", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 4 }}>
-                            ⏱ {prog.duration}
-                          </span>
-                          <span style={{ background: "#e8f0f8", color: "#1a5276", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 4 }}>
-                            📍 {prog.mode}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* ── Why Choose Us ──────────────────────────────────────── */}
-                <h3 className="wow fadeInUp" data-wow-delay=".3s">
-                  Why Choose Inspire Education Service?
-                </h3>
-                <p className="wow fadeInUp" data-wow-delay=".3s">
-                  With a decade of experience and a team of 50+ subject experts, Inspire Education Service
-                  stands as India's most trusted PhD guidance institution. Our scholars have successfully
-                  completed their doctorates at leading universities across India and abroad, published in
-                  Scopus and SCI journals, and secured prestigious academic and industry positions. We do not
-                  just guide — we walk the journey with you.
-                </p>
-
-                {/* ── Benefits ───────────────────────────────────────────── */}
+                {/* Benefits */}
                 <div className="details-content-box">
                   {benefits.map((benefit, index) => (
                     <div
@@ -256,10 +178,7 @@ const CourseDetails = () => {
                       data-wow-delay={`.${(index + 1) * 2}s`}
                     >
                       <span className="number">{benefit.number}.</span>
-                      <h6
-                        className="title"
-                        dangerouslySetInnerHTML={{ __html: benefit.title }}
-                      />
+                      <h6 className="title" dangerouslySetInnerHTML={{ __html: benefit.title }} />
                       <div className="desc">
                         <p>{benefit.description}</p>
                       </div>
@@ -267,12 +186,68 @@ const CourseDetails = () => {
                   ))}
                 </div>
 
-                {/* ── FAQ ────────────────────────────────────────────────── */}
+                {/* Program Details Box */}
+                <h3 className="wow fadeInUp" data-wow-delay=".3s">
+                  Program Details
+                </h3>
+                <div
+                  className="wow fadeInUp"
+                  data-wow-delay=".3s"
+                  style={{
+                    background: "#f4f7fb",
+                    borderRadius: 12,
+                    padding: "28px 32px",
+                    marginBottom: 32,
+                    borderLeft: "4px solid #1a5276",
+                  }}
+                >
+                  <div className="row">
+                    {[
+                      { label: "Duration", value: "3 – 5 Years" },
+                      { label: "Mode", value: "Online & Offline" },
+                      { label: "Eligibility", value: "Master's Degree (50% & above)" },
+                      { label: "Disciplines", value: "All Major Disciplines" },
+                      { label: "Universities", value: "Indian & International" },
+                      { label: "Fee", value: "Contact Us for Details" },
+                    ].map((item, i) => (
+                      <div key={i} className="col-sm-6" style={{ marginBottom: 16 }}>
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#1a5276", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                          {item.label}
+                        </p>
+                        <p style={{ margin: "2px 0 0", fontSize: 15, fontWeight: 600, color: "#1a2e4a" }}>
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Apply Button */}
+                  <div style={{ marginTop: 24, textAlign: "center" }}>
+                    <Link
+                      href="/application-form"
+                      style={{
+                        display: "inline-block",
+                        background: "#1a5276",
+                        color: "#fff",
+                        padding: "14px 48px",
+                        borderRadius: 8,
+                        fontSize: 15,
+                        fontWeight: 700,
+                        textDecoration: "none",
+                        letterSpacing: "0.02em",
+                      }}
+                    >
+                      Apply Now →
+                    </Link>
+                  </div>
+                </div>
+
+                {/* FAQ */}
                 <h3 className="wow fadeInUp" data-wow-delay=".3s">
                   Frequently Asked Questions
                 </h3>
                 <BootstrapWrapper>
-                  <div className="accordion tj-faq style-2" id="faqCourseDetails">
+                  <div className="accordion tj-faq style-2" id="faqPhd">
                     {faqData.map((faq, index) => (
                       <div
                         key={index}
@@ -283,15 +258,15 @@ const CourseDetails = () => {
                           className={`faq-title ${index !== 0 ? "collapsed" : ""}`}
                           type="button"
                           data-bs-toggle="collapse"
-                          data-bs-target={`#faq-course-${index + 1}`}
+                          data-bs-target={`#faq-phd-${index + 1}`}
                           aria-expanded={index === 0 ? "true" : "false"}
                         >
                           {faq.question}
                         </button>
                         <div
-                          id={`faq-course-${index + 1}`}
+                          id={`faq-phd-${index + 1}`}
                           className={`collapse ${index === 0 ? "show" : ""}`}
-                          data-bs-parent="#faqCourseDetails"
+                          data-bs-parent="#faqPhd"
                         >
                           <div className="accordion-body faq-text">
                             <p>{faq.answer}</p>
@@ -302,9 +277,9 @@ const CourseDetails = () => {
                   </div>
                 </BootstrapWrapper>
 
-              </div>{/* end blog-text */}
+              </div>
 
-              {/* ── Navigation ─────────────────────────────────────────────── */}
+              {/* Navigation */}
               <div className="tj-post__navigation mb-0 wow fadeInUp" data-wow-delay="0.3s">
                 <div className="tj-nav__post previous">
                   <div className="tj-nav-post__nav prev_post">
@@ -314,7 +289,7 @@ const CourseDetails = () => {
                     </Link>
                   </div>
                 </div>
-                <Link href="/application-form" className="tj-nav-post__grid">
+                <Link href="/services" className="tj-nav-post__grid">
                   <i className="tji-window"></i>
                 </Link>
                 <div className="tj-nav__post next">
@@ -327,7 +302,7 @@ const CourseDetails = () => {
                 </div>
               </div>
 
-            </div>{/* end post-details-wrapper */}
+            </div>
           </div>
         </div>
       </div>
