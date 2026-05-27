@@ -15,23 +15,27 @@ import {
   Users,
   Star,
   Bell,
+  ClipboardList,   // ← NEW: Applications icon
 } from 'lucide-react';
 import { useState } from 'react';
 
 const NAV = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/blogs', icon: FileText, label: 'Blogs' },
-  { to: '/banner', icon: Layers, label: 'Banner' },
-  { to: '/services', icon: Layers, label: 'Services' },
-  { to: '/events', icon: Calendar, label: 'Events' },
-  { to: '/careers', icon: Briefcase, label: 'Careers' },
-  { to: '/contacts', icon: Mail, label: 'Contacts' },
-   { to: '/contactinfo', icon: Mail, label: 'Contact Info' },
-  { to: '/newsletter', icon: Bell, label: 'Newsletter' },
-  { to: '/team', icon: Users, label: 'Team' },
-  { to: '/ourresourceperson', icon: Users, label: 'Resource Person' },
-  { to: '/testimonials', icon: Star, label: 'Testimonials' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+  { to: '/dashboard',       icon: LayoutDashboard, label: 'Dashboard'       },
+  { to: '/blogs',           icon: FileText,         label: 'Blogs'           },
+  { to: '/banner',          icon: Layers,           label: 'Banner'          },
+  { to: '/services',        icon: Layers,           label: 'Services'        },
+  { to: '/events',          icon: Calendar,         label: 'Events'          },
+  { to: '/careers',         icon: Briefcase,        label: 'Careers'         },
+  { to: '/contacts',        icon: Mail,             label: 'Contacts'        },
+  { to: '/contactinfo',     icon: Mail,             label: 'Contact Info'    },
+  { to: '/newsletter',      icon: Bell,             label: 'Newsletter'      },
+  { to: '/team',            icon: Users,            label: 'Team'            },
+  { to: '/ourresourceperson', icon: Users,          label: 'Resource Person' },
+  { to: '/testimonials',    icon: Star,             label: 'Testimonials'    },
+  // ── NEW ──────────────────────────────────────────────────────────────────
+  { to: '/applications',    icon: ClipboardList,    label: 'Applications'    },
+  // ─────────────────────────────────────────────────────────────────────────
+  { to: '/settings',        icon: Settings,         label: 'Settings'        },
 ];
 
 export default function Layout() {
@@ -75,7 +79,8 @@ export default function Layout() {
             to={to}
             onClick={() => setSidebarOpen(false)}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive ? 'active-nav' : 'inactive-nav'
+              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive ? 'active-nav' : 'inactive-nav'
               }`
             }
             style={({ isActive }) =>
@@ -133,22 +138,31 @@ export default function Layout() {
       {/* Mobile sidebar */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <div className="relative z-10 flex shadow-xl"><Sidebar /></div>
+          <div
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="relative z-10 flex shadow-xl">
+            <Sidebar />
+          </div>
         </div>
       )}
 
-      {/* Main content */}
+      {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile topbar */}
         <header
           className="flex items-center justify-between px-5 py-3.5 lg:hidden shadow-sm"
           style={{ background: '#ffffff', borderBottom: '1px solid #ecf0f0' }}
         >
-          <button onClick={() => setSidebarOpen(true)} style={{ color: '#67787a' }} className="hover:text-gray-900 transition-colors">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            style={{ color: '#67787a' }}
+            className="hover:text-gray-900 transition-colors"
+          >
             <Menu size={22} />
           </button>
-          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Blog Admin</p>
+          <p className="font-bold text-sm" style={{ color: '#0c1e21' }}>Inspire Admin</p>
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
             style={{ background: 'linear-gradient(135deg, #1a598a, #015599)' }}
