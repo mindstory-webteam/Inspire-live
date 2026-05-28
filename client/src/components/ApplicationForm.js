@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const BRAND     = "#1a5276";
 const TEXT_DARK = "#1a2e4a";
@@ -25,6 +25,9 @@ const PAYMENT_METHODS = [
   "Bank Transfer / NEFT / RTGS",
   "Demand Draft",
 ];
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS   = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 
 const S = {
   wrap: { background: BG_PAGE, padding: "64px 20px 80px", fontFamily: "'Segoe UI', system-ui, sans-serif", minHeight: "60vh" },
@@ -78,6 +81,199 @@ const S = {
   homeLink: { display: "inline-block", background: BRAND, color: "#fff", padding: "12px 32px", borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: "none" },
 };
 
+// ─── Custom Calendar Picker ───────────────────────────────────────────────────
+function DatePicker({ value, onChange, error }) {
+  const today      = new Date();
+  const parsed     = value ? new Date(value) : null;
+  const [open, setOpen]       = useState(false);
+  const [view, setView]       = useState("day");   // "day" | "month" | "year"
+  const [curYear,  setCurYear]  = useState(parsed ? parsed.getFullYear()  : today.getFullYear());
+  const [curMonth, setCurMonth] = useState(parsed ? parsed.getMonth()     : today.getMonth());
+  const wrapRef = useRef();
+
+  // Close on outside click
+  useEffect(() => {
+    function handle(e) { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
+
+  // Format display
+  const displayVal = parsed
+    ? `${String(parsed.getDate()).padStart(2,"0")} ${MONTHS[parsed.getMonth()]} ${parsed.getFullYear()}`
+    : "";
+
+  // Calendar grid
+  const firstDay  = new Date(curYear, curMonth, 1).getDay();
+  const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  function selectDay(d) {
+    const mm   = String(curMonth + 1).padStart(2,"0");
+    const dd   = String(d).padStart(2,"0");
+    onChange(`${curYear}-${mm}-${dd}`);
+    setOpen(false);
+  }
+
+  function isSelected(d) {
+    return parsed &&
+      parsed.getFullYear() === curYear &&
+      parsed.getMonth()    === curMonth &&
+      parsed.getDate()     === d;
+  }
+
+  function isToday(d) {
+    return today.getFullYear() === curYear &&
+      today.getMonth()    === curMonth &&
+      today.getDate()     === d;
+  }
+
+  // Year range (1950 → current)
+  const minYear = 1950;
+  const maxYear = today.getFullYear();
+  const years   = [];
+  for (let y = maxYear; y >= minYear; y--) years.push(y);
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      {/* Trigger input */}
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          width: "100%", border: `1.5px solid ${error ? "#ef4444" : open ? BRAND : BORDER}`,
+          borderRadius: 8, padding: "10px 14px", fontSize: 14,
+          color: displayVal ? TEXT_DARK : "#9ca3af",
+          background: "#fff", cursor: "pointer", boxSizing: "border-box",
+          fontFamily: "inherit", userSelect: "none",
+          boxShadow: open ? `0 0 0 3px ${BRAND}18` : "none",
+          transition: "border-color 0.2s, box-shadow 0.2s",
+        }}
+      >
+        <span>{displayVal || "Select date of birth"}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={BRAND} strokeWidth="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+
+      {/* Dropdown calendar */}
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 999,
+          background: "#fff", borderRadius: 14, width: 300,
+          boxShadow: "0 8px 40px rgba(26,82,118,0.18)",
+          border: `1px solid ${BORDER}`, overflow: "hidden",
+          fontFamily: "'Segoe UI', system-ui, sans-serif",
+        }}>
+
+          {/* ── DAY VIEW ── */}
+          {view === "day" && (
+            <>
+              {/* Header */}
+              <div style={{ background: BRAND, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <button onClick={() => { curMonth === 0 ? (setCurYear(y => y-1), setCurMonth(11)) : setCurMonth(m => m-1); }}
+                  style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>‹</button>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button onClick={() => setView("month")}
+                    style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", padding: "4px 10px", borderRadius: 6 }}>
+                    {MONTHS[curMonth]}
+                  </button>
+                  <button onClick={() => setView("year")}
+                    style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", padding: "4px 10px", borderRadius: 6 }}>
+                    {curYear}
+                  </button>
+                </div>
+                <button onClick={() => { curMonth === 11 ? (setCurYear(y => y+1), setCurMonth(0)) : setCurMonth(m => m+1); }}
+                  style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>›</button>
+              </div>
+
+              {/* Day names */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", padding: "10px 12px 4px", gap: 2 }}>
+                {DAYS.map(d => (
+                  <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: "#9ca3af", padding: "4px 0" }}>{d}</div>
+                ))}
+              </div>
+
+              {/* Cells */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", padding: "0 12px 14px", gap: 2 }}>
+                {cells.map((d, i) => (
+                  <div key={i} onClick={() => d && selectDay(d)}
+                    style={{
+                      textAlign: "center", fontSize: 13, padding: "7px 0",
+                      borderRadius: 8, cursor: d ? "pointer" : "default",
+                      fontWeight: isSelected(d) ? 700 : isToday(d) ? 600 : 400,
+                      background: isSelected(d) ? BRAND : isToday(d) ? `${BRAND}15` : "transparent",
+                      color: isSelected(d) ? "#fff" : isToday(d) ? BRAND : d ? TEXT_DARK : "transparent",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={e => { if (d && !isSelected(d)) e.currentTarget.style.background = `${BRAND}12`; }}
+                    onMouseLeave={e => { if (d && !isSelected(d)) e.currentTarget.style.background = "transparent"; }}
+                  >{d || ""}</div>
+                ))}
+              </div>
+
+              {/* Today button */}
+              <div style={{ borderTop: `1px solid ${BORDER}`, padding: "10px 16px", textAlign: "center" }}>
+                <button onClick={() => { setCurYear(today.getFullYear()); setCurMonth(today.getMonth()); selectDay(today.getDate()); }}
+                  style={{ background: "none", border: `1.5px solid ${BRAND}`, color: BRAND, borderRadius: 6, padding: "5px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                  Today
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── MONTH VIEW ── */}
+          {view === "month" && (
+            <>
+              <div style={{ background: BRAND, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <button onClick={() => setCurYear(y => y - 1)} style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", padding: "0 4px" }}>‹</button>
+                <button onClick={() => setView("year")} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", padding: "4px 12px", borderRadius: 6 }}>{curYear}</button>
+                <button onClick={() => setCurYear(y => y + 1)} style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", padding: "0 4px" }}>›</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, padding: 16 }}>
+                {MONTHS.map((m, i) => (
+                  <button key={m} onClick={() => { setCurMonth(i); setView("day"); }}
+                    style={{
+                      padding: "10px 4px", borderRadius: 8, border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                      background: i === curMonth ? BRAND : `${BRAND}08`,
+                      color: i === curMonth ? "#fff" : TEXT_DARK,
+                    }}>{m.slice(0,3)}</button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── YEAR VIEW ── */}
+          {view === "year" && (
+            <>
+              <div style={{ background: BRAND, padding: "14px 16px", textAlign: "center" }}>
+                <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>Select Year</span>
+              </div>
+              <div style={{ maxHeight: 220, overflowY: "auto", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, padding: 14 }}>
+                {years.map(y => (
+                  <button key={y} onClick={() => { setCurYear(y); setView("month"); }}
+                    style={{
+                      padding: "8px 4px", borderRadius: 8, border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                      background: y === curYear ? BRAND : `${BRAND}08`,
+                      color: y === curYear ? "#fff" : TEXT_DARK,
+                    }}>{y}</button>
+                ))}
+              </div>
+            </>
+          )}
+
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function initPersonal() {
   return { fullName: "", dob: "", gender: "", contactNumber: "", email: "", country: "", address: "", city: "", zip: "" };
 }
@@ -97,11 +293,9 @@ function Field({ label, required, error, children }) {
     </div>
   );
 }
-
 function TextInput({ value, onChange, placeholder, type = "text", error }) {
   return <input type={type} value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)} style={S.input(error)} />;
 }
-
 function RadioGroup({ name, options, value, onChange }) {
   return (
     <div style={S.radioRow}>
@@ -114,7 +308,6 @@ function RadioGroup({ name, options, value, onChange }) {
     </div>
   );
 }
-
 function UploadButton({ label, file, onChange }) {
   const ref = useRef();
   return (
@@ -130,7 +323,6 @@ function UploadButton({ label, file, onChange }) {
 }
 
 const STEP_LABELS = ["Personal", "Education", "Experience", "Payment"];
-
 function StepIndicator({ current, total }) {
   return (
     <div style={S.stepRow}>
@@ -140,9 +332,9 @@ function StepIndicator({ current, total }) {
           <div key={n} style={{ display: "flex", alignItems: "center" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
               <div style={S.stepCircle(active, done)}>
-                {done ? <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> : n}
+                {done ? <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg> : n}
               </div>
-              <span style={{ fontSize: 10, fontWeight: 600, color: active || done ? BRAND : "#9ca3af", whiteSpace: "nowrap" }}>{STEP_LABELS[i]}</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: active||done ? BRAND : "#9ca3af", whiteSpace: "nowrap" }}>{STEP_LABELS[i]}</span>
             </div>
             {n < total && <div style={{ ...S.stepConnector(done), marginBottom: 18 }} />}
           </div>
@@ -157,7 +349,12 @@ function PersonalStep({ data, onChange, errors }) {
   return (
     <>
       <Field label="Full Name" required error={errors.fullName}><TextInput {...f("fullName")} placeholder="Enter your full name" /></Field>
-      <Field label="Date of Birth" required error={errors.dob}><TextInput {...f("dob")} type="date" /></Field>
+
+      {/* ── Custom Date Picker for DOB ── */}
+      <Field label="Date of Birth" required error={errors.dob}>
+        <DatePicker value={data.dob} onChange={v => onChange("dob", v)} error={errors.dob} />
+      </Field>
+
       <Field label="Gender" required error={errors.gender}><RadioGroup name="gender" options={["Male","Female","Other"]} value={data.gender} onChange={v => onChange("gender", v)} /></Field>
       <Field label="Contact Number" required error={errors.contactNumber}><TextInput {...f("contactNumber")} type="tel" placeholder="Enter your 10-digit phone number" /></Field>
       <Field label="Email" required error={errors.email}><TextInput {...f("email")} type="email" placeholder="e.g., yourname@email.com" /></Field>
@@ -222,48 +419,24 @@ function WorkStep({ data, onChange, errors }) {
   );
 }
 
-// ─── Payment Step with Price Card ─────────────────────────────────────────────
 function PaymentStep({ data, onChange, errors }) {
   return (
     <>
-      {/* ── Price Card ── */}
-      <div style={{
-        background: `linear-gradient(135deg, ${BRAND} 0%, #0e3460 100%)`,
-        borderRadius: 12, padding: "24px 28px", marginBottom: 28, color: "#fff",
-      }}>
+      <div style={{ background: `linear-gradient(135deg, ${BRAND} 0%, #0e3460 100%)`, borderRadius: 12, padding: "24px 28px", marginBottom: 28, color: "#fff" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", opacity: 0.75 }}>
-              PhD Guidance Program
-            </p>
-            <p style={{ margin: 0, fontSize: 13, opacity: 0.85, lineHeight: 1.5 }}>
-              Full doctoral support — topic to viva voce
-            </p>
+            <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", opacity: 0.75 }}>PhD Guidance Program</p>
+            <p style={{ margin: 0, fontSize: 13, opacity: 0.85, lineHeight: 1.5 }}>Full doctoral support — topic to viva voce</p>
           </div>
           <div style={{ textAlign: "right" }}>
-            <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-              Program Fee
-            </p>
-            <p style={{ margin: 0, fontSize: 32, fontWeight: 900, letterSpacing: "-0.02em" }}>
-              ₹35,500
-            </p>
+            <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.1em" }}>Program Fee</p>
+            <p style={{ margin: 0, fontSize: 32, fontWeight: 900, letterSpacing: "-0.02em" }}>₹35,500</p>
             <p style={{ margin: "2px 0 0", fontSize: 11, opacity: 0.65 }}>Inclusive of all taxes</p>
           </div>
         </div>
-
-        {/* Divider */}
         <div style={{ height: 1, background: "rgba(255,255,255,0.15)", margin: "18px 0" }} />
-
-        {/* What's included */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px" }}>
-          {[
-            "Topic & Synopsis Guidance",
-            "Chapter-wise Thesis Support",
-            "Journal Publication Help",
-            "Plagiarism Check & Correction",
-            "Statistical Analysis Support",
-            "Viva Voce Preparation",
-          ].map((item, i) => (
+          {["Topic & Synopsis Guidance","Chapter-wise Thesis Support","Journal Publication Help","Plagiarism Check & Correction","Statistical Analysis Support","Viva Voce Preparation"].map((item, i) => (
             <p key={i} style={{ margin: 0, fontSize: 12, opacity: 0.88, display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ color: "#4ade80", fontWeight: 700, fontSize: 13 }}>✓</span> {item}
             </p>
@@ -271,11 +444,7 @@ function PaymentStep({ data, onChange, errors }) {
         </div>
       </div>
 
-      {/* ── Payment Method ── */}
-      <p style={{ color: TEXT_DARK, fontSize: 13, fontWeight: 700, marginBottom: 14, marginTop: 0, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-        Choose Your Payment Method
-      </p>
-
+      <p style={{ color: TEXT_DARK, fontSize: 13, fontWeight: 700, marginBottom: 14, marginTop: 0, textTransform: "uppercase", letterSpacing: "0.08em" }}>Choose Your Payment Method</p>
       {PAYMENT_METHODS.map(method => {
         const selected = data.paymentMethod === method;
         return (
@@ -285,22 +454,16 @@ function PaymentStep({ data, onChange, errors }) {
           </div>
         );
       })}
-
       {errors.paymentMethod && <p style={S.errorMsg}>{errors.paymentMethod}</p>}
 
-      {/* ── Info note ── */}
       <div style={{ background: `${BRAND}08`, border: `1px solid ${BRAND}30`, borderRadius: 10, padding: "14px 18px", marginTop: 20 }}>
         <p style={{ margin: 0, color: BRAND, fontSize: 13, fontWeight: 600, lineHeight: 1.6 }}>
-          📌 Payment of <strong>₹35,500</strong> is to be completed after your application is reviewed.
-          Our counsellor will share payment details and instructions within 24 hours of submission.
+          📌 Payment of <strong>₹35,500</strong> is to be completed after your application is reviewed. Our counsellor will share payment details within 24 hours.
         </p>
       </div>
 
-      {/* ── Order summary ── */}
       <div style={{ background: "#f9fafb", borderRadius: 10, padding: "16px 18px", marginTop: 16, border: `1px solid ${BORDER}` }}>
-        <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, color: TEXT_DARK, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          Order Summary
-        </p>
+        <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, color: TEXT_DARK, textTransform: "uppercase", letterSpacing: "0.08em" }}>Order Summary</p>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
           <span style={{ fontSize: 13, color: "#6b7280" }}>PhD Guidance Program</span>
           <span style={{ fontSize: 13, color: TEXT_DARK, fontWeight: 600 }}>₹35,500</span>
@@ -315,7 +478,6 @@ function PaymentStep({ data, onChange, errors }) {
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function ApplicationForm() {
   const [step, setStep]     = useState(1);
   const [submitted, setSub] = useState(false);
@@ -349,7 +511,6 @@ export default function ApplicationForm() {
     if (step < 4) { setStep(s => s + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }
     else setSub(true);
   }
-
   function handleBack() {
     if (step > 1) { setStep(s => s - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }
   }
@@ -367,9 +528,8 @@ export default function ApplicationForm() {
           </div>
           <h2 style={S.successH2}>Application Submitted!</h2>
           <p style={S.successP}>
-            Thank you, <strong>{personal.fullName || "Applicant"}</strong>. We have received your
-            application. Our counsellors will contact you within 24 hours with payment details
-            for the <strong>₹35,500</strong> program fee and next steps.
+            Thank you, <strong>{personal.fullName || "Applicant"}</strong>. We have received your application.
+            Our counsellors will contact you within 24 hours with payment details for the <strong>₹35,500</strong> program fee.
           </p>
           <a href="/" style={S.homeLink}>Back to Home</a>
         </div>
@@ -385,20 +545,16 @@ export default function ApplicationForm() {
           <h1 style={S.h1}>Application Form</h1>
           <p style={S.sub}>Complete all steps to submit your application.</p>
         </div>
-
         <StepIndicator current={step} total={4} />
-
         <div style={S.card}>
           <div style={S.sectionTitle}>
             <div style={S.sectionBadge}>{step}</div>
             <h2 style={S.sectionTitleText}>{TITLES[step - 1]}</h2>
           </div>
-
           {step === 1 && <PersonalStep  data={personal}  onChange={updatePersonal}  errors={errors} />}
           {step === 2 && <EducationStep data={education} onChange={updateEducation} />}
           {step === 3 && <WorkStep      data={work}      onChange={updateWork}      errors={errors} />}
           {step === 4 && <PaymentStep   data={payment}   onChange={updatePayment}   errors={errors} />}
-
           <div style={S.btnRow}>
             {step > 1 ? <button onClick={handleBack} style={S.btnBack}>← Back</button> : <div />}
             <button onClick={handleNext} style={S.btnNext}>
@@ -406,7 +562,6 @@ export default function ApplicationForm() {
             </button>
           </div>
         </div>
-
         <p style={S.progressText}>Step {step} of 4</p>
       </div>
     </div>
