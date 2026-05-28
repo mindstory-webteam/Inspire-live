@@ -6,6 +6,7 @@ const BRAND     = "#1a5276";
 const TEXT_DARK = "#1a2e4a";
 const BORDER    = "#c8d4e6";
 const BG_PAGE   = "#f4f7fb";
+const API_BASE  = process.env.NEXT_PUBLIC_API_URL || "https://www.inspireeducationservice.com/api";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Argentina","Australia","Austria","Bangladesh","Belgium",
@@ -83,75 +84,59 @@ const S = {
 
 // ─── Custom Calendar Picker ───────────────────────────────────────────────────
 function DatePicker({ value, onChange, error }) {
-  const today      = new Date();
-  const parsed     = value ? new Date(value) : null;
-  const [open, setOpen]       = useState(false);
-  const [view, setView]       = useState("day");   // "day" | "month" | "year"
+  const today    = new Date();
+  const parsed   = value ? new Date(value) : null;
+  const [open, setOpen]         = useState(false);
+  const [view, setView]         = useState("day");
   const [curYear,  setCurYear]  = useState(parsed ? parsed.getFullYear()  : today.getFullYear());
   const [curMonth, setCurMonth] = useState(parsed ? parsed.getMonth()     : today.getMonth());
   const wrapRef = useRef();
 
-  // Close on outside click
   useEffect(() => {
     function handle(e) { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); }
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
-  // Format display
   const displayVal = parsed
     ? `${String(parsed.getDate()).padStart(2,"0")} ${MONTHS[parsed.getMonth()]} ${parsed.getFullYear()}`
     : "";
 
-  // Calendar grid
-  const firstDay  = new Date(curYear, curMonth, 1).getDay();
+  const firstDay    = new Date(curYear, curMonth, 1).getDay();
   const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
   function selectDay(d) {
-    const mm   = String(curMonth + 1).padStart(2,"0");
-    const dd   = String(d).padStart(2,"0");
+    const mm = String(curMonth + 1).padStart(2,"0");
+    const dd = String(d).padStart(2,"0");
     onChange(`${curYear}-${mm}-${dd}`);
     setOpen(false);
   }
 
   function isSelected(d) {
-    return parsed &&
-      parsed.getFullYear() === curYear &&
-      parsed.getMonth()    === curMonth &&
-      parsed.getDate()     === d;
+    return parsed && parsed.getFullYear()===curYear && parsed.getMonth()===curMonth && parsed.getDate()===d;
   }
-
   function isToday(d) {
-    return today.getFullYear() === curYear &&
-      today.getMonth()    === curMonth &&
-      today.getDate()     === d;
+    return today.getFullYear()===curYear && today.getMonth()===curMonth && today.getDate()===d;
   }
 
-  // Year range (1950 → current)
-  const minYear = 1950;
-  const maxYear = today.getFullYear();
-  const years   = [];
-  for (let y = maxYear; y >= minYear; y--) years.push(y);
+  const years = [];
+  for (let y = today.getFullYear(); y >= 1950; y--) years.push(y);
 
   return (
     <div ref={wrapRef} style={{ position: "relative" }}>
-      {/* Trigger input */}
-      <div
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          width: "100%", border: `1.5px solid ${error ? "#ef4444" : open ? BRAND : BORDER}`,
-          borderRadius: 8, padding: "10px 14px", fontSize: 14,
-          color: displayVal ? TEXT_DARK : "#9ca3af",
-          background: "#fff", cursor: "pointer", boxSizing: "border-box",
-          fontFamily: "inherit", userSelect: "none",
-          boxShadow: open ? `0 0 0 3px ${BRAND}18` : "none",
-          transition: "border-color 0.2s, box-shadow 0.2s",
-        }}
-      >
+      <div onClick={() => setOpen(o => !o)} style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        width: "100%", border: `1.5px solid ${error ? "#ef4444" : open ? BRAND : BORDER}`,
+        borderRadius: 8, padding: "10px 14px", fontSize: 14,
+        color: displayVal ? TEXT_DARK : "#9ca3af",
+        background: "#fff", cursor: "pointer", boxSizing: "border-box",
+        fontFamily: "inherit", userSelect: "none",
+        boxShadow: open ? `0 0 0 3px ${BRAND}18` : "none",
+        transition: "border-color 0.2s, box-shadow 0.2s",
+      }}>
         <span>{displayVal || "Select date of birth"}</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={BRAND} strokeWidth="2">
           <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -161,7 +146,6 @@ function DatePicker({ value, onChange, error }) {
         </svg>
       </div>
 
-      {/* Dropdown calendar */}
       {open && (
         <div style={{
           position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 999,
@@ -170,120 +154,74 @@ function DatePicker({ value, onChange, error }) {
           border: `1px solid ${BORDER}`, overflow: "hidden",
           fontFamily: "'Segoe UI', system-ui, sans-serif",
         }}>
+          {view === "day" && (<>
+            <div style={{ background: BRAND, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <button onClick={() => { curMonth===0 ? (setCurYear(y=>y-1),setCurMonth(11)) : setCurMonth(m=>m-1); }} style={{ background:"none",border:"none",color:"#fff",fontSize:18,cursor:"pointer",lineHeight:1,padding:"0 4px" }}>‹</button>
+              <div style={{ display:"flex",gap:6 }}>
+                <button onClick={() => setView("month")} style={{ background:"rgba(255,255,255,0.15)",border:"none",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",padding:"4px 10px",borderRadius:6 }}>{MONTHS[curMonth]}</button>
+                <button onClick={() => setView("year")}  style={{ background:"rgba(255,255,255,0.15)",border:"none",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",padding:"4px 10px",borderRadius:6 }}>{curYear}</button>
+              </div>
+              <button onClick={() => { curMonth===11 ? (setCurYear(y=>y+1),setCurMonth(0)) : setCurMonth(m=>m+1); }} style={{ background:"none",border:"none",color:"#fff",fontSize:18,cursor:"pointer",lineHeight:1,padding:"0 4px" }}>›</button>
+            </div>
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(7,1fr)",padding:"10px 12px 4px",gap:2 }}>
+              {DAYS.map(d => <div key={d} style={{ textAlign:"center",fontSize:11,fontWeight:700,color:"#9ca3af",padding:"4px 0" }}>{d}</div>)}
+            </div>
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(7,1fr)",padding:"0 12px 14px",gap:2 }}>
+              {cells.map((d,i) => (
+                <div key={i} onClick={() => d && selectDay(d)} style={{
+                  textAlign:"center",fontSize:13,padding:"7px 0",borderRadius:8,
+                  cursor: d ? "pointer" : "default",
+                  fontWeight: isSelected(d) ? 700 : isToday(d) ? 600 : 400,
+                  background: isSelected(d) ? BRAND : isToday(d) ? `${BRAND}15` : "transparent",
+                  color: isSelected(d) ? "#fff" : isToday(d) ? BRAND : d ? TEXT_DARK : "transparent",
+                  transition:"background 0.15s",
+                }}
+                  onMouseEnter={e => { if(d&&!isSelected(d)) e.currentTarget.style.background=`${BRAND}12`; }}
+                  onMouseLeave={e => { if(d&&!isSelected(d)) e.currentTarget.style.background="transparent"; }}
+                >{d||""}</div>
+              ))}
+            </div>
+            <div style={{ borderTop:`1px solid ${BORDER}`,padding:"10px 16px",textAlign:"center" }}>
+              <button onClick={() => { setCurYear(today.getFullYear()); setCurMonth(today.getMonth()); selectDay(today.getDate()); }}
+                style={{ background:"none",border:`1.5px solid ${BRAND}`,color:BRAND,borderRadius:6,padding:"5px 18px",fontSize:12,fontWeight:700,cursor:"pointer" }}>Today</button>
+            </div>
+          </>)}
 
-          {/* ── DAY VIEW ── */}
-          {view === "day" && (
-            <>
-              {/* Header */}
-              <div style={{ background: BRAND, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <button onClick={() => { curMonth === 0 ? (setCurYear(y => y-1), setCurMonth(11)) : setCurMonth(m => m-1); }}
-                  style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>‹</button>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={() => setView("month")}
-                    style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", padding: "4px 10px", borderRadius: 6 }}>
-                    {MONTHS[curMonth]}
-                  </button>
-                  <button onClick={() => setView("year")}
-                    style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", padding: "4px 10px", borderRadius: 6 }}>
-                    {curYear}
-                  </button>
-                </div>
-                <button onClick={() => { curMonth === 11 ? (setCurYear(y => y+1), setCurMonth(0)) : setCurMonth(m => m+1); }}
-                  style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>›</button>
-              </div>
+          {view === "month" && (<>
+            <div style={{ background:BRAND,padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+              <button onClick={() => setCurYear(y=>y-1)} style={{ background:"none",border:"none",color:"#fff",fontSize:18,cursor:"pointer",padding:"0 4px" }}>‹</button>
+              <button onClick={() => setView("year")} style={{ background:"rgba(255,255,255,0.15)",border:"none",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",padding:"4px 12px",borderRadius:6 }}>{curYear}</button>
+              <button onClick={() => setCurYear(y=>y+1)} style={{ background:"none",border:"none",color:"#fff",fontSize:18,cursor:"pointer",padding:"0 4px" }}>›</button>
+            </div>
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,padding:16 }}>
+              {MONTHS.map((m,i) => (
+                <button key={m} onClick={() => { setCurMonth(i); setView("day"); }} style={{ padding:"10px 4px",borderRadius:8,border:"none",fontSize:13,fontWeight:600,cursor:"pointer", background:i===curMonth?BRAND:`${BRAND}08`, color:i===curMonth?"#fff":TEXT_DARK }}>{m.slice(0,3)}</button>
+              ))}
+            </div>
+          </>)}
 
-              {/* Day names */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", padding: "10px 12px 4px", gap: 2 }}>
-                {DAYS.map(d => (
-                  <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: "#9ca3af", padding: "4px 0" }}>{d}</div>
-                ))}
-              </div>
-
-              {/* Cells */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", padding: "0 12px 14px", gap: 2 }}>
-                {cells.map((d, i) => (
-                  <div key={i} onClick={() => d && selectDay(d)}
-                    style={{
-                      textAlign: "center", fontSize: 13, padding: "7px 0",
-                      borderRadius: 8, cursor: d ? "pointer" : "default",
-                      fontWeight: isSelected(d) ? 700 : isToday(d) ? 600 : 400,
-                      background: isSelected(d) ? BRAND : isToday(d) ? `${BRAND}15` : "transparent",
-                      color: isSelected(d) ? "#fff" : isToday(d) ? BRAND : d ? TEXT_DARK : "transparent",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={e => { if (d && !isSelected(d)) e.currentTarget.style.background = `${BRAND}12`; }}
-                    onMouseLeave={e => { if (d && !isSelected(d)) e.currentTarget.style.background = "transparent"; }}
-                  >{d || ""}</div>
-                ))}
-              </div>
-
-              {/* Today button */}
-              <div style={{ borderTop: `1px solid ${BORDER}`, padding: "10px 16px", textAlign: "center" }}>
-                <button onClick={() => { setCurYear(today.getFullYear()); setCurMonth(today.getMonth()); selectDay(today.getDate()); }}
-                  style={{ background: "none", border: `1.5px solid ${BRAND}`, color: BRAND, borderRadius: 6, padding: "5px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                  Today
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* ── MONTH VIEW ── */}
-          {view === "month" && (
-            <>
-              <div style={{ background: BRAND, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <button onClick={() => setCurYear(y => y - 1)} style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", padding: "0 4px" }}>‹</button>
-                <button onClick={() => setView("year")} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", padding: "4px 12px", borderRadius: 6 }}>{curYear}</button>
-                <button onClick={() => setCurYear(y => y + 1)} style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", padding: "0 4px" }}>›</button>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, padding: 16 }}>
-                {MONTHS.map((m, i) => (
-                  <button key={m} onClick={() => { setCurMonth(i); setView("day"); }}
-                    style={{
-                      padding: "10px 4px", borderRadius: 8, border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                      background: i === curMonth ? BRAND : `${BRAND}08`,
-                      color: i === curMonth ? "#fff" : TEXT_DARK,
-                    }}>{m.slice(0,3)}</button>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* ── YEAR VIEW ── */}
-          {view === "year" && (
-            <>
-              <div style={{ background: BRAND, padding: "14px 16px", textAlign: "center" }}>
-                <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>Select Year</span>
-              </div>
-              <div style={{ maxHeight: 220, overflowY: "auto", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, padding: 14 }}>
-                {years.map(y => (
-                  <button key={y} onClick={() => { setCurYear(y); setView("month"); }}
-                    style={{
-                      padding: "8px 4px", borderRadius: 8, border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                      background: y === curYear ? BRAND : `${BRAND}08`,
-                      color: y === curYear ? "#fff" : TEXT_DARK,
-                    }}>{y}</button>
-                ))}
-              </div>
-            </>
-          )}
-
+          {view === "year" && (<>
+            <div style={{ background:BRAND,padding:"14px 16px",textAlign:"center" }}>
+              <span style={{ color:"#fff",fontSize:13,fontWeight:700 }}>Select Year</span>
+            </div>
+            <div style={{ maxHeight:220,overflowY:"auto",display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,padding:14 }}>
+              {years.map(y => (
+                <button key={y} onClick={() => { setCurYear(y); setView("month"); }} style={{ padding:"8px 4px",borderRadius:8,border:"none",fontSize:13,fontWeight:600,cursor:"pointer", background:y===curYear?BRAND:`${BRAND}08`, color:y===curYear?"#fff":TEXT_DARK }}>{y}</button>
+              ))}
+            </div>
+          </>)}
         </div>
       )}
     </div>
   );
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function initPersonal() {
-  return { fullName: "", dob: "", gender: "", contactNumber: "", email: "", country: "", address: "", city: "", zip: "" };
-}
-function initEducation() {
-  return { sslc_board: "", sslc_year: "", sslc_grade: "", sslc_file: null, plus2_board: "", plus2_year: "", plus2_grade: "", plus2_file: null, degree_course: "", degree_year: "", degree_grade: "", degree_file: null, masters_course: "", masters_year: "", masters_grade: "", masters_file: null, extra_details: "", extra_file: null };
-}
-function initWork() {
-  return { company: "", position: "", duration: "", description: "", work_file: null };
-}
+// ─── Init ─────────────────────────────────────────────────────────────────────
+function initPersonal() { return { fullName:"",dob:"",gender:"",contactNumber:"",email:"",country:"",address:"",city:"",zip:"" }; }
+function initEducation() { return { sslc_board:"",sslc_year:"",sslc_grade:"",sslc_file:null,plus2_board:"",plus2_year:"",plus2_grade:"",plus2_file:null,degree_course:"",degree_year:"",degree_grade:"",degree_file:null,masters_course:"",masters_year:"",masters_grade:"",masters_file:null,extra_details:"",extra_file:null }; }
+function initWork() { return { company:"",position:"",duration:"",description:"",work_file:null }; }
 
+// ─── Field components ─────────────────────────────────────────────────────────
 function Field({ label, required, error, children }) {
   return (
     <div style={S.fieldWrap}>
@@ -293,15 +231,15 @@ function Field({ label, required, error, children }) {
     </div>
   );
 }
-function TextInput({ value, onChange, placeholder, type = "text", error }) {
-  return <input type={type} value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)} style={S.input(error)} />;
+function TextInput({ value, onChange, placeholder, type="text", error }) {
+  return <input type={type} value={value} placeholder={placeholder} onChange={e=>onChange(e.target.value)} style={S.input(error)} />;
 }
 function RadioGroup({ name, options, value, onChange }) {
   return (
     <div style={S.radioRow}>
       {options.map(opt => (
         <label key={opt} style={S.radioLabel}>
-          <input type="radio" name={name} value={opt} checked={value === opt} onChange={e => onChange(e.target.value)} style={{ accentColor: BRAND, width: 16, height: 16 }} />
+          <input type="radio" name={name} value={opt} checked={value===opt} onChange={e=>onChange(e.target.value)} style={{ accentColor:BRAND,width:16,height:16 }} />
           {opt}
         </label>
       ))}
@@ -312,31 +250,32 @@ function UploadButton({ label, file, onChange }) {
   const ref = useRef();
   return (
     <div>
-      <input type="file" ref={ref} style={{ display: "none" }} onChange={e => onChange(e.target.files[0] || null)} />
-      <button onClick={() => ref.current.click()} style={file ? S.uploadBtnDone : S.uploadBtn}>
-        <span style={{ fontSize: 16 }}>{file ? "✓" : "+"}</span>
-        {file ? "File Selected" : label}
+      <input type="file" ref={ref} style={{ display:"none" }} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onChange={e=>onChange(e.target.files[0]||null)} />
+      <button onClick={()=>ref.current.click()} style={file?S.uploadBtnDone:S.uploadBtn}>
+        <span style={{ fontSize:16 }}>{file?"✓":"+"}</span>
+        {file?"File Selected":label}
       </button>
       {file && <p style={S.uploadFileName}>📎 {file.name}</p>}
     </div>
   );
 }
 
-const STEP_LABELS = ["Personal", "Education", "Experience", "Payment"];
+// ─── Step Indicator ───────────────────────────────────────────────────────────
+const STEP_LABELS = ["Personal","Education","Experience","Payment"];
 function StepIndicator({ current, total }) {
   return (
     <div style={S.stepRow}>
-      {Array.from({ length: total }, (_, i) => {
-        const n = i + 1; const active = n === current; const done = n < current;
+      {Array.from({ length:total }, (_,i) => {
+        const n=i+1; const active=n===current; const done=n<current;
         return (
-          <div key={n} style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-              <div style={S.stepCircle(active, done)}>
+          <div key={n} style={{ display:"flex",alignItems:"center" }}>
+            <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:6 }}>
+              <div style={S.stepCircle(active,done)}>
                 {done ? <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg> : n}
               </div>
-              <span style={{ fontSize: 10, fontWeight: 600, color: active||done ? BRAND : "#9ca3af", whiteSpace: "nowrap" }}>{STEP_LABELS[i]}</span>
+              <span style={{ fontSize:10,fontWeight:600,color:active||done?BRAND:"#9ca3af",whiteSpace:"nowrap" }}>{STEP_LABELS[i]}</span>
             </div>
-            {n < total && <div style={{ ...S.stepConnector(done), marginBottom: 18 }} />}
+            {n<total && <div style={{ ...S.stepConnector(done),marginBottom:18 }} />}
           </div>
         );
       })}
@@ -344,31 +283,29 @@ function StepIndicator({ current, total }) {
   );
 }
 
+// ─── Steps ────────────────────────────────────────────────────────────────────
 function PersonalStep({ data, onChange, errors }) {
-  const f = name => ({ value: data[name], onChange: v => onChange(name, v), error: errors[name] });
+  const f = name => ({ value:data[name], onChange:v=>onChange(name,v), error:errors[name] });
   return (
     <>
       <Field label="Full Name" required error={errors.fullName}><TextInput {...f("fullName")} placeholder="Enter your full name" /></Field>
-
-      {/* ── Custom Date Picker for DOB ── */}
       <Field label="Date of Birth" required error={errors.dob}>
-        <DatePicker value={data.dob} onChange={v => onChange("dob", v)} error={errors.dob} />
+        <DatePicker value={data.dob} onChange={v=>onChange("dob",v)} error={errors.dob} />
       </Field>
-
-      <Field label="Gender" required error={errors.gender}><RadioGroup name="gender" options={["Male","Female","Other"]} value={data.gender} onChange={v => onChange("gender", v)} /></Field>
+      <Field label="Gender" required error={errors.gender}><RadioGroup name="gender" options={["Male","Female","Other"]} value={data.gender} onChange={v=>onChange("gender",v)} /></Field>
       <Field label="Contact Number" required error={errors.contactNumber}><TextInput {...f("contactNumber")} type="tel" placeholder="Enter your 10-digit phone number" /></Field>
       <Field label="Email" required error={errors.email}><TextInput {...f("email")} type="email" placeholder="e.g., yourname@email.com" /></Field>
       <Field label="Country / Region" error={errors.country}>
-        <div style={{ position: "relative" }}>
-          <select value={data.country} onChange={e => onChange("country", e.target.value)} style={S.select(false)}>
+        <div style={{ position:"relative" }}>
+          <select value={data.country} onChange={e=>onChange("country",e.target.value)} style={S.select(false)}>
             <option value="">— Select —</option>
-            {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+            {COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}
           </select>
-          <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: BRAND, fontSize: 11 }}>▼</span>
+          <span style={{ position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none",color:BRAND,fontSize:11 }}>▼</span>
         </div>
       </Field>
       <Field label="Address" error={errors.address}><TextInput {...f("address")} /></Field>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16 }}>
         <Field label="City" error={errors.city}><TextInput {...f("city")} /></Field>
         <Field label="Zip / Postal Code" error={errors.zip}><TextInput {...f("zip")} /></Field>
       </div>
@@ -378,13 +315,13 @@ function PersonalStep({ data, onChange, errors }) {
 
 function EduSub({ title, fields, data, onChange, last }) {
   return (
-    <div style={last ? S.subSectionLast : S.subSection}>
+    <div style={last?S.subSectionLast:S.subSection}>
       <p style={S.subTitle}>{title}</p>
       {fields.map(f => (
         <Field key={f.name} label={f.label} required={f.required}>
-          {f.type === "upload" ? <UploadButton label={f.uploadLabel} file={data[f.name]} onChange={v => onChange(f.name, v)} />
-            : f.type === "textarea" ? <textarea value={data[f.name]} placeholder={f.placeholder} rows={3} onChange={e => onChange(f.name, e.target.value)} style={S.textarea(false)} />
-            : <TextInput value={data[f.name]} placeholder={f.placeholder} onChange={v => onChange(f.name, v)} />}
+          {f.type==="upload" ? <UploadButton label={f.uploadLabel} file={data[f.name]} onChange={v=>onChange(f.name,v)} />
+            : f.type==="textarea" ? <textarea value={data[f.name]} placeholder={f.placeholder} rows={3} onChange={e=>onChange(f.name,e.target.value)} style={S.textarea(false)} />
+            : <TextInput value={data[f.name]} placeholder={f.placeholder} onChange={v=>onChange(f.name,v)} />}
         </Field>
       ))}
     </div>
@@ -393,27 +330,27 @@ function EduSub({ title, fields, data, onChange, last }) {
 
 function EducationStep({ data, onChange }) {
   const sections = [
-    { title: "A. SSLC (10th Standard)", fields: [{ name:"sslc_board", label:"Board/University", type:"text", placeholder:"[e.g., CBSE, ICSE, State Board]" },{ name:"sslc_year", label:"Year of Passing", type:"text", placeholder:"[e.g., 2015]" },{ name:"sslc_grade", label:"Percentage/Grade", type:"text", placeholder:"[e.g., 82.5% or B+]" },{ name:"sslc_file", label:"Upload Document", type:"upload", uploadLabel:"Upload SSLC Certificate" }] },
-    { title: "B. PLUS TWO (12th Standard)", fields: [{ name:"plus2_board", label:"Board/University", type:"text", placeholder:"[e.g., CBSE, State Board]" },{ name:"plus2_year", label:"Year of Passing", type:"text", placeholder:"[e.g., 2017]" },{ name:"plus2_grade", label:"Percentage/Grade", type:"text", placeholder:"[e.g., 82.5% or B+]" },{ name:"plus2_file", label:"Upload Document", type:"upload", uploadLabel:"Upload Plus Two Cert. & Marklist" }] },
-    { title: "C. DEGREE", fields: [{ name:"degree_course", label:"Course & University", type:"text", placeholder:"[e.g., B.Com – University of XYZ]" },{ name:"degree_year", label:"Year of Passing", type:"text", placeholder:"[e.g., 2020]" },{ name:"degree_grade", label:"Percentage/Grade", type:"text", placeholder:"[e.g., 75% or First Class]", required: true },{ name:"degree_file", label:"Upload Document", type:"upload", uploadLabel:"Upload DEGREE Cert. & Marklist" }] },
-    { title: "D. MASTER'S CERTIFICATE", fields: [{ name:"masters_course", label:"Course & University", type:"text", placeholder:"[e.g., MBA – University of ABC]" },{ name:"masters_year", label:"Year of Passing", type:"text", placeholder:"[e.g., 2022]" },{ name:"masters_grade", label:"Percentage/Grade", type:"text", placeholder:"[e.g., 75% or First Class]" },{ name:"masters_file", label:"Upload Document", type:"upload", uploadLabel:"Upload MASTER'S Cert. & Marklist" }] },
-    { title: "E. ADDITIONAL QUALIFICATIONS (if any)", fields: [{ name:"extra_details", label:"Course Details", type:"textarea", placeholder:"[Mention any diplomas, certifications, etc.]" },{ name:"extra_file", label:"Upload Document", type:"upload", uploadLabel:"Upload Additional Certificates" }] },
+    { title:"A. SSLC (10th Standard)", fields:[{name:"sslc_board",label:"Board/University",type:"text",placeholder:"[e.g., CBSE, ICSE, State Board]"},{name:"sslc_year",label:"Year of Passing",type:"text",placeholder:"[e.g., 2015]"},{name:"sslc_grade",label:"Percentage/Grade",type:"text",placeholder:"[e.g., 82.5% or B+]"},{name:"sslc_file",label:"Upload Document",type:"upload",uploadLabel:"Upload SSLC Certificate"}] },
+    { title:"B. PLUS TWO (12th Standard)", fields:[{name:"plus2_board",label:"Board/University",type:"text",placeholder:"[e.g., CBSE, State Board]"},{name:"plus2_year",label:"Year of Passing",type:"text",placeholder:"[e.g., 2017]"},{name:"plus2_grade",label:"Percentage/Grade",type:"text",placeholder:"[e.g., 82.5% or B+]"},{name:"plus2_file",label:"Upload Document",type:"upload",uploadLabel:"Upload Plus Two Cert. & Marklist"}] },
+    { title:"C. DEGREE", fields:[{name:"degree_course",label:"Course & University",type:"text",placeholder:"[e.g., B.Com – University of XYZ]"},{name:"degree_year",label:"Year of Passing",type:"text",placeholder:"[e.g., 2020]"},{name:"degree_grade",label:"Percentage/Grade",type:"text",placeholder:"[e.g., 75% or First Class]",required:true},{name:"degree_file",label:"Upload Document",type:"upload",uploadLabel:"Upload DEGREE Cert. & Marklist"}] },
+    { title:"D. MASTER'S CERTIFICATE", fields:[{name:"masters_course",label:"Course & University",type:"text",placeholder:"[e.g., MBA – University of ABC]"},{name:"masters_year",label:"Year of Passing",type:"text",placeholder:"[e.g., 2022]"},{name:"masters_grade",label:"Percentage/Grade",type:"text",placeholder:"[e.g., 75% or First Class]"},{name:"masters_file",label:"Upload Document",type:"upload",uploadLabel:"Upload MASTER'S Cert. & Marklist"}] },
+    { title:"E. ADDITIONAL QUALIFICATIONS (if any)", fields:[{name:"extra_details",label:"Course Details",type:"textarea",placeholder:"[Mention any diplomas, certifications, etc.]"},{name:"extra_file",label:"Upload Document",type:"upload",uploadLabel:"Upload Additional Certificates"}] },
   ];
-  return <>{sections.map((s, i) => <EduSub key={s.title} {...s} data={data} onChange={onChange} last={i === sections.length - 1} />)}</>;
+  return <>{sections.map((s,i)=><EduSub key={s.title} {...s} data={data} onChange={onChange} last={i===sections.length-1} />)}</>;
 }
 
 function WorkStep({ data, onChange, errors }) {
-  const f = name => ({ value: data[name], onChange: v => onChange(name, v), error: errors[name] });
+  const f = name => ({ value:data[name], onChange:v=>onChange(name,v), error:errors[name] });
   return (
     <>
       <Field label="Company Name" error={errors.company}><TextInput {...f("company")} placeholder="[e.g., ABC Pvt. Ltd.]" /></Field>
       <Field label="Position" error={errors.position}><TextInput {...f("position")} placeholder="[e.g., Marketing Manager]" /></Field>
       <Field label="Duration" error={errors.duration}><TextInput {...f("duration")} placeholder="[e.g., Jan 2021 – June 2023]" /></Field>
       <Field label="Description of Role">
-        <textarea value={data.description} placeholder="[Briefly describe your responsibilities and achievements]" rows={5} onChange={e => onChange("description", e.target.value)} style={S.textarea(false)} />
+        <textarea value={data.description} placeholder="[Briefly describe your responsibilities and achievements]" rows={5} onChange={e=>onChange("description",e.target.value)} style={S.textarea(false)} />
       </Field>
       <Field label="Upload Documents">
-        <UploadButton label="Upload Experience Certificate" file={data.work_file} onChange={v => onChange("work_file", v)} />
+        <UploadButton label="Upload Experience Certificate" file={data.work_file} onChange={v=>onChange("work_file",v)} />
       </Field>
     </>
   );
@@ -422,100 +359,152 @@ function WorkStep({ data, onChange, errors }) {
 function PaymentStep({ data, onChange, errors }) {
   return (
     <>
-      <div style={{ background: `linear-gradient(135deg, ${BRAND} 0%, #0e3460 100%)`, borderRadius: 12, padding: "24px 28px", marginBottom: 28, color: "#fff" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+      {/* ── Price Card ── */}
+      <div style={{ background:`linear-gradient(135deg, ${BRAND} 0%, #0e3460 100%)`, borderRadius:12, padding:"24px 28px", marginBottom:28, color:"#fff" }}>
+        <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:16 }}>
           <div>
-            <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", opacity: 0.75 }}>PhD Guidance Program</p>
-            <p style={{ margin: 0, fontSize: 13, opacity: 0.85, lineHeight: 1.5 }}>Full doctoral support — topic to viva voce</p>
+            <p style={{ margin:"0 0 4px",fontSize:11,fontWeight:700,letterSpacing:"0.15em",textTransform:"uppercase",opacity:0.75 }}>PhD Guidance Program</p>
+            <p style={{ margin:0,fontSize:13,opacity:0.85,lineHeight:1.5 }}>Full doctoral support — topic to viva voce</p>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.1em" }}>Program Fee</p>
-            <p style={{ margin: 0, fontSize: 32, fontWeight: 900, letterSpacing: "-0.02em" }}>₹35,500</p>
-            <p style={{ margin: "2px 0 0", fontSize: 11, opacity: 0.65 }}>Inclusive of all taxes</p>
+          <div style={{ textAlign:"right" }}>
+            <p style={{ margin:"0 0 2px",fontSize:11,fontWeight:600,opacity:0.7,textTransform:"uppercase",letterSpacing:"0.1em" }}>Amount to Pay</p>
+            <p style={{ margin:0,fontSize:36,fontWeight:900,letterSpacing:"-0.02em" }}>₹35,500</p>
+            <p style={{ margin:"2px 0 0",fontSize:11,opacity:0.65 }}>Inclusive of all taxes</p>
           </div>
         </div>
-        <div style={{ height: 1, background: "rgba(255,255,255,0.15)", margin: "18px 0" }} />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px" }}>
-          {["Topic & Synopsis Guidance","Chapter-wise Thesis Support","Journal Publication Help","Plagiarism Check & Correction","Statistical Analysis Support","Viva Voce Preparation"].map((item, i) => (
-            <p key={i} style={{ margin: 0, fontSize: 12, opacity: 0.88, display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ color: "#4ade80", fontWeight: 700, fontSize: 13 }}>✓</span> {item}
+        <div style={{ height:1,background:"rgba(255,255,255,0.15)",margin:"18px 0" }} />
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px 16px" }}>
+          {["Topic & Synopsis Guidance","Chapter-wise Thesis Support","Journal Publication Help","Plagiarism Check & Correction","Statistical Analysis Support","Viva Voce Preparation"].map((item,i) => (
+            <p key={i} style={{ margin:0,fontSize:12,opacity:0.88,display:"flex",alignItems:"center",gap:6 }}>
+              <span style={{ color:"#4ade80",fontWeight:700,fontSize:13 }}>✓</span> {item}
             </p>
           ))}
         </div>
       </div>
 
-      <p style={{ color: TEXT_DARK, fontSize: 13, fontWeight: 700, marginBottom: 14, marginTop: 0, textTransform: "uppercase", letterSpacing: "0.08em" }}>Choose Your Payment Method</p>
+      {/* ── Payment Method ── */}
+      <p style={{ color:TEXT_DARK,fontSize:13,fontWeight:700,marginBottom:14,marginTop:0,textTransform:"uppercase",letterSpacing:"0.08em" }}>
+        Choose Your Payment Method
+      </p>
       {PAYMENT_METHODS.map(method => {
         const selected = data.paymentMethod === method;
         return (
-          <div key={method} style={S.paymentOption(selected)} onClick={() => onChange("paymentMethod", method)}>
-            <input type="radio" name="paymentMethod" value={method} checked={selected} onChange={() => onChange("paymentMethod", method)} style={S.paymentRadio} />
-            <span style={{ color: TEXT_DARK, fontSize: 14, fontWeight: selected ? 700 : 400 }}>{method}</span>
+          <div key={method} style={S.paymentOption(selected)} onClick={()=>onChange("paymentMethod",method)}>
+            <input type="radio" name="paymentMethod" value={method} checked={selected} onChange={()=>onChange("paymentMethod",method)} style={S.paymentRadio} />
+            <span style={{ color:TEXT_DARK,fontSize:14,fontWeight:selected?700:400 }}>{method}</span>
           </div>
         );
       })}
       {errors.paymentMethod && <p style={S.errorMsg}>{errors.paymentMethod}</p>}
 
-      <div style={{ background: `${BRAND}08`, border: `1px solid ${BRAND}30`, borderRadius: 10, padding: "14px 18px", marginTop: 20 }}>
-        <p style={{ margin: 0, color: BRAND, fontSize: 13, fontWeight: 600, lineHeight: 1.6 }}>
-          📌 Payment of <strong>₹35,500</strong> is to be completed after your application is reviewed. Our counsellor will share payment details within 24 hours.
+      {/* ── Info Note ── */}
+      <div style={{ background:`${BRAND}08`,border:`1px solid ${BRAND}30`,borderRadius:10,padding:"14px 18px",marginTop:20 }}>
+        <p style={{ margin:0,color:BRAND,fontSize:13,fontWeight:600,lineHeight:1.6 }}>
+          📌 Amount to pay: <strong>₹35,500</strong>. Payment details will be shared by our counsellor within 24 hours of application submission.
         </p>
       </div>
 
-      <div style={{ background: "#f9fafb", borderRadius: 10, padding: "16px 18px", marginTop: 16, border: `1px solid ${BORDER}` }}>
-        <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, color: TEXT_DARK, textTransform: "uppercase", letterSpacing: "0.08em" }}>Order Summary</p>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-          <span style={{ fontSize: 13, color: "#6b7280" }}>PhD Guidance Program</span>
-          <span style={{ fontSize: 13, color: TEXT_DARK, fontWeight: 600 }}>₹35,500</span>
+      {/* ── Order Summary ── */}
+      <div style={{ background:"#f9fafb",borderRadius:10,padding:"16px 18px",marginTop:16,border:`1px solid ${BORDER}` }}>
+        <p style={{ margin:"0 0 10px",fontSize:12,fontWeight:700,color:TEXT_DARK,textTransform:"uppercase",letterSpacing:"0.08em" }}>Order Summary</p>
+        <div style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
+          <span style={{ fontSize:13,color:"#6b7280" }}>PhD Guidance Program</span>
+          <span style={{ fontSize:13,color:TEXT_DARK,fontWeight:600 }}>₹35,500</span>
         </div>
-        <div style={{ height: 1, background: BORDER, margin: "10px 0" }} />
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: TEXT_DARK }}>Total</span>
-          <span style={{ fontSize: 16, fontWeight: 800, color: BRAND }}>₹35,500</span>
+        <div style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
+          <span style={{ fontSize:13,color:"#6b7280" }}>GST / Taxes</span>
+          <span style={{ fontSize:13,color:"#6b7280" }}>Included</span>
+        </div>
+        <div style={{ height:1,background:BORDER,margin:"10px 0" }} />
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+          <span style={{ fontSize:14,fontWeight:700,color:TEXT_DARK }}>Total Amount to Pay</span>
+          <span style={{ fontSize:20,fontWeight:900,color:BRAND }}>₹35,500</span>
         </div>
       </div>
     </>
   );
 }
 
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function ApplicationForm() {
-  const [step, setStep]     = useState(1);
-  const [submitted, setSub] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [personal,  setPersonal]  = useState(initPersonal);
-  const [education, setEducation] = useState(initEducation);
-  const [work,      setWork]      = useState(initWork);
-  const [payment,   setPayment]   = useState({ paymentMethod: "" });
+  const [step,       setStep]       = useState(1);
+  const [submitted,  setSub]        = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitErr,  setSubmitErr]  = useState("");
+  const [errors,     setErrors]     = useState({});
+  const [personal,   setPersonal]   = useState(initPersonal);
+  const [education,  setEducation]  = useState(initEducation);
+  const [work,       setWork]       = useState(initWork);
+  const [payment,    setPayment]    = useState({ paymentMethod:"" });
 
-  function updatePersonal(n, v)  { setPersonal(p  => ({ ...p, [n]: v })); setErrors(e => ({ ...e, [n]: "" })); }
-  function updateEducation(n, v) { setEducation(p => ({ ...p, [n]: v })); }
-  function updateWork(n, v)      { setWork(p      => ({ ...p, [n]: v })); setErrors(e => ({ ...e, [n]: "" })); }
-  function updatePayment(n, v)   { setPayment(p   => ({ ...p, [n]: v })); setErrors(e => ({ ...e, [n]: "" })); }
+  function updatePersonal(n,v)  { setPersonal(p =>({...p,[n]:v})); setErrors(e=>({...e,[n]:""})); }
+  function updateEducation(n,v) { setEducation(p=>({...p,[n]:v})); }
+  function updateWork(n,v)      { setWork(p     =>({...p,[n]:v})); setErrors(e=>({...e,[n]:""})); }
+  function updatePayment(n,v)   { setPayment(p  =>({...p,[n]:v})); setErrors(e=>({...e,[n]:""})); }
 
   function validate() {
     const errs = {};
-    if (step === 1) {
+    if (step===1) {
       if (!personal.fullName)      errs.fullName      = "Required";
       if (!personal.dob)           errs.dob           = "Required";
       if (!personal.gender)        errs.gender        = "Required";
       if (!personal.contactNumber) errs.contactNumber = "Required";
       if (!personal.email)         errs.email         = "Required";
     }
-    if (step === 4 && !payment.paymentMethod) errs.paymentMethod = "Please select a payment method.";
+    if (step===4 && !payment.paymentMethod) errs.paymentMethod = "Please select a payment method.";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
-  function handleNext() {
-    if (!validate()) return;
-    if (step < 4) { setStep(s => s + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }
-    else setSub(true);
-  }
-  function handleBack() {
-    if (step > 1) { setStep(s => s - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  async function submitToAPI() {
+    const fd = new FormData();
+    // Personal
+    Object.entries(personal).forEach(([k,v]) => fd.append(k, v||""));
+    // Education text
+    ["sslc_board","sslc_year","sslc_grade","plus2_board","plus2_year","plus2_grade",
+     "degree_course","degree_year","degree_grade","masters_course","masters_year",
+     "masters_grade","extra_details"].forEach(k => fd.append(k, education[k]||""));
+    // Education files
+    ["sslc_file","plus2_file","degree_file","masters_file","extra_file"].forEach(k => {
+      if (education[k]) fd.append(k, education[k]);
+    });
+    // Work
+    ["company","position","duration","description"].forEach(k => fd.append(k, work[k]||""));
+    if (work.work_file) fd.append("work_file", work.work_file);
+    // Payment + amount
+    fd.append("paymentMethod", payment.paymentMethod);
+    fd.append("programFee", "35500");
+    fd.append("currency", "INR");
+
+    const res  = await fetch(`${API_BASE}/applications/submit`, { method:"POST", body:fd });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || "Submission failed");
+    return data;
   }
 
-  const TITLES = ["Personal Details", "Educational Details", "Work Experience", "Payment & Submission"];
+  async function handleNext() {
+    if (!validate()) return;
+    if (step < 4) {
+      setStep(s=>s+1);
+      window.scrollTo({ top:0, behavior:"smooth" });
+    } else {
+      setSubmitting(true);
+      setSubmitErr("");
+      try {
+        await submitToAPI();
+        setSub(true);
+      } catch(err) {
+        setSubmitErr(err.message || "Something went wrong. Please try again.");
+      }
+      setSubmitting(false);
+    }
+  }
+
+  function handleBack() {
+    if (step>1) { setStep(s=>s-1); window.scrollTo({ top:0, behavior:"smooth" }); }
+  }
+
+  const TITLES = ["Personal Details","Educational Details","Work Experience","Payment & Submission"];
 
   if (submitted) {
     return (
@@ -528,8 +517,9 @@ export default function ApplicationForm() {
           </div>
           <h2 style={S.successH2}>Application Submitted!</h2>
           <p style={S.successP}>
-            Thank you, <strong>{personal.fullName || "Applicant"}</strong>. We have received your application.
-            Our counsellors will contact you within 24 hours with payment details for the <strong>₹35,500</strong> program fee.
+            Thank you, <strong>{personal.fullName||"Applicant"}</strong>. We have received your application.
+            Our counsellors will contact you within 24 hours with payment instructions for the{" "}
+            <strong>₹35,500</strong> program fee.
           </p>
           <a href="/" style={S.homeLink}>Back to Home</a>
         </div>
@@ -549,16 +539,21 @@ export default function ApplicationForm() {
         <div style={S.card}>
           <div style={S.sectionTitle}>
             <div style={S.sectionBadge}>{step}</div>
-            <h2 style={S.sectionTitleText}>{TITLES[step - 1]}</h2>
+            <h2 style={S.sectionTitleText}>{TITLES[step-1]}</h2>
           </div>
-          {step === 1 && <PersonalStep  data={personal}  onChange={updatePersonal}  errors={errors} />}
-          {step === 2 && <EducationStep data={education} onChange={updateEducation} />}
-          {step === 3 && <WorkStep      data={work}      onChange={updateWork}      errors={errors} />}
-          {step === 4 && <PaymentStep   data={payment}   onChange={updatePayment}   errors={errors} />}
+          {step===1 && <PersonalStep  data={personal}  onChange={updatePersonal}  errors={errors} />}
+          {step===2 && <EducationStep data={education} onChange={updateEducation} />}
+          {step===3 && <WorkStep      data={work}      onChange={updateWork}      errors={errors} />}
+          {step===4 && <PaymentStep   data={payment}   onChange={updatePayment}   errors={errors} />}
+          {submitErr && (
+            <div style={{ background:"#fee2e2",border:"1px solid #fca5a5",borderRadius:8,padding:"12px 16px",marginTop:16 }}>
+              <p style={{ color:"#dc2626",fontSize:13,margin:0 }}>❌ {submitErr}</p>
+            </div>
+          )}
           <div style={S.btnRow}>
-            {step > 1 ? <button onClick={handleBack} style={S.btnBack}>← Back</button> : <div />}
-            <button onClick={handleNext} style={S.btnNext}>
-              {step === 4 ? "Submit Application ✓" : "Next →"}
+            {step>1 ? <button onClick={handleBack} style={S.btnBack}>← Back</button> : <div />}
+            <button onClick={handleNext} disabled={submitting} style={{ ...S.btnNext, opacity:submitting?0.75:1, cursor:submitting?"wait":"pointer" }}>
+              {submitting ? "Submitting..." : step===4 ? "Submit Application ✓" : "Next →"}
             </button>
           </div>
         </div>
