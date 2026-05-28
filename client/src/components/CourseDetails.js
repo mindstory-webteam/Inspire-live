@@ -269,7 +269,7 @@ const CourseDetails = () => {
 
               <div className="about-btn-area wow fadeInUp" data-wow-delay=".6s"
                 style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-                <ButtonPrimary text={"Apply Now"} url={"/application-form"} />
+                
               </div>
             </div>
 
