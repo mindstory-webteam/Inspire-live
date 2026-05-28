@@ -518,7 +518,7 @@ export default function ApplicationForm() {
           <h2 style={S.successH2}>Application Submitted!</h2>
           <p style={S.successP}>
             Thank you, <strong>{personal.fullName||"Applicant"}</strong>. We have received your application.
-            Our counsellors will contact you within 24 hours with payment instructions for the{" "}
+            Our counsellors will contact you within 24hrds hours with payment instructions for the{" "}
             <strong>{fmt(TOTAL)}</strong> program fee.
           </p>
           <a href="/" style={S.homeLink}>Back to Home</a>
@@ -562,3 +562,7 @@ export default function ApplicationForm() {
     </div>
   );
 }
+
+
+
+
