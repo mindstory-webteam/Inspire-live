@@ -407,8 +407,6 @@ export default function ApplicationForm() {
           </div>
         </div>
 
-        
-
         <p style={S.progressText}>Step {step} of 4</p>
       </div>
     </div>
