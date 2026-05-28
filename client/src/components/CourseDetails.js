@@ -124,7 +124,7 @@ const CourseDetails = () => {
               <div className="about-btn-area wow fadeInUp" data-wow-delay=".5s"
                 style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
                 <ButtonPrimary text={"Apply Now"} url={"/application-form"} />
-                <ButtonPrimary text={"Contact Us"} url={"/contact"} />
+               <ButtonPrimary text={"Talk to a Counsellor"} url={"/contact"} />
               </div>
             </div>
 
@@ -195,8 +195,8 @@ const CourseDetails = () => {
 
               <div className="about-btn-area wow fadeInUp" data-wow-delay=".6s"
                 style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-                <ButtonPrimary text={"Apply Now"} url={"/application-form"} />
-                <ButtonPrimary text={"Talk to a Counsellor"} url={"/contact"} />
+                
+                
               </div>
             </div>
 
