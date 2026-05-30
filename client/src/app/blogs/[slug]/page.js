@@ -287,40 +287,10 @@ function Sidebar({ currentId }) {
 
 
 
-export async function generateMetadata({ params }) {
-  const { slug } = await params;
-
-  // Fetch service data (replace with your actual API/data source)
-  const service = await fetch(`https://inspireeducationservice.com/services/${slug}`)
-    .then((res) => res.json());
-
-  return {
-    title: `${service.title} | inspirePhD`,
-    description: service.description,
-    keywords: service.tags,
-    openGraph: {
-      title: `${service.title} | inspirePhD`,
-      description: service.description,
-      url: `https://inspirephd.com/services/${slug}`,
-      images: [
-        {
-          url: service.image || "https://inspirephd.com/og-default.jpg",
-          width: 1200,
-          height: 630,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${service.title} | inspirePhD`,
-      description: service.description,
-    },
-  };
-}
 
 
 /* ─── PAGE ──────────────────────────────────────────────────────────────── */
-export default function BlogDetailsPage( { params }) {
+export default function BlogDetailsPage() {
   const params = useParams();
   const slug = params?.slug || params?.id;
 

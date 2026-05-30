@@ -91,13 +91,6 @@ function BlogCard(props) {
 
 
 
-export const metadata = {
-  title: "PhD Research Blogs | Inspire Edcucation",       // ✅ Renders as "Contact Us | inspirePhD"
-  description: "Read expert articles on PhD guidance, research methodology, journal publication, thesis writing tips, and PhD admission in Kerala. ",
-   alternates: {
-    canonical: "/blogs",
-  },
-};
 
 export default function BlogsGridPrimary() {
   var blogsState      = useState([]);

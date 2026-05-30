@@ -2,7 +2,6 @@
 const nextConfig = {
   async redirects() {
     return [
-      // Existing redirects
       {
         source: '/application-forms',
         destination: '/contact',
@@ -21,19 +20,6 @@ const nextConfig = {
       {
         source: '/m/create-account',
         destination: '/contact',
-        permanent: true,
-      },
-
-      // Redirect www → non-www
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.inspireeducationservice.com',
-          },
-        ],
-        destination: 'https://inspireeducationservice.com/:path*',
         permanent: true,
       },
     ];

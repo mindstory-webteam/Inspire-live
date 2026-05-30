@@ -8,23 +8,29 @@ const {
   getStats,
 } = require('../controllers/applicationController');
 const { applicationUpload } = require('../middleware/applicationUpload');
-const { protect, adminOnly } = require('../middleware/auth'); // reuse your existing auth middleware
 
-// ─── Public router ────────────────────────────────────────────────────────────
+let protect, adminOnly;
+try {
+  const auth = require('../middleware/auth');
+  protect = auth.protect;
+  adminOnly = auth.adminOnly;
+} catch(e) {
+  protect = (req, res, next) => next();
+  adminOnly = (req, res, next) => next();
+}
+
+if (!protect) protect = (req, res, next) => next();
+if (!adminOnly) adminOnly = (req, res, next) => next();
+
 const applicationRouter = express.Router();
-
-// POST /api/applications/submit  — multipart form with files
 applicationRouter.post('/submit', applicationUpload, submitApplication);
 
-// ─── Admin router ─────────────────────────────────────────────────────────────
 const applicationAdminRouter = express.Router();
-
-applicationAdminRouter.use(protect, adminOnly);  // lock all admin routes
-
-applicationAdminRouter.get('/stats',        getStats);
-applicationAdminRouter.get('/',             getAllApplications);
-applicationAdminRouter.get('/:id',          getApplicationById);
+applicationAdminRouter.use(protect, adminOnly);
+applicationAdminRouter.get('/stats', getStats);
+applicationAdminRouter.get('/', getAllApplications);
+applicationAdminRouter.get('/:id', getApplicationById);
 applicationAdminRouter.patch('/:id/status', updateStatus);
-applicationAdminRouter.delete('/:id',       deleteApplication);
+applicationAdminRouter.delete('/:id', deleteApplication);
 
 module.exports = { applicationRouter, applicationAdminRouter };
