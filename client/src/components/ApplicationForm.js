@@ -9,10 +9,10 @@ const BG_PAGE   = "#f4f7fb";
 const API_BASE  = process.env.NEXT_PUBLIC_API_URL || "https://www.inspireeducationservice.com/api";
 
 // ── Fee breakdown ─────────────────────────────────────────────────────────────
-const BASE_AMOUNT = 30085;
+const BASE_AMOUNT = 30423;   // base before GST  (30423 × 1.18 = 35,899 → round to 35,900)
 const GST_RATE    = 0.18;
-const GST_AMOUNT  = Math.round(BASE_AMOUNT * GST_RATE);   // 5415
-const TOTAL       = BASE_AMOUNT + GST_AMOUNT;              // 35500
+const GST_AMOUNT  = Math.round(BASE_AMOUNT * GST_RATE);  // 5477
+const TOTAL       = 35900;   // fixed to exact amount
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Argentina","Australia","Austria","Bangladesh","Belgium",
