@@ -9,8 +9,8 @@ const BG_PAGE   = "#f4f7fb";
 const API_BASE  = process.env.NEXT_PUBLIC_API_URL || "https://www.inspireeducationservice.com/api";
 
 // ── Fee breakdown ─────────────────────────────────────────────────────────────
-const BASE_AMOUNT = 30085;   // base before GST
-const GST_RATE    = 0.18;    // 18%
+const BASE_AMOUNT = 30085;
+const GST_RATE    = 0.18;
 const GST_AMOUNT  = Math.round(BASE_AMOUNT * GST_RATE);   // 5415
 const TOTAL       = BASE_AMOUNT + GST_AMOUNT;              // 35500
 
@@ -23,14 +23,6 @@ const COUNTRIES = [
   "Portugal","Qatar","Romania","Russia","Saudi Arabia","Singapore","South Africa",
   "South Korea","Spain","Sri Lanka","Sweden","Switzerland","Thailand","Turkey","UAE",
   "Uganda","UK","USA","Ukraine","Vietnam","Zimbabwe",
-];
-
-const PAYMENT_METHODS = [
-  "Credit Card / Debit Card",
-  "Net Banking",
-  "UPI (GPay / PhonePe / Paytm)",
-  "Bank Transfer / NEFT / RTGS",
-  "Demand Draft",
 ];
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -80,8 +72,6 @@ const S = {
   btnBack: { padding: "10px 24px", borderRadius: 8, border: `1.5px solid ${BRAND}`, background: "transparent", color: BRAND, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
   btnNext: { padding: "11px 32px", borderRadius: 8, border: "none", background: BRAND, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 3px 12px rgba(26,82,118,0.25)", fontFamily: "inherit" },
   progressText: { textAlign: "center", fontSize: 12, color: "#9ca3af", marginTop: 16 },
-  paymentOption: (sel) => ({ display: "flex", alignItems: "center", gap: 12, border: `2px solid ${sel ? BRAND : BORDER}`, borderRadius: 10, padding: "13px 16px", marginBottom: 10, cursor: "pointer", background: sel ? `${BRAND}08` : "#fff", transition: "all 0.2s" }),
-  paymentRadio: { accentColor: BRAND, width: 18, height: 18, flexShrink: 0 },
   successWrap: { display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 20px", background: BG_PAGE, fontFamily: "'Segoe UI', system-ui, sans-serif" },
   successCard: { background: "#fff", borderRadius: 20, boxShadow: "0 4px 40px rgba(26,82,118,0.12)", padding: "56px 48px", maxWidth: 440, width: "100%", textAlign: "center" },
   successIcon: { width: 72, height: 72, borderRadius: "50%", background: BRAND, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" },
@@ -89,6 +79,18 @@ const S = {
   successP: { color: "#6b7280", fontSize: 14, lineHeight: 1.7, marginBottom: 32 },
   homeLink: { display: "inline-block", background: BRAND, color: "#fff", padding: "12px 32px", borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: "none" },
 };
+
+// ─── Load Razorpay SDK ────────────────────────────────────────────────────────
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) { resolve(true); return; }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload  = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 // ─── Custom Calendar ──────────────────────────────────────────────────────────
 function DatePicker({ value, onChange, error }) {
@@ -130,7 +132,6 @@ function DatePicker({ value, onChange, error }) {
 
   return (
     <div ref={ref} style={{ position:"relative" }}>
-      {/* Trigger */}
       <div onClick={() => setOpen(o=>!o)} style={{
         display:"flex", alignItems:"center", justifyContent:"space-between",
         width:"100%", border:`1.5px solid ${error?"#ef4444":open?BRAND:BORDER}`,
@@ -150,11 +151,8 @@ function DatePicker({ value, onChange, error }) {
         </svg>
       </div>
 
-      {/* Dropdown */}
       {open && (
         <div style={{ position:"absolute",top:"calc(100% + 6px)",left:0,zIndex:999,background:"#fff",borderRadius:14,width:300,boxShadow:"0 8px 40px rgba(26,82,118,0.18)",border:`1px solid ${BORDER}`,overflow:"hidden",fontFamily:"inherit" }}>
-
-          {/* DAY VIEW */}
           {view==="day" && (<>
             <div style={{ background:BRAND,padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
               {navBtn("‹", ()=>{ curMonth===0?(setCurYear(y=>y-1),setCurMonth(11)):setCurMonth(m=>m-1); })}
@@ -189,8 +187,6 @@ function DatePicker({ value, onChange, error }) {
               </button>
             </div>
           </>)}
-
-          {/* MONTH VIEW */}
           {view==="month" && (<>
             <div style={{ background:BRAND,padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
               {navBtn("‹",()=>setCurYear(y=>y-1))}
@@ -203,8 +199,6 @@ function DatePicker({ value, onChange, error }) {
               ))}
             </div>
           </>)}
-
-          {/* YEAR VIEW */}
           {view==="year" && (<>
             <div style={{ background:BRAND,padding:"12px 14px",textAlign:"center" }}>
               <span style={{ color:"#fff",fontSize:13,fontWeight:700 }}>Select Year</span>
@@ -358,21 +352,20 @@ function WorkStep({ data, onChange, errors }) {
   );
 }
 
-// ─── Payment Step ─────────────────────────────────────────────────────────────
-function PaymentStep({ data, onChange, errors }) {
+// ─── Payment Step — shows fee breakdown only (no method selection needed) ─────
+function PaymentStep() {
   return (
     <>
-      {/* ── Trimline Price Card ── */}
+      {/* Price Card */}
       <div style={{ borderRadius:14, overflow:"hidden", marginBottom:24, boxShadow:"0 4px 24px rgba(26,82,118,0.13)" }}>
 
-        {/* Top banner — dark navy */}
+        {/* Top banner */}
         <div style={{ background:`linear-gradient(135deg, ${BRAND} 0%, #0b2d55 100%)`, padding:"20px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
           <div>
             <p style={{ margin:"0 0 2px",fontSize:10,fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"rgba(255,255,255,0.6)" }}>Inspire Education Service</p>
             <p style={{ margin:0,fontSize:16,fontWeight:800,color:"#fff" }}>PhD Guidance Program</p>
             <p style={{ margin:"3px 0 0",fontSize:12,color:"rgba(255,255,255,0.7)" }}>Full doctoral support — topic to viva voce</p>
           </div>
-          {/* Big price badge */}
           <div style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"10px 20px", textAlign:"center", backdropFilter:"blur(4px)" }}>
             <p style={{ margin:"0 0 2px",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(255,255,255,0.6)" }}>Total Payable</p>
             <p style={{ margin:0,fontSize:30,fontWeight:900,color:"#fff",letterSpacing:"-0.02em" }}>{fmt(TOTAL)}</p>
@@ -380,7 +373,7 @@ function PaymentStep({ data, onChange, errors }) {
           </div>
         </div>
 
-        {/* Middle — what's included (compact 2-col) */}
+        {/* Inclusions */}
         <div style={{ background:"#f0f5fa", padding:"14px 24px", borderBottom:`1px solid ${BORDER}` }}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"5px 16px" }}>
             {["Topic & Synopsis Guidance","Chapter-wise Thesis Support","Journal Publication Help","Plagiarism Check & Correction","Statistical Analysis Support","Viva Voce Preparation"].map((item,i)=>(
@@ -391,7 +384,7 @@ function PaymentStep({ data, onChange, errors }) {
           </div>
         </div>
 
-        {/* Bottom — trimline fee breakdown */}
+        {/* Fee Breakdown */}
         <div style={{ background:"#fff", padding:"14px 24px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
             <span style={{ fontSize:13,color:"#6b7280" }}>Program Fee (before tax)</span>
@@ -401,7 +394,7 @@ function PaymentStep({ data, onChange, errors }) {
             <span style={{ fontSize:13,color:"#6b7280" }}>GST @ 18%</span>
             <span style={{ fontSize:13,color:"#f59e0b",fontWeight:600 }}>+ {fmt(GST_AMOUNT)}</span>
           </div>
-          <div style={{ height:1,background:`${BORDER}`,marginBottom:10 }} />
+          <div style={{ height:1,background:BORDER,marginBottom:10 }} />
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:14,fontWeight:800,color:TEXT_DARK }}>Total Amount to Pay</span>
             <span style={{ fontSize:20,fontWeight:900,color:BRAND }}>{fmt(TOTAL)}</span>
@@ -409,29 +402,13 @@ function PaymentStep({ data, onChange, errors }) {
         </div>
       </div>
 
-      {/* ── Payment Method ── */}
-      <p style={{ color:TEXT_DARK,fontSize:12,fontWeight:700,marginBottom:12,marginTop:0,textTransform:"uppercase",letterSpacing:"0.1em" }}>
-        Select Payment Method
-      </p>
-      {PAYMENT_METHODS.map(method=>{
-        const sel=data.paymentMethod===method;
-        return (
-          <div key={method} style={S.paymentOption(sel)} onClick={()=>onChange("paymentMethod",method)}>
-            <input type="radio" name="paymentMethod" value={method} checked={sel} onChange={()=>onChange("paymentMethod",method)} style={S.paymentRadio} />
-            <div>
-              <span style={{ color:TEXT_DARK,fontSize:14,fontWeight:sel?700:400 }}>{method}</span>
-            </div>
-          </div>
-        );
-      })}
-      {errors.paymentMethod&&<p style={S.errorMsg}>{errors.paymentMethod}</p>}
-
-      {/* ── Info note ── */}
-      <div style={{ background:`${BRAND}08`,border:`1px solid ${BRAND}25`,borderRadius:10,padding:"12px 16px",marginTop:16,display:"flex",gap:10,alignItems:"flex-start" }}>
-        <span style={{ fontSize:16,flexShrink:0 }}>📌</span>
+      {/* Razorpay badge */}
+      <div style={{ background:`${BRAND}08`, border:`1px solid ${BRAND}25`, borderRadius:10, padding:"12px 16px", display:"flex", gap:10, alignItems:"flex-start" }}>
+        <span style={{ fontSize:18,flexShrink:0 }}>🔒</span>
         <p style={{ margin:0,color:BRAND,fontSize:13,fontWeight:500,lineHeight:1.6 }}>
-          Your application will be reviewed first. Our counsellor will contact you within <strong>24 hours</strong> with
-          payment instructions for the <strong>{fmt(TOTAL)}</strong> program fee.
+          Clicking <strong>"Pay Now"</strong> will open the secure Razorpay payment window.
+          You can pay via <strong>UPI, Cards, Net Banking, or Wallets</strong>.
+          Your data is encrypted and safe.
         </p>
       </div>
     </>
@@ -448,12 +425,13 @@ export default function ApplicationForm() {
   const [personal,   setPersonal]   = useState(initPersonal);
   const [education,  setEducation]  = useState(initEducation);
   const [work,       setWork]       = useState(initWork);
-  const [payment,    setPayment]    = useState({ paymentMethod:"" });
+
+  // Payment result stored after Razorpay success
+  const [paymentResult, setPaymentResult] = useState(null);
 
   function updatePersonal(n,v)  { setPersonal(p =>({...p,[n]:v})); setErrors(e=>({...e,[n]:""})); }
   function updateEducation(n,v) { setEducation(p=>({...p,[n]:v})); }
   function updateWork(n,v)      { setWork(p     =>({...p,[n]:v})); setErrors(e=>({...e,[n]:""})); }
-  function updatePayment(n,v)   { setPayment(p  =>({...p,[n]:v})); setErrors(e=>({...e,[n]:""})); }
 
   function validate() {
     const errs={};
@@ -464,49 +442,118 @@ export default function ApplicationForm() {
       if(!personal.contactNumber) errs.contactNumber ="Required";
       if(!personal.email)         errs.email         ="Required";
     }
-    if(step===4&&!payment.paymentMethod) errs.paymentMethod="Please select a payment method.";
     setErrors(errs);
     return Object.keys(errs).length===0;
   }
 
-  async function submitToAPI() {
-    const fd=new FormData();
+  // ── Build FormData and POST to your API ──────────────────────────────────
+  async function submitToAPI(razorpayData) {
+    const fd = new FormData();
     Object.entries(personal).forEach(([k,v])=>fd.append(k,v||""));
     ["sslc_board","sslc_year","sslc_grade","plus2_board","plus2_year","plus2_grade",
      "degree_course","degree_year","degree_grade","masters_course","masters_year",
      "masters_grade","extra_details"].forEach(k=>fd.append(k,education[k]||""));
     ["sslc_file","plus2_file","degree_file","masters_file","extra_file"].forEach(k=>{
-      if(education[k])fd.append(k,education[k]);
+      if(education[k]) fd.append(k, education[k]);
     });
     ["company","position","duration","description"].forEach(k=>fd.append(k,work[k]||""));
-    if(work.work_file)fd.append("work_file",work.work_file);
-    fd.append("paymentMethod",payment.paymentMethod);
-    fd.append("programFee",   String(TOTAL));
-    fd.append("baseAmount",   String(BASE_AMOUNT));
-    fd.append("gstAmount",    String(GST_AMOUNT));
-    fd.append("currency","INR");
+    if(work.work_file) fd.append("work_file", work.work_file);
 
-    const res  = await fetch(`${API_BASE}/applications/submit`,{ method:"POST",body:fd });
+    // Razorpay payment data
+    fd.append("razorpay_payment_id",  razorpayData.razorpay_payment_id);
+    fd.append("razorpay_order_id",    razorpayData.razorpay_order_id);
+    fd.append("razorpay_signature",   razorpayData.razorpay_signature);
+    fd.append("programFee",           String(TOTAL));
+    fd.append("baseAmount",           String(BASE_AMOUNT));
+    fd.append("gstAmount",            String(GST_AMOUNT));
+    fd.append("currency",             "INR");
+
+    const res  = await fetch(`${API_BASE}/applications/submit`, { method:"POST", body:fd });
     const data = await res.json();
     if(!data.success) throw new Error(data.message||"Submission failed");
     return data;
   }
 
-  async function handleNext() {
-    if(!validate())return;
-    if(step<4){ setStep(s=>s+1); window.scrollTo({top:0,behavior:"smooth"}); }
-    else {
-      setSubmitting(true); setSubmitErr("");
-      try { await submitToAPI(); setSub(true); }
-      catch(err){ setSubmitErr(err.message||"Something went wrong. Please try again."); }
+  // ── Razorpay flow ─────────────────────────────────────────────────────────
+  async function initiatePayment() {
+    setSubmitting(true);
+    setSubmitErr("");
+    try {
+      // 1. Load Razorpay SDK
+      const sdkLoaded = await loadRazorpayScript();
+      if(!sdkLoaded) throw new Error("Failed to load Razorpay. Check your internet connection.");
+
+      // 2. Create order on your backend
+      const orderRes = await fetch("/api/create-order", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ fullName: personal.fullName, email: personal.email }),
+      });
+      if(!orderRes.ok) throw new Error("Could not create payment order. Please try again.");
+      const { orderId, amount } = await orderRes.json();
+
+      // 3. Open Razorpay checkout
+      await new Promise((resolve, reject) => {
+        const options = {
+          key:         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount:      amount,          // in paise, returned by your API
+          currency:    "INR",
+          name:        "Inspire Education Service",
+          description: "PhD Guidance Program",
+          order_id:    orderId,
+          prefill: {
+            name:    personal.fullName,
+            email:   personal.email,
+            contact: personal.contactNumber,
+          },
+          theme: { color: BRAND },
+          modal: {
+            ondismiss: () => reject(new Error("Payment cancelled. Please try again.")),
+          },
+          handler: async (response) => {
+            // 4. Payment success → save result, then submit form
+            try {
+              setPaymentResult(response);
+              await submitToAPI(response);
+              setSub(true);
+              resolve();
+            } catch(err) {
+              reject(err);
+            }
+          },
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", (resp) => {
+          reject(new Error(resp.error?.description || "Payment failed. Please retry."));
+        });
+        rzp.open();
+      });
+
+    } catch(err) {
+      setSubmitErr(err.message || "Something went wrong. Please try again.");
+    } finally {
       setSubmitting(false);
     }
   }
-  function handleBack() { if(step>1){ setStep(s=>s-1); window.scrollTo({top:0,behavior:"smooth"}); } }
 
-  const TITLES=["Personal Details","Educational Details","Work Experience","Payment & Submission"];
+  async function handleNext() {
+    if(!validate()) return;
+    if(step < 4) {
+      setStep(s=>s+1);
+      window.scrollTo({ top:0, behavior:"smooth" });
+    } else {
+      await initiatePayment();
+    }
+  }
 
-  if(submitted){
+  function handleBack() {
+    if(step > 1) { setStep(s=>s-1); window.scrollTo({ top:0, behavior:"smooth" }); }
+  }
+
+  const TITLES = ["Personal Details","Educational Details","Work Experience","Payment & Submission"];
+
+  // ── Success screen ────────────────────────────────────────────────────────
+  if(submitted) {
     return (
       <div style={S.successWrap}>
         <div style={S.successCard}>
@@ -517,9 +564,13 @@ export default function ApplicationForm() {
           </div>
           <h2 style={S.successH2}>Application Submitted!</h2>
           <p style={S.successP}>
-            Thank you, <strong>{personal.fullName||"Applicant"}</strong>. We have received your application.
-            Our counsellors will contact you within 24hrds hours with payment instructions for the{" "}
-            <strong>{fmt(TOTAL)}</strong> program fee.
+            Thank you, <strong>{personal.fullName || "Applicant"}</strong>. Your payment of{" "}
+            <strong>{fmt(TOTAL)}</strong> was successful and your application has been received.
+            {paymentResult?.razorpay_payment_id && (
+              <><br/><br/><span style={{ fontSize:12,color:"#9ca3af" }}>
+                Payment ID: {paymentResult.razorpay_payment_id}
+              </span></>
+            )}
           </p>
           <a href="/" style={S.homeLink}>Back to Home</a>
         </div>
@@ -541,19 +592,31 @@ export default function ApplicationForm() {
             <div style={S.sectionBadge}>{step}</div>
             <h2 style={S.sectionTitleText}>{TITLES[step-1]}</h2>
           </div>
-          {step===1&&<PersonalStep  data={personal}  onChange={updatePersonal}  errors={errors}/>}
-          {step===2&&<EducationStep data={education} onChange={updateEducation} />}
-          {step===3&&<WorkStep      data={work}      onChange={updateWork}      errors={errors}/>}
-          {step===4&&<PaymentStep   data={payment}   onChange={updatePayment}   errors={errors}/>}
-          {submitErr&&(
+          {step===1 && <PersonalStep  data={personal}  onChange={updatePersonal}  errors={errors} />}
+          {step===2 && <EducationStep data={education} onChange={updateEducation} />}
+          {step===3 && <WorkStep      data={work}      onChange={updateWork}      errors={errors} />}
+          {step===4 && <PaymentStep />}
+          {submitErr && (
             <div style={{ background:"#fee2e2",border:"1px solid #fca5a5",borderRadius:8,padding:"12px 16px",marginTop:16 }}>
               <p style={{ color:"#dc2626",fontSize:13,margin:0 }}>❌ {submitErr}</p>
             </div>
           )}
           <div style={S.btnRow}>
-            {step>1?<button onClick={handleBack} style={S.btnBack}>← Back</button>:<div/>}
-            <button onClick={handleNext} disabled={submitting} style={{ ...S.btnNext,opacity:submitting?0.75:1,cursor:submitting?"wait":"pointer" }}>
-              {submitting?"Submitting...":step===4?"Submit Application ✓":"Next →"}
+            {step > 1
+              ? <button onClick={handleBack} style={S.btnBack}>← Back</button>
+              : <div/>
+            }
+            <button
+              onClick={handleNext}
+              disabled={submitting}
+              style={{ ...S.btnNext, opacity:submitting?0.75:1, cursor:submitting?"wait":"pointer" }}
+            >
+              {submitting
+                ? "Processing…"
+                : step === 4
+                  ? `🔒 Pay ${fmt(TOTAL)}`
+                  : "Next →"
+              }
             </button>
           </div>
         </div>
@@ -562,7 +625,3 @@ export default function ApplicationForm() {
     </div>
   );
 }
-
-
-
-
