@@ -48,6 +48,22 @@ import { ReelsSection } from "@/components/ReelsSection"
 import { VideoReelsCarousel } from "@/components/VideoReelsCarousel"
 import Faq5 from "@/components/sections/faq/Faq5";
 import Faq3 from "@/components/sections/faq/Faq3";
+import Hero102 from "@/components/sections/hero/Hero102";
+
+import About92 from "@/components/sections/about/About92";
+import ArticleSection2 from "@/components/sections/about/ArticleSection2";
+
+import Services102 from "@/components/sections/services/Services102";
+import Funfact22 from "@/components/sections/funfacts/Funfact22";
+import Events2 from "@/components/sections/eventCards/Events2";
+import Process22 from "@/components/sections/process/Process22";
+import { VideoReelsCarousel2 } from "@/components/VideoReelsCarousel2";
+import Team12 from "@/components/sections/teams/Team12";
+import Testimonials42 from "@/components/sections/testimonials/Testimonials42";
+import Faq32 from "@/components/sections/faq/Faq32";
+import Blogs22 from "@/components/sections/blogs/Blogs22";
+
+
 
 export default function Home2() {
     return (
@@ -62,39 +78,39 @@ export default function Home2() {
                     <main>
                         <div className="top-space-15"></div>
                         
-                        <Hero10 />
+                        <Hero102 />
                         {/* <About3 type={2} /> */}
                         
                         
-                        <About9 />
-                        <ArticleSection type={2} />
+                        <About92 />
+                        <ArticleSection2 type={2} />
                         
                         
-                        <Services10 />
+                        <Services102 />
                         
-                        <Funfact2 />
+                        <Funfact22 />
                         {/* <Portfolios2 /> */}
                         {/* <Portfolios4 /> */}
-                        <Events4 />
+                        <Events2 />
                         
 
-                        <Process />
+                        <Process22 />
                         {/* <ReelsSection /> */}
 
 
-                        <VideoReelsCarousel />
+                        <VideoReelsCarousel2 />
                         
-                        <Team1 />
+                        <Team12 />
 
                         {/* <Testimonials2 /> */}
-                            <Testimonials4 />
+                            <Testimonials42 />
 
 
-                            <Faq3/>
+                            <Faq32/>
                         
 
                     
-                        <Blogs2 />
+                        <Blogs22 />
                         <Cta/>
 
                     </main>
