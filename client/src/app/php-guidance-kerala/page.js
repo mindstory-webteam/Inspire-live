@@ -55,7 +55,7 @@ import ArticleSection2 from "@/components/sections/about/ArticleSection2";
 
 import Services102 from "@/components/sections/services/Services102";
 import Funfact22 from "@/components/sections/funfacts/Funfact22";
-import Events2 from "@/components/sections/eventCards/Events2";
+
 import Process22 from "@/components/sections/process/Process22";
 import { VideoReelsCarousel2 } from "@/components/VideoReelsCarousel2";
 import Team12 from "@/components/sections/teams/Team12";
