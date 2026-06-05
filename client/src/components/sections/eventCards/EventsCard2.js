@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Autoplay, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-const Events2 = () => {
+const Events22 = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -108,4 +108,4 @@ Real Opportunities.
     );
 };
 
-export default Events2;
+export default Events22;

@@ -62,6 +62,7 @@ import Team12 from "@/components/sections/teams/Team12";
 import Testimonials42 from "@/components/sections/testimonials/Testimonials42";
 import Faq32 from "@/components/sections/faq/Faq32";
 import Blogs22 from "@/components/sections/blogs/Blogs22";
+import Events22 from "@/components/sections/eventCards/EventsCard2";
 
 
 
@@ -91,7 +92,7 @@ export default function Home2() {
                         <Funfact22 />
                         {/* <Portfolios2 /> */}
                         {/* <Portfolios4 /> */}
-                        <Events2 />
+                        <Events22 />
                         
 
                         <Process22 />
