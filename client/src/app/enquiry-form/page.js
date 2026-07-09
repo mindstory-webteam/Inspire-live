@@ -1,94 +1,61 @@
-import Footer2 from "@/components/layout/footer/Footer2";
-import Header from "@/components/layout/header/Header";
-import About3 from "@/components/sections/about/About3";
-import Blogs2 from "@/components/sections/blogs/Blogs2";
-
-import Hero2 from "@/components/sections/hero/Hero2";
-
-
-import Funfact2 from "@/components/sections/funfacts/Funfact2";
-
-import Process from "@/components/sections/process/Process";
-import Services3 from "@/components/sections/services/Services3";
-import Team1 from "@/components/sections/teams/Team1";
-import Testimonials2 from "@/components/sections/testimonials/Testimonials2";
-import Testimonials4 from "@/components/sections/testimonials/Testimonials4";
+import Script from "next/script";
 import Footer from "@/components/layout/footer/Footer";
+import Header from "@/components/layout/header/Header";
 import BackToTop from "@/components/shared/others/BackToTop";
 import ClientWrapper from "@/components/shared/wrappers/ClientWrapper";
 import Cta from "@/components/sections/cta/Cta";
-import About2 from "@/components/sections/about/About2";
-import About4 from "@/components/sections/about/About4";
-import About5 from "@/components/sections/about/About5";
-import About6 from "@/components/sections/about/About6";
-import About7 from "@/components/sections/about/About7";
-import About8 from "@/components/sections/about/About8";
-import About9 from "@/components/sections/about/About9";
-import About12 from "@/components/sections/about/About12";
-import Events4 from "@/components/sections/eventCards/EventCard";
-import Services4 from "@/components/sections/services/Services4";
-import Services5 from "@/components/sections/services/Services5";
-import Services6 from "@/components/sections/services/Services6";
-import Services7 from "@/components/sections/services/Services7";
-import Services8 from "@/components/sections/services/Services8";
-import Services9 from "@/components/sections/services/Services9";
-import Services10 from "@/components/sections/services/Services10";
-import Hero10 from "@/components/sections/hero/Hero10";
-import Funfact1 from "@/components/sections/funfacts/Funfact1";
-import Funfact3 from "@/components/sections/funfacts/Funfact3";
-import Process2 from "@/components/sections/process/Process2";
-
 import FloatingSocialButtons from "@/components/FloatingSocialButtons";
-
-import ArticleSection from "@/components/sections/about/Articlesection";
 import TestimonialPopup from "@/components/sections/testimonials/TestimonialPopup";
-import { ReelsSection } from "@/components/ReelsSection"
-// ✅ Correct — matches the named export exactly
-// ✅ Matches the actual filename: VideoReelsCarousel.js
-import { VideoReelsCarousel } from "@/components/VideoReelsCarousel"
 import Contact3 from "@/components/landing/ContactForm";
 import ServicesSection from "@/components/landing/ServicesSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 
-
-
 export const metadata = {
-  title: "Enquiry Form",       // ✅ Renders as "Contact Us | inspirePhD"
+  title: "Enquiry Form",
   description: "Get in touch with the inspirePhD team for research support.",
-      alternates: {
+  alternates: {
     canonical: "/enquiry-form",
   },
 };
 
 export default function Home2() {
-	return (
-		<div>
-			<BackToTop />
-			<Header headerType={2} />
-			<Header headerType={2} isStickyHeader={true} />
-			<TestimonialPopup />
-			<FloatingSocialButtons />
-			<div id="smooth-wrapper">
-				<div id="smooth-content">
-					<main>
-						<div className="top-space-15"></div>
-						
+  return (
+    <div>
+      {/* Google tag (gtag.js) */}
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=AW-16901949499"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'AW-16901949499');
+        `}
+      </Script>
 
-                        <Contact3 />
-                        <ServicesSection />
-                        <TestimonialsSection />
-						
-						
+      <BackToTop />
+      <Header headerType={2} />
+      <Header headerType={2} isStickyHeader={true} />
+      <TestimonialPopup />
+      <FloatingSocialButtons />
+      <div id="smooth-wrapper">
+        <div id="smooth-content">
+          <main>
+            <div className="top-space-15"></div>
 
-					<Cta/>
-					
+            <Contact3 />
+            <ServicesSection />
+            <TestimonialsSection />
 
-					</main>
-					<Footer />
-				</div>
-			</div>
+            <Cta />
+          </main>
+          <Footer />
+        </div>
+      </div>
 
-			<ClientWrapper />
-		</div>
-	);
+      <ClientWrapper />
+    </div>
+  );
 }
