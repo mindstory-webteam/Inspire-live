@@ -34,6 +34,12 @@ export default function Home2() {
           gtag('config', 'AW-16901949499');
         `}
       </Script>
+      {/* Event snippet for Email button click conversion page */}
+      <Script id="google-conversion" strategy="afterInteractive">
+        {`
+          gtag('event', 'conversion', { 'send_to': 'AW-16901949499/pXpyCPHp-M0cELuQvfs-', 'value': 1.0, 'currency': 'INR' });
+        `}
+      </Script>
 
       <BackToTop />
       <Header headerType={2} />
