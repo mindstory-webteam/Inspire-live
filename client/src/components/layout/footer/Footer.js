@@ -272,7 +272,7 @@ const Footer = () => {
     </Link>{" "}
     All right reserved | Design By{""}
     
-     <a href="https://mindstory.in"
+     <a href="https://mpxcode.com/"
       target="_blank"
       rel="noopener noreferrer"
       className="mindstory-logo-wrap"
