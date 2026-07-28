@@ -4,22 +4,21 @@ import { useEffect, useRef, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://inspireeducationservice.com/api";
 const SLIDE_DURATION = 5000;
-const MEDIA_HEIGHT = "520px"; // ← single source of truth for both image & video height
 
 const Hero10 = () => {
   const [slides, setSlides]                 = useState([]);
   const [activeIndex, setActiveIndex]       = useState(0);
-  const [nextIndex, setNextIndex]           = useState(null); // pending slide during crossfade
+  const [nextIndex, setNextIndex]           = useState(null);
   const [contentVisible, setContentVisible] = useState(true);
-  const [mediaFading, setMediaFading]       = useState(false); // drives media crossfade
+  const [mediaFading, setMediaFading]       = useState(false);
 
   const videoRef       = useRef(null);
   const timerRef       = useRef(null);
   const progressRef    = useRef(null);
   const activeIndexRef = useRef(0);
   const transitioning  = useRef(false);
+  const thumbStripRef  = useRef(null);
 
-  // ── Fetch slides ──────────────────────────────────────────────────────────
   useEffect(() => {
     fetch(`${API_BASE}/banner`)
       .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -45,7 +44,6 @@ const Hero10 = () => {
     return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(slide.mediaUrl || "");
   };
 
-  // ── Progress bar ──────────────────────────────────────────────────────────
   const startProgress = (duration) => {
     const el = progressRef.current;
     if (!el) return;
@@ -57,7 +55,6 @@ const Hero10 = () => {
     timerRef.current = setTimeout(goNext, duration);
   };
 
-  // ── Navigate with crossfade — no flash ───────────────────────────────────
   const goTo = (idx) => {
     const total = slides.length;
     if (!total || transitioning.current) return;
@@ -67,11 +64,8 @@ const Hero10 = () => {
     transitioning.current = true;
     clearTimeout(timerRef.current);
 
-    // 1. Fade out content
     setContentVisible(false);
-    // 2. Start media fade-out
     setMediaFading(true);
-    // 3. After fade, swap slide
     setNextIndex(next);
 
     setTimeout(() => {
@@ -80,17 +74,25 @@ const Hero10 = () => {
       setNextIndex(null);
       setMediaFading(false);
 
+      // keep active thumbnail scrolled into view on mobile
+      const strip = thumbStripRef.current;
+      if (strip) {
+        const activeEl = strip.children[next];
+        if (activeEl) {
+          activeEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        }
+      }
+
       setTimeout(() => {
         setContentVisible(true);
         transitioning.current = false;
       }, 50);
-    }, 350); // matches CSS transition duration
+    }, 350);
   };
 
   const goNext = () => goTo(activeIndexRef.current + 1);
   const goPrev = () => goTo(activeIndexRef.current - 1);
 
-  // ── On slide change ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!slides.length) return;
     const current = slides[activeIndex];
@@ -117,7 +119,6 @@ const Hero10 = () => {
     startProgress(video.duration * 1000);
   };
 
-  // ── Active slide data ─────────────────────────────────────────────────────
   const active      = slides[activeIndex] || null;
   const title       = active?.title       || "Ideas That Change the World Start Here";
   const description = active?.description || active?.subtitle || "Recognized by industry leaders, our award-winning team has a proven record of delivering excellence across projects.";
@@ -127,10 +128,12 @@ const Hero10 = () => {
   const mediaUrl    = active ? resolveUrl(active.mediaUrl) : "";
   const isVideo     = isVideoSlide(active);
 
-  // Shared style for both image & video so they're always the same size
+  // NOTE: height is now 100% — the actual height comes from .h10-hero-banner
+  // (set below in the <style> block / overridden by your external media queries).
+  // Width always stays 100% regardless of height.
   const mediaStyle = {
     width: "100%",
-    height: MEDIA_HEIGHT,
+    height: "100%",
     objectFit: "cover",
     display: "block",
   };
@@ -150,10 +153,21 @@ const Hero10 = () => {
           opacity: 1;
           transform: translateY(0);
         }
+
+        /* ── Single source of truth for banner height ──
+           Change height here (or override via external media queries
+           on .h10-hero-banner) — width always stays 100% independently. */
+        .h10-hero-banner {
+          position: relative;
+          width: 100%;
+          height: clamp(220px, 45vw, 520px);
+          overflow: hidden;
+        }
+
         .h10-media-wrap {
           position: relative;
           width: 100%;
-          height: ${MEDIA_HEIGHT};
+          height: 100%;
           overflow: hidden;
           background: #0c1e21;
         }
@@ -169,6 +183,107 @@ const Hero10 = () => {
         }
         .h10-media-wrap > .h10-media-item.fade-in {
           opacity: 1;
+        }
+
+        /* ── Nav overlay: desktop default ── */
+        .h10-nav-overlay {
+          position: absolute;
+          bottom: 0; left: 0; right: 0;
+          z-index: 10;
+          padding: 16px 24px;
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 12px;
+          background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
+        }
+        .h10-thumb-strip {
+          display: flex;
+          gap: 10px;
+          align-items: flex-end;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          flex: 1 1 auto;
+          min-width: 0;
+        }
+        .h10-thumb-strip::-webkit-scrollbar { display: none; }
+        .h10-thumb {
+          position: relative;
+          width: 110px;
+          cursor: pointer;
+          border-radius: 6px;
+          overflow: hidden;
+          flex-shrink: 0;
+          transition: border-color 0.3s ease;
+        }
+        .h10-thumb-media {
+          width: 100%;
+          height: 68px;
+          object-fit: cover;
+          display: block;
+          background-size: cover;
+          background-position: center;
+        }
+        .h10-nav-buttons {
+          display: flex;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+        .h10-nav-btn {
+          width: 40px; height: 40px; border-radius: 50%;
+          border: 1px solid rgba(255,255,255,0.5);
+          background: rgba(0,0,0,0.35); color: #fff;
+          cursor: pointer; display: flex;
+          align-items: center; justify-content: center;
+          backdrop-filter: blur(4px); transition: background 0.2s;
+          flex-shrink: 0;
+        }
+        .h10-nav-btn:hover { background: rgba(0,0,0,0.6); }
+
+        /* ── Remove blue gap below the media card ── */
+        .tj-banner-section-2.h10-hero {
+          padding-bottom: 0 !important;
+        }
+        .h10-hero-banner.zoom-on-scroll {
+          margin-bottom: 0 !important;
+        }
+
+        /* ── Tablet ── */
+        @media (max-width: 991px) {
+          .h10-nav-overlay { padding: 12px 16px; }
+          .h10-thumb { width: 84px; }
+          .h10-thumb-media { height: 52px; }
+          .h10-nav-btn { width: 34px; height: 34px; }
+        }
+
+        /* ── Mobile / small tablet ── */
+        @media only screen and (min-width: 576px) and (max-width: 767px), (max-width: 575px) {
+          .h10-hero-banner {
+            height: 300px;
+            margin-top: 70px;
+          }
+        }
+
+        /* ── Mobile nav overlay layout ── */
+        @media (max-width: 575px) {
+          .h10-nav-overlay {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 10px 10px 12px;
+            gap: 8px;
+          }
+          .h10-thumb-strip {
+            width: 100%;
+            padding-bottom: 2px;
+          }
+          .h10-thumb { width: 64px; }
+          .h10-thumb-media { height: 40px; }
+          .h10-nav-buttons {
+            align-self: flex-end;
+          }
+          .h10-nav-btn { width: 30px; height: 30px; }
+          .h10-nav-btn i { font-size: 12px; }
         }
       `}</style>
 
@@ -195,7 +310,7 @@ const Hero10 = () => {
                   style={{
                     color: "#ffffff",
                     minHeight: "1.5em",
-                    fontSize: "clamp(16px, 4vw, 30px)",
+                    fontSize: "clamp(14px, 4vw, 30px)",
                   }}
                 >
                   {subtitle}
@@ -204,6 +319,7 @@ const Hero10 = () => {
                 <h1
                   className={`banner-title text-anim h10-content-fade ${contentVisible ? "visible" : "hidden"}`}
                   key={activeIndex}
+                  style={{ fontSize: "clamp(28px, 6vw, 64px)", lineHeight: 1.15 }}
                 >
                   {title}{" "}
                   <i className="tji-curve-arrow" />
@@ -223,10 +339,8 @@ const Hero10 = () => {
             <div className="col-12">
               <div className="h10-hero-banner zoom-on-scroll">
 
-                {/* Fixed-height wrapper — image & video fill it identically */}
                 <div className="h10-media-wrap">
 
-                  {/* Current slide — fades out during transition */}
                   <div className={`h10-media-item ${mediaFading ? "fade-out" : "fade-in"}`}>
                     {isVideo ? (
                       <video
@@ -254,21 +368,10 @@ const Hero10 = () => {
                     )}
                   </div>
 
-                  {/* ── Navigation overlay (2+ slides only) ── */}
                   {slides.length > 1 && (
-                    <div style={{
-                      position: "absolute",
-                      bottom: 0, left: 0, right: 0,
-                      zIndex: 10,
-                      padding: "16px 24px",
-                      display: "flex",
-                      alignItems: "flex-end",
-                      justifyContent: "space-between",
-                      background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)",
-                    }}>
+                    <div className="h10-nav-overlay">
 
-                      {/* Thumbnail strip */}
-                      <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
+                      <div className="h10-thumb-strip" ref={thumbStripRef}>
                         {slides.map((slide, idx) => {
                           const thumbUrl = resolveUrl(slide.mediaUrl || slide.thumbUrl);
                           const isActive = idx === activeIndex;
@@ -276,30 +379,21 @@ const Hero10 = () => {
                             <div
                               key={slide._id || idx}
                               onClick={() => goTo(idx)}
+                              className="h10-thumb"
                               style={{
-                                position: "relative",
-                                width: "110px",
-                                cursor: "pointer",
-                                borderRadius: "6px",
-                                overflow: "hidden",
                                 border: isActive ? "2px solid #ffffff" : "2px solid rgba(255,255,255,0.3)",
-                                transition: "border-color 0.3s ease",
-                                flexShrink: 0,
                               }}
                             >
                               {isVideoSlide(slide) ? (
                                 <video
                                   src={thumbUrl} muted loop playsInline autoPlay
-                                  style={{ width: "100%", height: "68px", objectFit: "cover", display: "block" }}
+                                  className="h10-thumb-media"
                                 />
                               ) : (
-                                <div style={{
-                                  width: "100%",
-                                  height: "68px",
-                                  backgroundImage: `url('${thumbUrl}')`,
-                                  backgroundSize: "cover",
-                                  backgroundPosition: "center",
-                                }} />
+                                <div
+                                  className="h10-thumb-media"
+                                  style={{ backgroundImage: `url('${thumbUrl}')` }}
+                                />
                               )}
 
                               <div style={{
@@ -310,7 +404,6 @@ const Hero10 = () => {
                                 {String(idx + 1).padStart(2, "0")}
                               </div>
 
-                              {/* Progress bar — callback ref keeps it live */}
                               {isActive && (
                                 <div style={{
                                   position: "absolute", bottom: 0, left: 0, right: 0,
@@ -327,8 +420,7 @@ const Hero10 = () => {
                         })}
                       </div>
 
-                      {/* Prev / Next buttons */}
-                      <div style={{ display: "flex", gap: "8px" }}>
+                      <div className="h10-nav-buttons">
                         {[
                           { fn: goPrev, icon: "tji-arrow-left",  label: "Previous" },
                           { fn: goNext, icon: "tji-arrow-right", label: "Next"     },
@@ -337,16 +429,7 @@ const Hero10 = () => {
                             key={label}
                             onClick={fn}
                             aria-label={`${label} slide`}
-                            style={{
-                              width: "40px", height: "40px", borderRadius: "50%",
-                              border: "1px solid rgba(255,255,255,0.5)",
-                              background: "rgba(0,0,0,0.35)", color: "#fff",
-                              cursor: "pointer", display: "flex",
-                              alignItems: "center", justifyContent: "center",
-                              backdropFilter: "blur(4px)", transition: "background 0.2s",
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.6)"}
-                            onMouseLeave={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.35)"}
+                            className="h10-nav-btn"
                           >
                             <i className={icon} />
                           </button>
