@@ -83,11 +83,11 @@ const Hero10 = () => {
         }
       }
 
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         setContentVisible(true);
         transitioning.current = false;
-      }, 50);
-    }, 350);
+      });
+    }, 400);
   };
 
   const goNext = () => goTo(activeIndexRef.current + 1);
@@ -176,13 +176,18 @@ const Hero10 = () => {
           inset: 0;
           width: 100%;
           height: 100%;
-          transition: opacity 0.35s ease;
+          transition: opacity 0.4s ease, transform 0.4s ease;
+          will-change: opacity, transform;
+          backface-visibility: hidden;
+          transform: translateZ(0) scale(1);
         }
         .h10-media-wrap > .h10-media-item.fade-out {
           opacity: 0;
+          transform: translateZ(0) scale(1.02);
         }
         .h10-media-wrap > .h10-media-item.fade-in {
           opacity: 1;
+          transform: translateZ(0) scale(1);
         }
 
         /* ── Nav overlay: desktop default ── */
@@ -241,12 +246,36 @@ const Hero10 = () => {
         }
         .h10-nav-btn:hover { background: rgba(0,0,0,0.6); }
 
-        /* ── Remove blue gap below the media card ── */
+        /* ── Remove blue/white gap below the media card ──
+           zoom-on-scroll-wrapper / zoom-on-scroll in the theme often reserve
+           extra space (via padding or a scale transform on an outer box) to
+           allow the image to "zoom" without clipping. We pin that scaling to
+           the inner wrap only, and strip every layout-affecting side effect
+           from the outer wrapper and the section itself. */
         .tj-banner-section-2.h10-hero {
           padding-bottom: 0 !important;
+          margin-bottom: 0 !important;
+        }
+        .zoom-on-scroll-wrapper {
+          padding-bottom: 0 !important;
+          margin-bottom: 0 !important;
         }
         .h10-hero-banner.zoom-on-scroll {
           margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+          transform: none !important; /* stop theme JS from resizing this box on scroll */
+        }
+        .container-fluid.gap-0,
+        .container-fluid.gap-0 .row,
+        .container-fluid.gap-0 .col-12 {
+          margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+        }
+
+        /* ── Smoother entrance: fade+slide via transform/opacity only,
+           so it never shifts layout of elements below it ── */
+        .h6-hero-history.wow {
+          will-change: opacity, transform;
         }
 
         /* ── Tablet ── */
