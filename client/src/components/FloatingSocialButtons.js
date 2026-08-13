@@ -20,6 +20,13 @@ const SOCIAL_LINKS = [
     url: "mailto:research@inspireeducationservice.com",
     label: "Email",
     color: "#ea4335"
+  },
+  {
+    icon: "fas fa-file-signature",
+    url: "/application-form",
+    label: "Apply Now",
+    color: "#1a5276",
+    internal: true
   }
 ];
 
@@ -182,8 +189,8 @@ const FloatingSocialButtons = () => {
             {/* Icon */}
             <Link
               href={social.url}
-              target="_blank"
-              rel="noopener noreferrer"
+              target={social.internal ? "_self" : "_blank"}
+              rel={social.internal ? undefined : "noopener noreferrer"}
               aria-label={social.label}
               className={`fsb-btn${isScrolled ? " scrolled" : ""}`}
               style={{ background: social.color }}

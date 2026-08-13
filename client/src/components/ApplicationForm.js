@@ -31,7 +31,7 @@ const DAYS   = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
 
 const S = {
-  wrap: { background: BG_PAGE, padding: "64px 20px 80px", fontFamily: "'Segoe UI', system-ui, sans-serif", minHeight: "60vh" },
+  wrap: { background: BG_PAGE, padding: "130px 20px 80px", fontFamily: "'Segoe UI', system-ui, sans-serif", minHeight: "60vh" },
   center: { maxWidth: 720, margin: "0 auto" },
   heading: { textAlign: "center", marginBottom: 36 },
   eyebrow: { color: BRAND, fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", margin: 0 },
@@ -152,7 +152,7 @@ function DatePicker({ value, onChange, error }) {
       </div>
 
       {open && (
-        <div style={{ position:"absolute",top:"calc(100% + 6px)",left:0,zIndex:999,background:"#fff",borderRadius:14,width:300,boxShadow:"0 8px 40px rgba(26,82,118,0.18)",border:`1px solid ${BORDER}`,overflow:"hidden",fontFamily:"inherit" }}>
+        <div style={{ position:"absolute",top:"calc(100% + 6px)",left:0,zIndex:999,background:"#fff",borderRadius:14,width:300,boxShadow:"0 8px 40px rgba(26,82,118,0.18)",border:`1px solid ${BORDER}`,overflow:"hidden",fontFamily:"inherit", }}>
           {view==="day" && (<>
             <div style={{ background:BRAND,padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
               {navBtn("‹", ()=>{ curMonth===0?(setCurYear(y=>y-1),setCurMonth(11)):setCurMonth(m=>m-1); })}
