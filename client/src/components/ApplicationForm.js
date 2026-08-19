@@ -16,13 +16,12 @@ const TOTAL       = BASE_AMOUNT + GST_AMOUNT;            // 35990
 
 // ── What the program includes ────────────────────────────────────────────────
 const INCLUSIONS = [
-  " Enrolment support ",
-  "Guide Allotment Support ",
+  "Enrolment support",
+  "Guide Allotment Support",
   "Continuos Mentorship Programme",
   "Support till completion",
-  "LMS 24*7 Access ",
+  "LMS 24*7 Access",
   "Community Access",
-  
 ];
 
 const COUNTRIES = [
@@ -371,16 +370,18 @@ function PaymentStep() {
       <div style={{ borderRadius:14, overflow:"hidden", marginBottom:24, boxShadow:"0 4px 24px rgba(26,82,118,0.13)" }}>
 
         {/* Top banner */}
-        <div style={{ background:`linear-gradient(135deg, ${BRAND} 0%, #0b2d55 100%)`, padding:"20px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
-          <div>
+        <div style={{ background:`linear-gradient(135deg, ${BRAND} 0%, #0b2d55 100%)`, padding:"20px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:18 }}>
+          {/* flex:"1 1 280px" + minWidth:0 lets this column shrink and wrap its text
+              instead of forcing the price box onto its own line */}
+          <div style={{ flex:"1 1 280px", minWidth:0 }}>
             <p style={{ margin:"0 0 2px",fontSize:10,fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"rgba(255,255,255,0.6)" }}>Inspire Education Service</p>
-            <p style={{ margin:0,fontSize:16,fontWeight:800,color:"#fff" }}>Booking towards Phd Guidance Program</p>
-            {/* <p style={{ margin:"3px 0 0",fontSize:12,color:"rgba(255,255,255,0.7)" }}>Full doctoral support — topic to viva voce</p> */}
+            <p style={{ margin:0,fontSize:16,fontWeight:800,color:"#fff",lineHeight:1.3 }}>Booking towards Phd Guidance Program</p>
+            <p style={{ margin:"5px 0 0",fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.5 }}>This payment is a booking fee to secure and block your preferred slot with Inspire Education Service.</p>
           </div>
-          <div style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"10px 20px", textAlign:"center", backdropFilter:"blur(4px)" }}>
-            <p style={{ margin:"0 0 2px",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(255,255,255,0.6)" }}>Total Payable</p>
-            <p style={{ margin:0,fontSize:30,fontWeight:900,color:"#fff",letterSpacing:"-0.02em" }}>{fmt(TOTAL)}</p>
-            <p style={{ margin:"2px 0 0",fontSize:10,color:"rgba(255,255,255,0.55)" }}>incl. 18% GST</p>
+          <div style={{ flex:"0 0 auto", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"10px 20px", textAlign:"center", backdropFilter:"blur(4px)" }}>
+            <p style={{ margin:"0 0 2px",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(255,255,255,0.6)",whiteSpace:"nowrap" }}>Total Payable</p>
+            <p style={{ margin:0,fontSize:30,fontWeight:900,color:"#fff",letterSpacing:"-0.02em",whiteSpace:"nowrap",lineHeight:1.15 }}>{fmt(TOTAL)}</p>
+            <p style={{ margin:"2px 0 0",fontSize:10,color:"rgba(255,255,255,0.55)",whiteSpace:"nowrap" }}>incl. 18% GST</p>
           </div>
         </div>
 
