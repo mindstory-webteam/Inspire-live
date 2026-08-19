@@ -9,10 +9,21 @@ const BG_PAGE   = "#f4f7fb";
 const API_BASE  = process.env.NEXT_PUBLIC_API_URL || "https://www.inspireeducationservice.com/api";
 
 // ── Fee breakdown ─────────────────────────────────────────────────────────────
-const BASE_AMOUNT = 30423;   // base before GST  (30423 × 1.18 = 35,899 → round to 35,900)
+const BASE_AMOUNT = 30500;   // base before GST
 const GST_RATE    = 0.18;
-const GST_AMOUNT  = Math.round(BASE_AMOUNT * GST_RATE);  // 5477
-const TOTAL       = 35900;   // fixed to exact amount
+const GST_AMOUNT  = Math.round(BASE_AMOUNT * GST_RATE);  // 5490
+const TOTAL       = BASE_AMOUNT + GST_AMOUNT;            // 35990
+
+// ── What the program includes ────────────────────────────────────────────────
+const INCLUSIONS = [
+  " Enrolment support ",
+  "Guide Allotment Support ",
+  "Continuos Mentorship Programme",
+  "Support till completion",
+  "LMS 24*7 Access ",
+  "Community Access",
+  
+];
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Argentina","Australia","Austria","Bangladesh","Belgium",
@@ -376,7 +387,7 @@ function PaymentStep() {
         {/* Inclusions */}
         <div style={{ background:"#f0f5fa", padding:"14px 24px", borderBottom:`1px solid ${BORDER}` }}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"5px 16px" }}>
-            {["Topic & Synopsis Guidance","Chapter-wise Thesis Support","Journal Publication Help","Plagiarism Check & Correction","Statistical Analysis Support","Viva Voce Preparation"].map((item,i)=>(
+            {INCLUSIONS.map((item,i)=>(
               <p key={i} style={{ margin:0,fontSize:12,color:BRAND,display:"flex",alignItems:"center",gap:5,fontWeight:500 }}>
                 <span style={{ color:"#16a34a",fontWeight:800 }}>✓</span> {item}
               </p>
