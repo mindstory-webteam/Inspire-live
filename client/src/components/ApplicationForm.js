@@ -374,8 +374,8 @@ function PaymentStep() {
         <div style={{ background:`linear-gradient(135deg, ${BRAND} 0%, #0b2d55 100%)`, padding:"20px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
           <div>
             <p style={{ margin:"0 0 2px",fontSize:10,fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"rgba(255,255,255,0.6)" }}>Inspire Education Service</p>
-            <p style={{ margin:0,fontSize:16,fontWeight:800,color:"#fff" }}>PhD Guidance Program</p>
-            <p style={{ margin:"3px 0 0",fontSize:12,color:"rgba(255,255,255,0.7)" }}>Full doctoral support — topic to viva voce</p>
+            <p style={{ margin:0,fontSize:16,fontWeight:800,color:"#fff" }}>Booking towards Phd Guidance Program</p>
+            {/* <p style={{ margin:"3px 0 0",fontSize:12,color:"rgba(255,255,255,0.7)" }}>Full doctoral support — topic to viva voce</p> */}
           </div>
           <div style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"10px 20px", textAlign:"center", backdropFilter:"blur(4px)" }}>
             <p style={{ margin:"0 0 2px",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(255,255,255,0.6)" }}>Total Payable</p>
